@@ -7,7 +7,7 @@ import GalleryUpdate from './GalleryUpdate';
 function GalleryRoutes() {
   return (
     <Routes>
-      <Route path='/' element={<Gallery />} />
+      <Route path='' element={<Gallery />} />
       <Route path='create' element={<GalleryCreate />} />
       <Route path='update/:id' element={<GalleryUpdate />} />
     </Routes>
