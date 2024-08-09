@@ -1,38 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Box, Container, Grid } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 
 function NavBar() {
 
-  
-
   const location = useLocation();
-  const [selected, setSelected] = useState("추천모임");
+  const queryParams = new URLSearchParams(location.search);
+  const clubNumber = queryParams.get("clubNumber");
+
+
+  const [selected, setSelected] = useState("홈");
 
   // 현재 URL을 기준으로 선택된 항목을 결정
   const getSelected = () => {
     const path = location.pathname;
-    if (path.includes("home")) return "발견";
-    if (path.includes("meetingList")) return "정모일정";
-    if (path.includes("newClubList")) return "신규모임";
-    if (path.includes("class")) return "클래스";
-    if (path.includes("event")) return "이벤트";
-    return "추천모임"; // 기본값
+    if (path.includes("board")) return "게시판";
+    if (path.includes("gallery")) return "사진첩";
+    if (path.includes("chat")) return "채팅";
+    return "홈"; // 기본값
   };
 
   // 선택된 항목을 현재 URL과 비교하여 상태를 설정
-  useEffect(() => {
+  React.useEffect(() => {
     setSelected(getSelected());
   }, [location.pathname]);
 
   
   const navItems = [
-    { name: "발견", path: `/home` },
-    { name: "추천모임", path: `/clubList` },
-    { name: "정모일정", path: `/meetingList` },
-    { name: "신규모임", path: `/newClubList`}, 
-    { name: "클래스", path: `/class`}, 
-    { name: "이벤트", path: `/event`}
+    { name: "홈", path: `/clubs/main?clubNumber=${clubNumber}` },
+    { name: "게시판", path: `/clubs/board?clubNumber=${clubNumber}` },
+    { name: "사진첩", path: `/clubs/gallery?clubNumber=${clubNumber}` },
+    { name: "채팅", path: `/clubs/chat?clubNumber=${clubNumber}`}, 
   ];
 
   return (
@@ -52,7 +50,7 @@ function NavBar() {
           zIndex: 1100, // Header와 동일한 z-index로 설정
         }}
       >
-        <Container maxWidth="lg" sx={{ padding: "0px !important" }}>
+        <Container maxWidth="md" sx={{ padding: "0px !important" }}>
           <Grid
             container
             sx={{
@@ -65,7 +63,7 @@ function NavBar() {
             {navItems.map((item) => (
               <Grid
                 item
-                xs={2}
+                xs={3}
                 key={item.name}
                 component={Link} // Link 컴포넌트를 사용하여 네비게이션 처리
                 to={item.path}
@@ -74,9 +72,9 @@ function NavBar() {
                   position: "relative",
                   textDecoration: "none", // 기본 링크 스타일 제거
                   cursor: "pointer",
-                  color: selected === item.name ? "black" : "rgba(0, 0, 0, 0.6)",
+                  color: selected === item.name ? "black" : "rgba(0, 0, 0, 0.3)",
                   "&:hover": {
-                    color: "rgba(0, 0, 0, 1)",
+                    color: "gray",
                     cursor: "pointer",
                   },
                   "&::after": {

@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon src/index.js",
     "prettier:check": "prettier --check '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
     "prettier:fix": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,13 +13,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^3.2.5",
     "bcryptjs": "^2.4.3",
+    "connect-mongo": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-session": "^1.18.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.1",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.14",
     "nodemon": "^3.1.4",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
@@ -26,5 +31,6 @@
   },
   "devDependencies": {
     "prettier": "^3.3.3"
-  }
+  },
+  "proxy": "https://api.vworld.kr"
 }

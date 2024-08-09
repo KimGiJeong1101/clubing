@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import MainPage from "./main/Main";
+import MainRoutes from "./main/MainRoutes";
 import BoardRoutes from "./board/BoardRoutes";
 import GalleryRoutes from "./gallery/GalleryRoutes";
 import MeetingRoutes from "./meeting/MeetingRoutes";
@@ -8,7 +8,7 @@ import MeetingRoutes from "./meeting/MeetingRoutes";
 function ClubRoutes() {
   return (
     <Routes>
-      <Route path="main/*" element={<MainPage />} />
+      <Route path="main/*" element={<MainRoutes />} />
       <Route path="boards/*" element={<BoardRoutes />} />
       <Route path="galleries/*" element={<GalleryRoutes />} />
       <Route path="meetings/*" element={<MeetingRoutes />} />
