@@ -11,17 +11,19 @@
     "@tanstack/react-query": "^5.51.15",
     "@tanstack/react-query-devtools": "^5.51.15",
     "axios": "^1.7.2",
-    "react": "^18.3.1", 
+    "http-proxy-middleware": "^3.0.0",
+    "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-draggable": "^4.4.6",
     "react-hook-form": "^7.52.1",
     "react-icons": "^5.2.1",
     "react-redux": "^9.1.2",
     "react-router-dom": "^6.25.1",
-    "react-scripts": "5.0.1",
+    "react-scripts": "^5.0.1",
     "react-toastify": "^10.0.5",
     "redux-persist": "^6.0.0",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "webpack-manifest-plugin": "^5.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -51,8 +53,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "tailwindcss": "^3.4.4",
-    "prettier": "^3.3.3"
-  },
-  "proxy": "https://api.vworld.kr"
+    "prettier": "^3.3.3",
+    "tailwindcss": "^3.4.4"
+  }
 }

@@ -105,12 +105,11 @@ const userSchema = mongoose.Schema({
     type: Boolean,
     default: false, // 기본값은 false
   },
-  //테스트
-  cart: {
+  wish: {//모임 찜
     type: Array,
     default: [],
   },
-  history: {
+  history: {//최근 본 모임
     type: Array,
     default: [],
   },

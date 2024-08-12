@@ -8,14 +8,11 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
     setSearchTerm(e.target.value);
   };
 
-  const apiKey = process.env.REACT_APP_API_KEY;
   const port = process.env.REACT_APP_ADDRESS_API;
-  // 확인을 위한 로그 출력
-  console.log('API Key:', process.env.REACT_APP_API_KEY); // undefined 확인
 
   useEffect(() => {
     if (searchTerm) {
-      fetch(`/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${searchTerm}`)
+      fetch(`api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${searchTerm}`)
         .then(response => response.json())
         .then(data => {
             if (data.response && data.response.status === 'OK' && data.response.result && data.response.result.featureCollection.features) {
