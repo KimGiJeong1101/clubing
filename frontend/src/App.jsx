@@ -14,6 +14,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import { authUser } from "./store/actions/userActions";
 import "./App.css";
+import ClubCreate from "./pages/club/ClubCreate";
 
 function App() {
   const dispatch = useDispatch();
@@ -52,6 +53,7 @@ function App() {
 
         {/* 로그인한 사람만 갈 수 있는 경로 */}
         <Route element={<ProtectedRoutes isAuth={isAuth} />}>
+          <Route path="/clubs/create" element={<ClubCreate />} />
           <Route path="/protected" element={<ProtectedPage />} />
         </Route>
 

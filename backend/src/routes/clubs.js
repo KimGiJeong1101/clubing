@@ -1,6 +1,7 @@
 const express = require('express');
 const Club = require('../models/Club');
 const Meeting = require('../models/Meeting');
+const sessionAuth = require('../middleware/sessionAuth');
 const router = express.Router();
 
 
@@ -17,18 +18,17 @@ router.get('/', async (req, res, next) => {
 })
 
 //클럽 만들기(POST)
-router.post('/create', async (req, res, next) => {
+router.post('/create',sessionAuth, async (req, res, next) => {
     try {
+        console.log('오나 여기는 create');
+        console.log(req.body);
+        console.log('req.user.email' + req.user.email);
+        console.log('req.user.email' + req.user.email);
         //region 서울시 동작구 노량진동 이런거 띄어쓰기 단위로 잘라서 객체화 !!
-        let region = req.body.region.split(' ');//지역나누기
-        const addressObject = {
-            city: region[0],
-            district: region[1],
-            neighborhood: region[2]
-        };
-        req.body.region = addressObject;
-        //region 서울시 동작구 노량진동 이런거 띄어쓰기 단위로 잘라서 객체화 !!.end
-
+        req.body.admin=req.user.email;// 방장 적용
+        let a = [];
+        a.push(req.user.email)
+        req.body.member = a;
         //서브카테고리 나누기
         let subCategory = req.body.subCategory.split('/');
         req.body.subCategory = subCategory;
@@ -80,16 +80,16 @@ router.delete('/delete/:id', async (req, res, next) => {
     }
 })
 
-router.post('/update/:id', async (req, res, next) => {
+router.post('/update/:clubNumber', async (req, res, next) => {
     try {
 
         //서브카테고리 나누기
         let subCategory = req.body.subCategory.toString().split(',');
         //서브카테고리 나누기.end
         console.log(req.body);
-        req.body.subCategory = subCategory
+        req.body.subCategory = subCategory;
         const updatedClub = await Club.findByIdAndUpdate(
-            req.params.id,
+            req.params.clubNumber,
             req.body,
             { new: true } // 업데이트 후 새 객체를 반환
         );

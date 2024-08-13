@@ -60,6 +60,7 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
         value={searchTerm}
         onChange={handleSearch}
         onKeyDown={handleKeyDown}
+        placeholder='*동을 입력해주세요'
       />
       <ul>
         {results.map((item, index) => (

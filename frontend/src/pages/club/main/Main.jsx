@@ -3,16 +3,31 @@ import {
   AvatarGroup,
   Box,
   Button,
+  Checkbox,
   Container,
   Fab,
   Grid,
   Menu,
   MenuItem,
+  Modal,
   Paper,
+  TextField,
   Typography,
 } from "@mui/material";
+import { MuiFileInput } from "mui-file-input";
+import BrushIcon from "@mui/icons-material/Brush";
+import ScubaDivingIcon from "@mui/icons-material/ScubaDiving";
+import FastfoodIcon from "@mui/icons-material/Fastfood";
+import StarIcon from "@mui/icons-material/Star";
+import FlightIcon from "@mui/icons-material/Flight";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import Diversity3Icon from "@mui/icons-material/Diversity3";
+import CelebrationIcon from "@mui/icons-material/Celebration";
+import SavingsIcon from "@mui/icons-material/Savings";
+import CastForEducationIcon from "@mui/icons-material/CastForEducation";
+import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
 import { useQuery } from "@tanstack/react-query";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import club from "../../../data/Club.js";
 import WhereToVoteIcon from "@mui/icons-material/WhereToVote";
@@ -21,36 +36,146 @@ import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { useForm } from "react-hook-form";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import dayjs from "dayjs";
+import "dayjs/locale/ko"; // 한국어 로케일 import
+import axiosInstance from "./../../../utils/axios";
+import { fetchMeetingList } from "../../../store/reducers/clubReducer.js";
+dayjs.locale("ko");
 
 const Main = () => {
-  //스크롤 위로
+  const [key, setKey] = useState(0);
+  const dispatch = useDispatch();
+  //Clubmember=3 이란 거 가져오기 위해서!
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const clubNumber = queryParams.get("clubNumber");
+
+  //정기모임 글 등록, 두번쨰 모달
+  
+  const [dateTime, setDateTime] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const [category, setCategory] = useState("");
+  const checkedChange = (event) => {
+    setChecked(event.target.checked);
+  };
+
+  const [secondModal, setSecondModal] = useState(false);
+  const secondModalClose = () => {
+    setSecondModal(false);
+  };
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({ mode: "onChange" });
+
+  const onSubmit = (data) => {
+    console.log(dateTime.$d);
+    data.dateTime = dateTime.$d.toString();
+    data.alertAll = checked;
+    data.category = category;
+    console.log(data);
+    data.clubNumber = clubNumber;
+    axiosInstance
+      .post("http://localhost:4000/meetings/create", data)
+      .then((response) => {
+        console.log(response.data);
+        alert("모임 만들기에 성공하쎴음");
+        navigate(`/clubs/main?clubNumber=${clubNumber}`);
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("모임 만들기에 실패함");
+      });
+  };
+  //정기모임 글 등록, 두번쨰 모달 .end
+
+  //파일
+  const [locationImg, setLocationImg] = useState(null);
+  const handleLocationImgChange = (locationImg) => {
+    setLocationImg(locationImg);
+  };
+  //파일.end
+  const [value, setValue] = useState(0);
+  const [list, setList] = useState(club);
+
+  const handleChange = (event, newValue) => {
+    let copy = [];
+    for (let i = 0; i < club.length; i++) {
+      if (club[i].detailTag == value) {
+        copy.push(club[i]);
+        setList(copy);
+      }
+    }
+    setValue(newValue);
+  };
+
+  //모달창관련 스위치 및 State
+  const [open, setOpen] = useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleCloseModal = () => setOpen(false);
+  const fadStyle = {
+    fontSize: "1.8rem",
+    width: "70px",
+    height: "70px",
+    margin: "15px 0px 10px 0px",
+  };
+  const FadHandleClick = (event) => {
+    const ariaLabel = event.currentTarget.getAttribute("aria-label");
+    setCategory(ariaLabel);
+    console.log(`잘나오나  ${ariaLabel}`);
+    setOpen(false);
+    setSecondModal(true);
+  };
+  //모달창관련.end
+
+  //현재 로그인 정보 가져오기 리덕스로부터 and meeting 정보가져오기
+  const user = useSelector((state) => state.user);
+  const meetingList = useSelector((state) => state.meetingList);
+  const [meeetingListBoolean, setMeeetingListBoolean] = useState([]);
+  useEffect(() => {
+
+    dispatch(fetchMeetingList(clubNumber));
+    let copy = [];
+    for (let i = 0; i < meetingList.meetings.length; i++) {
+      if (meetingList.meetings[i].joinMember.includes(user.userData.email)) {
+        copy.push(true);
+      } else {
+        copy.push(false);
+      }
+    }
+    console.log(copy + "copy");
+    setMeeetingListBoolean(copy);
+
+    console.log(meeetingListBoolean);
+  }, [clubNumber]);
 
   //미팅 지우기
   const deleteMeeting = async (meetingNumber) => {
     const response = await fetch(
       `http://localhost:4000/meetings/delete/` + meetingNumber
     );
-    if (response.data) {
-      alert("삭제 성공~");
-      window.location.reload();
-    } else {
-      alert("삭제 실패함");
-      window.location.reload();
-    }
+    console.log(response.data);
+    window.location.reload();
   };
   //미팅 지우기.end
-
-  //Clubmember=3 이란 거 가져오기 위해서!
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const clubNumber = queryParams.get('clubNumber');
 
   //이미지를 위해서
   const [club2] = useState(club);
   const navigate = useNavigate();
 
   const getReadClub = async () => {
-    const response = await fetch(`http://localhost:4000/clubs/read2/${clubNumber}`);
+    const response = await fetch(
+      `http://localhost:4000/clubs/read2/${clubNumber}`
+    );
     const data = await response.json();
     console.log(data);
     return data;
@@ -77,7 +202,7 @@ const Main = () => {
   };
 
   const handleUpdate = () => {
-    navigate(`/clubs/update/${clubNumber}`);
+    navigate(`/clubs/main/update?clubNumber=${clubNumber}`);
     handleClose();
   };
 
@@ -87,13 +212,51 @@ const Main = () => {
       await axios.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
       console.log("모임 삭제");
       // 삭제 후 원하는 페이지로 이동
-      navigate("/clubs");
+      navigate("/clublist");
+      alert("삭제 완료");
     } catch (error) {
       console.error("삭제 실패:", error);
     }
     handleClose();
   };
-  //////
+
+  //정모 참석하기 버튼 눌렀을 때 , 콜백함수
+  const meetingJoin = (meetingId) => {
+    if (!user.userData.email) {
+      alert("로그인이 필요한 서비스 입니다.");
+      navigate("/login");
+    } else {
+      axiosInstance
+        .post(`/meetings/join/${meetingId}`)
+        .then((response) => {
+          dispatch(fetchMeetingList(clubNumber));
+          let copy = [];
+          for (let i = 0; i < meetingList.meetings.length; i++) {
+            if (
+              meetingList.meetings[i].joinMember.includes(user.userData.email)
+            ) {
+              copy.push(true);
+            } else {
+              copy.push(false);
+            }
+          }
+          console.log(copy + "copy");
+          setMeeetingListBoolean(copy);
+          console.log(response.data.message);
+          if (response.data.message === "참석 취소") {
+            alert("참석 취소");
+          } else {
+            alert("참석 성공");
+          }
+          navigate('/mypage/wish');
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("참석 실패");
+        });
+    }
+  };
+  //////리엑트 쿼리
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -103,8 +266,399 @@ const Main = () => {
   }
 
   return (
-    <Box sx={{backgroundColor: "#F4F4F4"}}>
-      <Container maxWidth="md" sx={{ padding:'0px !important', }}>
+    <Box sx={{ backgroundColor: "#F4F4F4" }}>
+      {/* 모달창 */}
+      <Modal
+        open={open}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            height: 430,
+            width: 600,
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Typography
+            id="modal-modal-title"
+            variant="h5"
+            component="h2"
+            sx={{ textAlign: "center" }}
+          >
+            관심사 선택
+          </Typography>
+          <hr />
+          <Grid container spacing={2}>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="0"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "green" }}
+              >
+                <BrushIcon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="1"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "blue" }}
+              >
+                <ScubaDivingIcon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="2"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "#B2561A" }}
+              >
+                <FastfoodIcon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="3"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "yellow" }}
+              >
+                <StarIcon />
+              </Fab>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={3} sx={{ margin: "0px 30px 0px 0xp" }}>
+              <Typography sx={{ textAlign: "center" }}>문화·예술</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>액티비티</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>푸드·드링크</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>취미</Typography>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="4"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "skyblue" }}
+              >
+                <FlightIcon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="5"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "brown" }}
+              >
+                <MenuBookIcon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="6"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "#D6B095" }}
+              >
+                <Diversity3Icon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="7"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "#B855B9" }}
+              >
+                <CelebrationIcon />
+              </Fab>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={3} sx={{ margin: "0px 30px 0px 0xp" }}>
+              <Typography sx={{ textAlign: "center" }}>여행·동행</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>자기계발</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>동네·또래</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>파티·게임</Typography>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="8"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "#F47378" }}
+              >
+                <SavingsIcon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab aria-label="9" onClick={FadHandleClick} sx={fadStyle}>
+                <CastForEducationIcon />
+              </Fab>
+            </Grid>
+            <Grid
+              item
+              xs={3}
+              container
+              justifyContent="center"
+              alignItems="center"
+            >
+              <Fab
+                aria-label="10"
+                onClick={FadHandleClick}
+                sx={fadStyle}
+                style={{ color: "red" }}
+              >
+                <FavoriteOutlinedIcon />
+              </Fab>
+            </Grid>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid item xs={3} sx={{ margin: "0px 30px 0px 0xp" }}>
+              <Typography sx={{ textAlign: "center" }}>재테크</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>외국어</Typography>
+            </Grid>
+            <Grid item xs={3}>
+              <Typography sx={{ textAlign: "center" }}>연애·사랑</Typography>
+            </Grid>
+          </Grid>
+        </Box>
+      </Modal>
+      {/* 모달창.end */}
+      {/* 모달창.end */}
+      {/* 모달창.end */}
+      {/* 모달창.end */}
+      {/* 모달창.end */}
+
+      {/* 2번째 글등록 모달창 */}
+      {/* 2번째 글등록 모달창 */}
+      {/* 2번째 글등록 모달창 */}
+      {/* 2번째 글등록 모달창 */}
+
+      <Modal
+        component="form"
+        onSubmit={handleSubmit(onSubmit)}
+        open={secondModal}
+        onClose={secondModalClose}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            height: 430,
+            width: 600,
+            bgcolor: "background.paper",
+            border: "2px solid #000",
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <Grid container spacing={2}>
+            <Grid item xs={5}>
+              <MuiFileInput
+                inputProps={{ accept: "image/png, image/gif, image/jpeg" }}
+                value={locationImg}
+                onChange={handleLocationImgChange}
+                multiple
+                size="small"
+                fullWidth
+                sx={{
+                  width: "100%",
+                  height: "90%",
+                  "& .MuiInputBase-root": { height: "100%" },
+                }}
+              />
+            </Grid>
+            <Grid item xs={7} container spacing={1}>
+              <Grid item xs={12}>
+                <TextField
+                  id="title"
+                  label="정모 제목"
+                  multiline
+                  sx={{ width: "100%", mb: 2 }}
+                  {...register("title", { required: " 필수입력 요소." })}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <DemoContainer components={["DateTimePicker"]}>
+                    <DateTimePicker
+                      id="dateTime"
+                      label="만나는 날짜 및 시간"
+                      onChange={(date) => {
+                        setDateTime(date);
+                      }}
+                    />
+                  </DemoContainer>
+                </LocalizationProvider>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  id="cost"
+                  label="비용"
+                  multiline
+                  sx={{ width: "100%", mb: 2 }}
+                  {...register("cost", { required: " 필수입력 요소." })}
+                />
+              </Grid>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                id="where"
+                label="위치"
+                multiline
+                placeholder="모임 장소를 입력하세요"
+                sx={{ width: "100%", mb: 2 }}
+                {...register("where", { required: " 필수입력 요소." })}
+              />
+            </Grid>
+            <Grid container spacing={1} sx={{ marginLeft: "3px" }}>
+              <Grid
+                item
+                xs={4}
+                sx={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <TextField
+                  id="totalCount"
+                  label="인원 수"
+                  placeholder="숫자만 입력하세요"
+                  multiline
+                  sx={{ width: "100%", mb: 2 }}
+                  {...register("totalCount", { required: " 필수입력 요소." })}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Box sx={{ textAlign: "right" }}>
+                  <Typography sx={{ fontSize: "20px", paddingTop: "15px" }}>
+                    정모 공지{" "}
+                    <span style={{ color: "gray" }}>(전체 멤버 알림)</span>
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={2} sx={{ marginLeft: "0px" }}>
+                <Checkbox
+                  sx={{ "& .MuiSvgIcon-root": { fontSize: 40 } }}
+                  onChange={checkedChange}
+                />
+              </Grid>
+            </Grid>
+            <Grid
+              item
+              xs={12}
+              sx={{
+                justifyContent: "center",
+                alignItems: "center",
+                textAlign: "center",
+              }}
+            >
+              <Button type="submit" variant="contained" sx={{ width: "100%" }}>
+                등록하기
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Modal>
+      {/* 2번째 글등록 모달창.end */}
+      {/* 2번째 글등록 모달창.end */}
+      {/* 2번째 글등록 모달창.end */}
+
+      <Container maxWidth="md" sx={{ padding: "0px !important" }}>
         <Grid item xs={12}>
           <Box
             sx={{
@@ -130,33 +684,36 @@ const Main = () => {
           </Box>
         </Grid>
       </Container>
-      <Container
-        maxWidth="md"
-        sx={{ backgroundColor: "white" }}
-      >
-          <Fab
-            onClick={handleClick}
-            color="primary"
-            aria-label="add"
-            style={{
-              position: "fixed",
-              bottom: "200px",
-              right: "100px",
-            }}
-          >
-            <AddIcon />
-          </Fab>
-          <Menu
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-          >
-            <MenuItem onClick={handleUpdate}>모임 및 게시글 수정</MenuItem>
-            <MenuItem onClick={handleDelete}>모임 삭제</MenuItem>
-          </Menu>
-          {/* 모달창 버튼.end */}
-          <Grid item xs={12} sx={{paddingLeft:'20px',paddingRight:'20px'}}>
-          <Grid container >
+      <Container maxWidth="md" sx={{ backgroundColor: "white" }}>
+        {/* 모달창 버튼*/}
+        {readClub.admin === user.userData.email && (
+          <>
+            <Fab
+              onClick={handleClick}
+              color="primary"
+              aria-label="add"
+              style={{
+                position: "fixed",
+                bottom: "200px",
+                right: "100px",
+              }}
+            >
+              <AddIcon />
+            </Fab>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+            >
+              <MenuItem onClick={handleUpdate}>모임 및 게시글 수정</MenuItem>
+              <MenuItem onClick={handleDelete}>모임 삭제</MenuItem>
+            </Menu>
+          </>
+        )}
+
+        {/* 모달창 버튼.end */}
+        <Grid item xs={12} sx={{ paddingLeft: "20px", paddingRight: "20px" }}>
+          <Grid container>
             <Grid item xs={1}>
               <Box
                 sx={{
@@ -181,7 +738,7 @@ const Main = () => {
                 </Typography>
               </Grid>
               <Grid item xs={12}>
-                호스트 <b> 묭이</b>
+                호스트 <b> {readClub.admin}</b>
               </Grid>
             </Grid>
           </Grid>
@@ -225,7 +782,51 @@ const Main = () => {
             정기적으로 모임을 가지고 있어요
           </Typography>
           {/* 정기 모임 */}
-          {readClub.meeting.length === 0 && <Box>아직 정기모임이 없습니다.</Box>}
+          {readClub.meeting.length === 0 &&
+            user.userData.email !== readClub.admin && (
+              <Box>아직 정기모임이 없습니다.</Box>
+            )}
+          {readClub.meeting.length === 0 &&
+            user.userData.email === readClub.admin && (
+              <Grid container spacing={2}>
+                <Grid item xs={12} sx={{ marginBottom: "30px" }}>
+                  <Paper
+                    elevation={5}
+                    sx={{
+                      padding: "16px",
+                      display: "flex",
+                      borderRadius: "20px",
+                    }}
+                  >
+                    <Grid container spacing={1}>
+                      <Grid
+                        item
+                        xs={12}
+                        sx={{ fontWeight: 600, fontSize: "18px" }}
+                      >
+                        아직 정모가 없어요!
+                      </Grid>
+                      <Grid item xs={12} sx={{ marginBottom: "35px" }}>
+                        정모를 만들어보세요
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Button
+                          variant="contained"
+                          onClick={handleOpen}
+                          sx={{
+                            width: "100%",
+                            fontSize: "18px",
+                            borderRadius: "15px",
+                          }}
+                        >
+                          정모 만들기
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                </Grid>
+              </Grid>
+            )}
           {readClub.meeting.map((a, i) => {
             return (
               <Grid container spacing={1} key={i}>
@@ -268,25 +869,33 @@ const Main = () => {
                     </Grid>
                     <Grid item xs={12} sm={12} md={8}>
                       <Grid
-                      item
+                        item
                         xs={12}
                         sx={{ display: "flex", justifyContent: "flex-end" }}
                       >
                         <Button
-                          variant="contained"
-                          sx={{ borderRadius: "20px" }}
-                        >
-                          참석하기
-                        </Button>
-                        <Button
-                          variant="outlined"
                           onClick={() => {
-                            deleteMeeting(readClub.meeting[i]._id);
+                            console.log(readClub.meeting[i]._id);
+                            meetingJoin(readClub.meeting[i]._id);
                           }}
+                          variant={
+                            meeetingListBoolean[i] ? "outlined" : "contained"
+                          }
                           sx={{ borderRadius: "20px" }}
                         >
-                          삭제하기
+                          {meeetingListBoolean[i] ? "취소" : "참석하기"}
                         </Button>
+                        {user.userData.email === readClub.admin && (
+                          <Button
+                            variant="outlined"
+                            onClick={() => {
+                              deleteMeeting(readClub.meeting[i]._id);
+                            }}
+                            sx={{ borderRadius: "20px" }}
+                          >
+                            삭제하기
+                          </Button>
+                        )}
                       </Grid>
                       <Typography
                         variant="h5"
@@ -341,7 +950,7 @@ const Main = () => {
                           <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
                           <span style={{ marginLeft: "5px" }}>
                             {" "}
-                            {readClub.meeting[i].joinCount}/
+                            {readClub.meeting[i].joinMember.length}/
                             {readClub.meeting[i].totalCount}
                           </span>
                         </Box>
@@ -354,7 +963,18 @@ const Main = () => {
           })}
 
           {/* 비슷한 클럽.end */}
-
+          {readClub.meeting.length !== 0 &&
+            user.userData.email === readClub.admin && (
+              <Grid item xs={12}>
+                <Button
+                  variant="contained"
+                  onClick={handleOpen}
+                  sx={{ width: "100%", fontSize: "18px", borderRadius: "15px" }}
+                >
+                  정모 만들기
+                </Button>
+              </Grid>
+            )}
           <Typography
             sx={{
               fontSize: "14px",
@@ -398,7 +1018,7 @@ const Main = () => {
                     letterSpacing: "-.1rem",
                   }}
                 >
-                  묭이
+                  {readClub.admin}
                 </Typography>
               </Grid>
               <Grid item xs={12}>
@@ -411,9 +1031,12 @@ const Main = () => {
           <Grid
             item
             xs={12}
-            sx={{ backgroundColor: "#feebea", height: "200px",borderRadius:'20px' }}
-          >
-          </Grid>
+            sx={{
+              backgroundColor: "#feebea",
+              height: "200px",
+              borderRadius: "20px",
+            }}
+          ></Grid>
           <Typography
             sx={{
               fontSize: "14px",
