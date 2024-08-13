@@ -7,7 +7,7 @@ import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persis
 const persistConfig = {
   key: "root",
   storage: storage,
-  whitelist: ["foodList"],
+  whitelist: ["user","club", "getClub", "meetingList"],
 };
 
 const rootReducer = combineReducers({
