@@ -8,10 +8,7 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
     setSearchTerm(e.target.value);
   };
 
-  const apiKey = process.env.REACT_APP_API_KEY;
   const port = process.env.REACT_APP_ADDRESS_API;
-  // 확인을 위한 로그 출력
-  console.log('API Key:', process.env.REACT_APP_API_KEY); // undefined 확인
 
   useEffect(() => {
     if (searchTerm) {

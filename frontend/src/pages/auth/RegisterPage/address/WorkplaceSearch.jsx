@@ -8,7 +8,6 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
     setWorkplaceSearchTerm(e.target.value);
   };
 
-  const apiKey = process.env.REACT_APP_API_KEY;
   const port = process.env.REACT_APP_ADDRESS_API;
 
   useEffect(() => {

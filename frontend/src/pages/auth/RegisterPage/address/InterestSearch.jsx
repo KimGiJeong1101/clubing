@@ -8,7 +8,6 @@ const InterestSearch = ({ setInterestSido, setInterestSigoon, setInterestDong })
     setInterestSearchTerm(e.target.value);
   };
 
-  const apiKey = process.env.REACT_APP_API_KEY;
   const port = process.env.REACT_APP_ADDRESS_API;
 
   useEffect(() => {
