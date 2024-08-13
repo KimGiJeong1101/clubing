@@ -21,6 +21,11 @@ const userSchema = mongoose.Schema({
     required: true, // 이름은 필수입니다.
     maxLength: 20, // 최대 길이 제한이 있습니다.
   },
+  nickName: {
+    type: String,
+    required: true, // 이름은 필수입니다.
+    maxLength: 20, // 최대 길이 제한이 있습니다.
+  },
   age: {
     type: {
       year: { type: Number }, // 생년
@@ -105,12 +110,11 @@ const userSchema = mongoose.Schema({
     type: Boolean,
     default: false, // 기본값은 false
   },
-  //테스트
-  cart: {
+  wish: {//모임 찜
     type: Array,
     default: [],
   },
-  history: {
+  history: {//최근 본 모임
     type: Array,
     default: [],
   },
