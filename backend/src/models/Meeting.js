@@ -25,9 +25,9 @@ const meetingSchema = mongoose.Schema({
     totalCount: {
         type: Number // 전체 인원수
     },
-    joinCount : {
-        type: Number, // 참여 인원수
-        default : 0
+    joinMember : {
+        type: [String], // 참여 인원 이메일
+        default : []
     },
     cost : {
         type : String // 비용

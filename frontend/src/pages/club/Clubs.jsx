@@ -40,7 +40,7 @@ const Clubs = () => {
 
     let copy = [];
     for (let i = 0; i < club.length; i++) {
-      if (club[i].detailTag == value) {
+      if (club[i].detailTag === value) {
         copy.push(club[i]);
         setList(copy);
       }

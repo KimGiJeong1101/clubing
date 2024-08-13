@@ -1,4 +1,4 @@
-import React from "react";
+import React ,{ useEffect } from "react";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -8,10 +8,14 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useNavigate } from "react-router-dom";
-
+import { useSelector } from "react-redux";
 function Header() {
   //스크롤에 따라 보이고 안보이고 
+const homeLocation = useSelector((state) => state.user.userData.homeLocation);
 
+// useEffect(()=>{
+  
+// },[homeLocation])
   const navigate = useNavigate();
   
   return (
@@ -50,7 +54,8 @@ function Header() {
               component="div"
               sx={{ flexGrow: 1, color: "black" }}
             >
-              로그인 하러 가기
+              {homeLocation && <p>{homeLocation}</p>}
+              {!homeLocation && <p>로그인 정보가 없습니다.</p>}
             </Typography>
             <Button variant="" onClick={() => {
                 navigate('/login');
