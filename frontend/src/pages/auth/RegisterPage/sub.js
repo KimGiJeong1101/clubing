@@ -13,7 +13,7 @@ import axios from 'axios';
 import TermsPopup from './consent/Terms' ;
 import PrivacyPopup from './consent/Privacy';
 import MarketingPopup from './consent/Marketing';
-import { TextField, Button, Typography, Box, FormControl, FormControlLabel, Checkbox, Select, MenuItem, InputLabel } from '@mui/material';
+
 
 const RegisterPage = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = 
@@ -39,7 +39,7 @@ const RegisterPage = () => {
     console.log('폼 제출 데이터:', data);
     const { email, password, name, age = {}, 
             gender, homeLocation = {}, workplace = {}, interestLocation = {}, 
-            category = [], selectedJobs = [], phone = '', nickName } = data;
+            category = [], selectedJobs = [], phone = '', } = data;
             
     //console.log('Checked asdasd:', checked); 
 
@@ -82,7 +82,6 @@ const RegisterPage = () => {
       email,
       password,
       name,
-      nickName,
       age: {
         year,
         month,
@@ -150,25 +149,18 @@ const RegisterPage = () => {
   };
 
   // 이름 유효성 검사 규칙
-  const validateUserName = (name) => {
-    // 최대 길이 검증
-    if (name.length > 20) {
-      return "최대 20자입니다.";
+  const userName = {
+    required: "필수 필드입니다.",
+    maxLength: {
+      value: 20,
+      message: "최대 20자입니다."
+    },
+    pattern: {
+      value: /^[^0-9]*$/,
+      message: "숫자는 들어갈 수 없습니다."
     }
-    // 숫자 검증
-    if (/[0-9]/.test(name)) {
-      return "숫자는 들어갈 수 없습니다.";
-    }
-    // 특수문자 검증
-    if (/[^a-zA-Z가-힣ㄱ-ㅎㅏ-ㅣ\s]/.test(name)) {
-      return "특수문자는 들어갈 수 없습니다.";
-    }
-    // 자음/모음 검증
-    if (/[ㄱ-ㅎㅏ-ㅣ]/.test(name)) {
-      return "자음과 모음은 들어갈 수 없습니다.";
-    }
-    return true; // 모든 검증을 통과한 경우
   };
+
   // 비밀번호 유효성 검사 규칙
   const userPassword = {
     required: "필수 필드입니다.",
@@ -177,6 +169,7 @@ const RegisterPage = () => {
       message: "최소 6자입니다."
     },validate: value => {
       // 비밀번호 유효성 검사 정규 표현식
+       // 비밀번호 유효성 검사 정규 표현식
        const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
        if (!regex.test(value)) {
          return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
@@ -303,12 +296,11 @@ useEffect(() => {
   const [authNumber, setAuthNumber] = useState('');
 
   const handleCheckDuplicate = async () => {
-     // 이메일 주소가 null이거나 빈 문자열인 경우 처리
+    // 이메일 주소가 null이거나 빈 문자열인 경우 처리
     if (!emailValue || emailValue.trim() === '') {
       alert('이메일 주소를 입력해주세요.'); // 사용자에게 이메일 입력을 요청하는 얼럿 표시
       return; // 오류가 있을 경우 함수 실행 중지
     }
-
     if (errors.email) {
       // 이메일 필드에 오류가 있을 경우 얼럿을 띄움
       alert('유효한 이메일 주소를 입력하세요.');
@@ -331,14 +323,12 @@ useEffect(() => {
 const handleSendAuthEmail = async () => {
   try {
       const response = await axios.post(`${apiUrl}/users/email-auth`, { email: emailValue });
-      console.log('API asdaaaa응답:', response.data);
+      console.log('API aaaa응답:', response.data);
       if (response.data.ok) {
-        console.log('인증 성공 데이터:', response.data); // 인증 성공 시 로그 추가     
         setCodeId(response.data.codeId); // 서버로부터 받은 codeId를 상태에 저장
         setAuthNumber(response.data.authNum); // 서버로부터 받은 인증번호를 상태에 저장
         setMessage('인증번호가 전송되었습니다.');
       } else {
-        console.error('서버 오류 응답:', response.data.msg); // 오류 로그 추가
           setError(response.data.msg);
       }
   } catch (err) {
@@ -361,7 +351,7 @@ const [verifyError, setVerifyError] = useState('');
                 inputCode: verificationCode,
                 email: emailValue 
             });
-            console.log('인증 번호 확인 응답:', response.data); // 서버 응답 확인
+
             if (response.data.ok) {
                 // 인증 성공
                 setIsVerified(true); 
@@ -372,7 +362,7 @@ const [verifyError, setVerifyError] = useState('');
                 setVerifyError(response.data.msg);
             }
         } catch (err) {
-          console.error('인증 번호 확인 에러:', err); // 에러 확인
+            console.error(err); // 오류 자세히 확인
             setVerifyError('인증번호가 틀렸습니다.');
         }
     }
@@ -435,113 +425,87 @@ const consentPopupClose = (type) => {
 
 
   return (
-    <Box 
-      sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'center', 
-          mt: 5, 
-          maxWidth: 400, 
-          mx: 'auto' }}>
-    <Box 
-      sx={{ 
-        p: 3, 
-        bgcolor: 'white', 
-        borderRadius: 2, 
-        boxShadow: 3 
-        }}>
-      <Typography variant="h4" component="h1" align="center">
-        회원가입
-      </Typography>
+    <section className='flex flex-col justify-center mt-20 max-w-[400px] m-auto'>
+      <div className='p-6 bg-white rounded-md shadow-md'>
+        <h1 className='text-3xl font-semibold text-center'>
+          회원가입
+        </h1>
         <form className="mt-6" onSubmit={handleSubmit(onSubmit)}>
-        <Box sx={{ mb: 2 }}>
-      <Typography variant="body2" component="label" htmlFor="email" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-        이메일
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-        <TextField
-          type="email"
-          id="email"
-          variant="outlined"
-          fullWidth
-          {...register('email', userEmail )}
-          InputProps={{
-            readOnly: isEmailChecked,
-            sx: {
-              bgcolor: isEmailChecked ? 'grey.200' : 'white',
-              '& .MuiInputBase-input': {
-                color: isEmailChecked ? 'text.disabled' : 'text.primary',
-              },
-            },
-          }}
-          sx={{ flex: 1, mr: 1 }}
+          <div className="mb-2">
+            <label htmlFor="email" className="text-sm font-semibold text-gray-800">
+              이메일
+            </label>
+            <div className="flex flex-1 items-center">
+            <input
+            type="email"
+            id="email"
+            className={`flex-1 px-4 py-2 mt-2 border rounded-md ${
+              isEmailChecked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white'
+            }`}
+            readOnly={isEmailChecked}
+            {...register('email' , userEmail)} // register 함수 적용 (이메일 유효성 검사 등을 위해)
+            // ('email' , userEmail)여기서 'email' 와치가 이거보고 쓴뎅
         />
-        <Button
-          variant="contained"
-          color={isEmailChecked ? 'success' : 'primary'}
-          onClick={isEmailChecked ? handleSendAuthEmail : handleCheckDuplicate}
-          sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정
-        >
-          {isEmailChecked ? '인증하기' : '중복검사'}
-        </Button>
-      </Box>
-      {error && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {error}
-        </Typography>
-      )}
-      {message && (
-        <Typography color="success" sx={{ mt: 1 }}>
-          {message}
-        </Typography>
-      )}
-      {errors?.email && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {errors.email.message}
-        </Typography>
-      )}
-    </Box>
+            <button
+                type='button'
+                className={`ml-2 px-4 py-2 rounded-md 
+                ${isEmailChecked ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
+                onClick={isEmailChecked ? handleSendAuthEmail : handleCheckDuplicate}
+              >
+                {isEmailChecked ? '인증하기' : '중복검사'}
+              </button>
+            </div>
+            {error && (
+              <div>
+                <span className="text-red-500">{error}</span>
+              </div>
+            )}
+            {message && (
+              <div>
+                <span className="text-green-500">{message}</span>
+              </div>
+            )}
+            {errors?.email && (
+              <div>
+                <span className='text-red-500'>{errors.email.message}</span>
+              </div>
+            )}
+            {/* 유효성 통과 못 햇을 시 에러 메시지 */}
+          </div>
 {/* 인증번호 */}
-<Box sx={{ mb: 2 }}>
-      <Typography variant="body2" component="label" htmlFor="verification" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-        인증번호
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-        <TextField
-          type="text"
-          id="verification"
-          value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value)}
-          fullWidth
-          sx={{
-            flex: 1,
-            mr: 1,
-            bgcolor: isVerified ? 'grey.200' : 'white',
-            '& .MuiInputBase-input': {
-              color: isVerified ? 'text.disabled' : 'text.primary',
-            },
-            boxSizing: 'border-box', // 패딩이 높이에 영향을 미치지 않도록
-          }}
-          InputProps={{
-            readOnly: isVerified,
-          }}
-        />
-        <Button
-          variant="contained"
-          color={isVerified ? 'grey' : 'primary'}
-          onClick={handleVerifyClick}
-          disabled={isVerified}
-          sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정하여 텍스트 필드와 높이를 맞춤
-        >
-          {isVerified ? '인증확인' : '인증완료'}
-        </Button>
-      </Box>
-      {verifyError && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {verifyError}
-        </Typography>
-      )}
-    </Box>
+        <div className="mb-2">
+            <label htmlFor="verification" className="text-sm font-semibold text-gray-800">
+              인증번호
+            </label>
+            <div className="flex flex-1 items-center">
+            <input
+              type="text"
+              // input 태그에 type="email" 속성을 추가하면, 브라우저가 기본적으로 이메일 형식에 대한 유효성 검사를 수행합니다.
+              id='verification'
+              className={`flex-1 px-4 py-2 mt-2 border rounded-md ${
+                isVerified ? 'bg-gray-200 text-gray-500' : 'bg-white'
+            }`}
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              readOnly={isVerified} // 인증 성공 시 읽기 전용
+            />
+            <button
+                type='button'
+                className={`ml-2 px-4 py-2 text-white rounded-md ${
+                  isVerified ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+                onClick={handleVerifyClick}
+                disabled={isVerified}
+              >
+                {isEmailChecked ? '인증확인' : '인증완료'}
+              </button>
+            </div>
+            {verifyError && (
+            <div>
+                <span className='text-red-500'>{verifyError}</span>
+            </div>
+            )}
+          </div>
 {/* 비밀번호 */}
           <div className="mb-2">
             <label htmlFor="password" className="text-sm font-semibold text-gray-800">
@@ -575,7 +539,6 @@ const consentPopupClose = (type) => {
               </div>
             )}
           </div>
-{/*이름 */}          
           <div className="mb-2">
             <label htmlFor="name" className="text-sm font-semibold text-gray-800">
               이름
@@ -584,9 +547,8 @@ const consentPopupClose = (type) => {
               type='text'
               id='name'
               className='w-full px-4 py-2 mt-2 bg-white border rounded-md'
-              {...register('name',  {
-                validate: validateUserName // 사용자 정의 검증 함수
-              })}
+              {...register('name', userName)}
+              // 유효성 검사 및 저장
             />
             {errors?.name && (
               <div>
@@ -594,24 +556,6 @@ const consentPopupClose = (type) => {
               </div>
             )}
           </div>
-{/*닉네임 */}          
-          <div className="mb-2">
-            <label htmlFor="nickName" className="text-sm font-semibold text-gray-800">
-              닉네임
-            </label>
-            <input
-              type='text'
-              id='nickName'
-              className='w-full px-4 py-2 mt-2 bg-white border rounded-md'
-              {...register('nickName' )}
-              // 유효성 검사 및 저장
-            />
-            {errors?.nickname && (
-              <div>
-                <span className='text-red-500'>{errors.nickname.message}</span>
-              </div>
-            )}
-          </div>          
 {/*생년월일 */}
 <div className="mb-2">
         <label htmlFor="age" className="text-sm font-semibold text-gray-800">
@@ -978,8 +922,8 @@ const consentPopupClose = (type) => {
             </a>
           </p>
         </form>
-      </Box>
-      </Box>
+      </div>
+    </section>
   );
 };
 
