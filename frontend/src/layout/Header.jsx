@@ -16,6 +16,9 @@ import LoginIcon from '@mui/icons-material/Login';// 로그인 아이콘
 import GroupAdd from '@mui/icons-material/GroupAdd';
 
 function Header() {
+
+
+  const homeLocation = useSelector((state) => state.user.userData.homeLocation);
   //스크롤에 따라 보이고 안보이고 
 
   const routes = [
@@ -82,7 +85,8 @@ function Header() {
               component="div"
               sx={{ flexGrow: 1, color: "black" }}
             >
-              로그인 하러 가기
+              {homeLocation && <p>{homeLocation}</p>}
+              {!homeLocation && <p>로그인 정보가 없습니다.</p>}
             </Typography>
             {routes.map(({ to, name, auth }) => {
               return isAuth === auth ? (

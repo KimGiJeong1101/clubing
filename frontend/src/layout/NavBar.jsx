@@ -3,11 +3,10 @@ import { Box, Container, Grid } from "@mui/material";
 import { Link, useLocation } from "react-router-dom";
 
 function NavBar() {
-
-  
-
   const location = useLocation();
   const [selected, setSelected] = useState("추천모임");
+  const [scrollY, setScrollY] = useState(0);
+  const [showNavbar, setShowNavbar] = useState(true);
 
   // 현재 URL을 기준으로 선택된 항목을 결정
   const getSelected = () => {
@@ -25,14 +24,27 @@ function NavBar() {
     setSelected(getSelected());
   }, [location.pathname]);
 
-  
+  // 스크롤 이벤트 처리
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+      setShowNavbar(window.scrollY < 100 || window.scrollY < scrollY); // 100px 이상 스크롤 시 숨김
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [scrollY]);
+
   const navItems = [
     { name: "발견", path: `/home` },
     { name: "추천모임", path: `/clubList` },
     { name: "정모일정", path: `/meetingList` },
-    { name: "신규모임", path: `/newClubList`}, 
-    { name: "클래스", path: `/class`}, 
-    { name: "이벤트", path: `/event`}
+    { name: "신규모임", path: `/newClubList` },
+    { name: "클래스", path: `/class` },
+    { name: "이벤트", path: `/event` }
   ];
 
   return (
@@ -50,6 +62,8 @@ function NavBar() {
           alignItems: "center",
           justifyContent: "center",
           zIndex: 1100, // Header와 동일한 z-index로 설정
+          transform: showNavbar ? "translateY(0)" : "translateY(-100%)",
+          transition: "transform 0.3s ease",
         }}
       >
         <Container maxWidth="lg" sx={{ padding: "0px !important" }}>
