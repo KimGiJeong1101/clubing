@@ -62,12 +62,12 @@ router.post('/login', async (req, res, next) => {
         const user = await User.findOne({email : req.body.email});
         console.log(user);
         if (!user) {
-            return res.status(400).send("이메일이 없음");
+            return res.status(400).json({ error: '이메일이 확인되지 않습니다.' });
         }
         // 비밀번로가 올바른 것인지 체크
         const isMatch = await user.comparePassword(req.body.password);
         if (!isMatch) {
-            return res.status(400).send('틀린 비번');
+            return res.status(400).json({ error: '비밀번호가 틀렸습니다.' })
         }
         const payload = {
             userId: user._id.toHexString(),

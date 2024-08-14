@@ -21,6 +21,8 @@ const userReducer = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
+
+// 회원가입        
         .addCase(registerUser.pending, (state) => {
             state.isLoading = true;
         })
@@ -33,7 +35,7 @@ const userReducer = createSlice({
             state.error = action.payload || '회원가입 실패';
             toast.error(action.payload || '회원가입 실패');
         })
-
+// 로그인
         .addCase(loginUser.pending, (state) => {
             state.isLoading = true;
         })
@@ -48,6 +50,8 @@ const userReducer = createSlice({
             state.error = action.payload || '로그인 실패';
             toast.error(action.payload || '로그인 실패');
         })
+
+// 토큰        
         .addCase(authUser.pending, (state) => {
             state.isLoading = true;
         })
@@ -65,6 +69,7 @@ const userReducer = createSlice({
             console.error("인증실패", action.error)
         })
 
+// 로그아웃
         .addCase(logoutUser.pending, (state) => {
             state.isLoading = true;
         })
