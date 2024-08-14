@@ -19,7 +19,10 @@ router.get('/auth', sessionAuth, async (req, res, next) => {
         role: req.user.role,
         image: req.user.image,
         cart: req.user.cart,
-        history: req.user.history
+        history: req.user.history,
+        //Koo 추가
+        homeLocation : req.user.homeLocation.neighborhood
+         //Koo 추가.end
     })
 })
 
