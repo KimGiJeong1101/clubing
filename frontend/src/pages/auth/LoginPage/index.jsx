@@ -133,6 +133,10 @@ const LoginPage = () => {
             fontWeight: 'bold'  
             }}>
           로그인
+          로그인
+          로그인
+          로그인
+          로그인
         </Typography>
  {/* 아이디 */}
         <form onSubmit={handleSubmit(onSubmit)}>
