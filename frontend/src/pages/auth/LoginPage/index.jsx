@@ -113,7 +113,7 @@ const LoginPage = () => {
         mb: 2,
         textAlign: 'center',
          }}>
-        로고 넣자요
+        로고 넣자요asdfasdfasdfasdfasdf
         </Typography>
       <Box
         sx={{
