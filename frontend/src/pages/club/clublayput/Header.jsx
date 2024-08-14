@@ -9,8 +9,7 @@ import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchClubList,
-  fetchGetClub,
+  fetchGetClub
 } from "../../../store/reducers/clubReducer";
 import { useLocation, useNavigate } from "react-router-dom";
 
