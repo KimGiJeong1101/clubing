@@ -7,9 +7,7 @@ import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persis
 const persistConfig = {
   key: "root",
   storage: storage,
-
-  whitelist: ["user","club", "getClub", "meetingList"],
-
+  whitelist: ["user","club", "getClub", "meetingList"], 
 
 };
 

@@ -17,6 +17,9 @@ import LoginIcon from '@mui/icons-material/Login';// 로그인 아이콘
 import GroupAdd from '@mui/icons-material/GroupAdd';
 
 function Header() {
+
+
+  const homeLocation = useSelector((state) => state.user.userData.homeLocation);
   //스크롤에 따라 보이고 안보이고 
 const homeLocation = useSelector((state) => state.user.userData.homeLocation);
 

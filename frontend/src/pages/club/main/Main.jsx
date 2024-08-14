@@ -57,7 +57,6 @@ const Main = () => {
   const clubNumber = queryParams.get("clubNumber");
 
   //정기모임 글 등록, 두번쨰 모달
-  
   const [dateTime, setDateTime] = useState(null);
   const [checked, setChecked] = useState(false);
   const [category, setCategory] = useState("");
