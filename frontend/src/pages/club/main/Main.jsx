@@ -138,9 +138,7 @@ const Main = () => {
 
   //현재 로그인 정보 가져오기 리덕스로부터 and meeting 정보가져오기
   const user = useSelector((state) => state.user);
-
   const meetingList = useSelector((state) => state.meetingList);
-  
   const [meeetingListBoolean, setMeeetingListBoolean] = useState([]);
   useEffect(() => {
 

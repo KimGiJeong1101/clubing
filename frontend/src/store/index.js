@@ -8,6 +8,7 @@ const persistConfig = {
   key: "root",
   storage: storage,
   whitelist: ["user","club", "getClub", "meetingList"], 
+
 };
 
 const rootReducer = combineReducers({

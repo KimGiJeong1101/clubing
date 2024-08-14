@@ -1,7 +1,7 @@
-const express = require("express");
-const Club = require("../models/Club");
-const Meeting = require("../models/Meeting");
-const sessionAuth = require("../middleware/sessionAuth");
+const express = require('express');
+const Club = require('../models/Club');
+const Meeting = require('../models/Meeting');
+const sessionAuth = require('../middleware/sessionAuth');
 const router = express.Router();
 
 //리스트 보여주기
@@ -49,6 +49,7 @@ router.get("/read/:id", async (req, res, next) => {
 });
 
 //클럽 보여주기(수정 , GET)
+
 router.get("/read2/:id", async (req, res, next) => {
   try {
     console.log("여긴232");
@@ -71,6 +72,7 @@ router.delete("/delete/:id", async (req, res, next) => {
     next(error);
   }
 });
+
 
 router.post("/update/:clubNumber", async (req, res, next) => {
   try {

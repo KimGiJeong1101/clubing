@@ -1,4 +1,4 @@
-import React from "react";
+import React ,{ useEffect } from "react";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -8,6 +8,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useNavigate } from "react-router-dom";
+
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../src/store/actions/userActions'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // 마이페이지 아이콘 추가
@@ -20,6 +21,7 @@ function Header() {
 
   const homeLocation = useSelector((state) => state.user.userData.homeLocation);
   //스크롤에 따라 보이고 안보이고 
+const homeLocation = useSelector((state) => state.user.userData.homeLocation);
 
   const routes = [
     { to: '/login', name: '로그인', auth: false },
@@ -45,7 +47,6 @@ function Header() {
         console.error(error);
       }
     };
-
 
 
   
