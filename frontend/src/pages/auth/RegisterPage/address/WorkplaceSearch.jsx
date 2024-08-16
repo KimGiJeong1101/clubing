@@ -54,7 +54,13 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
 
   return (
     <div className="text-sm text-gray-800">
-      <input className='w-full px-4 py-2 mt-2 bg-white border rounded-md' type="text" value={workplaceSearchTerm} onChange={handleWorkplaceSearch} onKeyDown={handleWorkplaceKeyDown} />
+      <input 
+        className='w-full px-4 py-2 mt-2 bg-white border rounded-md' 
+        type="text" value={workplaceSearchTerm} 
+        onChange={handleWorkplaceSearch} 
+        onKeyDown={handleWorkplaceKeyDown} 
+        placeholder='*읍면동 중 하나 입력해주세요 예) 옹천면'
+        />
       <ul>
         {workplaceResults.map((item, index) => (
           <li 

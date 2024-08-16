@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { registerUser, loginUser, authUser, logoutUser } from '../actions/userActions.js';
 import { toast } from "react-toastify";
+import { Snackbar, Alert } from '@mui/material';
 
 const initialState ={
     userData: {
@@ -12,13 +13,22 @@ const initialState ={
     },
     isAuth: false, //true면 로그인되어 있는
     isLoading: false, // 데이터를 가져오는 중이면 true
-    error: ""
+    error: "",
+    snackbar: {
+        open: false,
+        message: '',
+        severity: 'info', // 'success', 'error', 'warning', 'info'
+    }
 }
 
 const userReducer = createSlice({
     name:'user',
     initialState,
-    reducers: {},
+    reducers: {
+        closeSnackbar: (state) => {
+            state.snackbar.open = false;
+        }
+    },
     extraReducers: (builder) => {
         builder
 
@@ -28,12 +38,20 @@ const userReducer = createSlice({
         })
         .addCase(registerUser.fulfilled, (state) => {
             state.isLoading = false;
-            toast.info('회원가입을 성공했습니다.');
+            state.snackbar = {
+                open: true,
+                message: '회원가입을 성공했습니다.',
+                severity: 'success',
+            };
         })
         .addCase(registerUser.rejected, (state, action) => {
             state.isLoading = false;
             state.error = action.payload || '회원가입 실패';
-            toast.error(action.payload || '회원가입 실패');
+            state.snackbar = {
+                open: true,
+                message: action.payload || '회원가입 실패',
+                severity: 'error',
+            };
         })
 // 로그인
         .addCase(loginUser.pending, (state) => {
@@ -87,5 +105,6 @@ const userReducer = createSlice({
     }
 });
 
+export const { closeSnackbar } = userReducer.actions;
 export default userReducer.reducer;
 // 여기서는 createSlice로 생성된 reducer를 export 합니다.
