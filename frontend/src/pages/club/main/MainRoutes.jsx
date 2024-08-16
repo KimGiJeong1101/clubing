@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Main from './Main';
-import MainCreate from './MainCreate';
+import MainCreate from '../ClubCreate';
 import MainUpdate from './MainUpdate';
 
 //여기까지 경로 /clubs/galleries 

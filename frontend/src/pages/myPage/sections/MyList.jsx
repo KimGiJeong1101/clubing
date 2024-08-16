@@ -1,8 +1,13 @@
 import React from 'react'
+import { Typography, Box } from '@mui/material';
 
-function MyList() {
+const MyList = () => {
   return (
-    <div>MyList</div>
+  <Box>
+    <Typography>
+      MyList
+    </Typography>
+  </Box>
   )
 }
 

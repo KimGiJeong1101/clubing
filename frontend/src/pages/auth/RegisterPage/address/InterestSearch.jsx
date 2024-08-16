@@ -54,7 +54,13 @@ const InterestSearch = ({ setInterestSido, setInterestSigoon, setInterestDong })
 
   return (
     <div className="text-sm text-gray-800">
-      <input className='w-full px-4 py-2 mt-2 bg-white border rounded-md' type="text" value={interestSearchTerm} onChange={handleInterestSearch} onKeyDown={handleInterestKeyDown} />
+      <input 
+        className='w-full px-4 py-2 mt-2 bg-white border rounded-md' 
+        type="text" value={interestSearchTerm} 
+        onChange={handleInterestSearch} 
+        onKeyDown={handleInterestKeyDown} 
+        placeholder='*읍면동 중 하나 입력해주세요 예) 강화읍'
+        />
       <ul>
         {interestResults.map((item, index) => (
           <li 

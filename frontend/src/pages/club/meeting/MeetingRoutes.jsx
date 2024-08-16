@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom';
-import Meeting from './Meeting';
 import MeetingCreate from './MeetingCreate';
 import MeetingUpdate from './MeetingUpdate';
 
@@ -7,7 +6,6 @@ import MeetingUpdate from './MeetingUpdate';
 function MeetingRoutes() {
   return (
     <Routes>
-      <Route path='/' element={<Meeting />} />
       <Route path='create' element={<MeetingCreate />} />
       <Route path='update/:id' element={<MeetingUpdate />} />
     </Routes>
