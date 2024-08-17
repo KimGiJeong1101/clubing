@@ -9,6 +9,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const axiosInstance = axios.create({
   baseURL: isProduction ? "" : "http://localhost:4000",
   withCredentials: true, // 모든 요청에 쿠키와 자격 증명을 포함
+  timeout: 3000 // 타임아웃을 3초로 설정
 });
 
 axiosInstance.interceptors.request.use(
@@ -29,7 +30,9 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   function (error) {
-    if (error.response && error.response.data === "jwt expired") {
+    if (error.code === 'ECONNABORTED') {
+      alert('요청이 시간 초과되었습니다. 다시 시도해주세요.');
+    } else if (error.response && error.response.data === "jwt expired") {
       window.location.reload();
     }
     return Promise.reject(error);

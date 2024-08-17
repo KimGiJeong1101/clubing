@@ -60,7 +60,7 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
         value={searchTerm}
         onChange={handleSearch}
         onKeyDown={handleKeyDown}
-        placeholder='*동을 입력해주세요'
+        placeholder='*읍면동 중 하나 입력해주세요 예) 상도동'
       />
       <ul>
         {results.map((item, index) => (

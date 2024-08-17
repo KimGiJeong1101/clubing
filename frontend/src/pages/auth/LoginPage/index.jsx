@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { loginUser } from '../../../store/actions/userActions'
 import { Container, TextField, Button, Typography, Box, Checkbox, FormControlLabel, InputAdornment } from '@mui/material'
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import Mail from '@mui/icons-material/MailOutline';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined'; // 아이콘
+import Mail from '@mui/icons-material/MailOutline'; // 아이콘
+import { useNavigate } from 'react-router-dom'; // useNavigate 임포트
 
 const LoginPage = () => {
   const {
@@ -18,6 +19,11 @@ const LoginPage = () => {
 
   const dispatch = useDispatch();
   const rememberMe = watch('rememberMe'); // rememberMe 체크박스의 값 확인
+  const navigate = useNavigate(); // useNavigate 사용
+
+  // 아이디 중복 / 비번 정확성 확인 
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
    useEffect(() => {
     const savedEmail = localStorage.getItem('lastLoginEmail');
@@ -29,25 +35,44 @@ const LoginPage = () => {
     }
   }, [setValue]);
 
-  const onSubmit = ({ email, password }) => {
+  const onSubmit = async ({ email, password }) => {
+    try {
     const body = {
       email,
       password
     }
-    dispatch(loginUser(body));
+    const response = await dispatch(loginUser(body)); 
     //thunk에서 생성한 펜딩,풀필드, 리젝트 값 userSlice로 보내기
     //상태관리
 
-      // "Remember Me" 체크박스가 선택되었을 때만 로컬 스토리지에 저장
-    if (rememberMe) {
-      localStorage.setItem('lastLoginEmail', email);
-      localStorage.setItem('rememberMe', 'true'); // 체크 상태 저장
-    } else {
-      localStorage.removeItem('lastLoginEmail');
-      localStorage.setItem('rememberMe', 'false'); // 체크 해제 상태 저장
+      // 로그인 성공 여부 확인
+      if (response.meta.requestStatus === 'fulfilled') {
+        navigate('/clublist');
+        reset();
+      } else {
+          // 여기에서 에러를 처리합니다.
+      if (response.payload.error === '이메일이 확인되지 않습니다.') {
+        setEmailError('이메일이 확인되지 않습니다.');
+        setPasswordError('');
+      } else if (response.payload.error === '비밀번호가 틀렸습니다.') {
+        setPasswordError('비밀번호가 틀렸습니다.');
+        setEmailError('');
+      }
     }
-
-    reset();
+      // "Remember Me" 체크박스가 선택되었을 때만 로컬 스토리지에 저장
+      if (rememberMe) {
+        localStorage.setItem('lastLoginEmail', email);
+        localStorage.setItem('rememberMe', 'true'); // 체크 상태 저장
+      } else {
+        localStorage.removeItem('lastLoginEmail');
+        localStorage.setItem('rememberMe', 'false'); // 체크 해제 상태 저장
+      }
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      // 서버 오류 또는 네트워크 오류 처리
+        setEmailError('이메일 입력에 문제가 발생했습니다.');
+        setPasswordError('비밀번호 입력에 문제가 발생했습니다.');
+    }
   }
 
   const userEmail = {
@@ -88,7 +113,7 @@ const LoginPage = () => {
         mb: 2,
         textAlign: 'center',
          }}>
-        로고 넣자요
+        로고 넣자요asdfasdfasdfasdfasdf
         </Typography>
       <Box
         sx={{
@@ -118,16 +143,16 @@ const LoginPage = () => {
           <Mail style={{ 
               marginRight: '5px',
               marginLeft: '-50px', 
-              marginTop: '10px', 
+              marginBottom: '10px',  
               color: 'gray', 
-              fontSize: '35px', }} />
+              fontSize: '40px', }} />
           <TextField
             fullWidth
             label="이메일"
             margin="normal"
             variant="outlined"
-            error={!!errors.email}
-            helperText={errors.email ? errors.email.message : ''}
+            error={!!emailError || !!errors.email} // 이메일 에러가 있을 때 빨간 박스
+            helperText={emailError || errors.email?.message || " "} // 이메일 에러 메시지
             {...register('email', userEmail)}
           />
            </Box>
@@ -139,17 +164,17 @@ const LoginPage = () => {
           <LockOutlinedIcon style={{ 
               marginRight: '5px',
               marginLeft: '-50px',  
-              marginTop: '10px', 
+              marginBottom: '10px',  
               color: 'gray', 
-              fontSize: '35px' }} />     
+              fontSize: '40px' }} />     
           <TextField
             fullWidth
             label="패스워드"
             margin="normal"
             variant="outlined"
             type="password"
-            error={!!errors.password}
-            helperText={errors.password ? errors.password.message : ''}
+            error={!!passwordError || !!errors.password} // 비밀번호 에러가 있을 때 빨간 박스
+            helperText={passwordError || errors.password?.message || " "} // 비밀번호 에러 메시지
             {...register('password', userPassword)}
           />
           </Box>  

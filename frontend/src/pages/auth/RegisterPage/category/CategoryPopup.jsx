@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import Draggable from 'react-draggable'; // 팝업을 드래그할 수 있도록 해주는 라이브러리
 
 // 팝업 내에서 선택된 카테고리 상태 관리

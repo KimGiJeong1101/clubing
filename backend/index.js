@@ -4,6 +4,7 @@ const cors = require("cors");
 const app = express();
 const session = require('./src/middleware/session'); // 세션 설정 로드
 require("dotenv").config();
+const winston = require('winston'); // 서버 로그를 확인
 
 // 미들웨어 설정
 app.use(cors({
@@ -53,14 +54,16 @@ app.use("/userSigns", userSignsRouter);
 
 // 에러처리 미들웨어
 app.use((err, req, res, next) => {
+  logger.error('에러 발생:', err); // winston을 사용하여 에러를 로그 파일에 기록
   res.status(err.status || 500); 
   // 에러 객체의 상태 코드를 가져와서 응답 상태 코드를 설정합니다. 없으면 기본적으로 500 상태 코드를 사용합니다.
   res.send(err.message || '서버에서 에러가 발생했습니다.'); 
   // 에러 메시지를 클라이언트에게 전송합니다. 에러 메시지가 없으면 기본 메시지를 사용합니다.
 });
 
-// 간단한 라우트 설정
+// 루트 경로 접근 시 로그
 app.get("/", (req, res) => {
+  logger.info('루트 경로 접근됨'); // winston을 사용하여 루트 접근 로그 기록
   res.send("Hello, World!");
 });
 
@@ -78,3 +81,16 @@ const startServer = async () => {
 };
 startServer();
 /////이 이후 하나씩 추가할 거 작성은 주석달아서 추가해놓고 말해주기!
+
+// winston 로그 설정
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.File({ filename: 'combined.log' }),
+    new winston.transports.Console()
+  ],
+});
