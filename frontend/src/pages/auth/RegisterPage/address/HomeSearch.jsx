@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import {ListItemText, ListItem, List, TextField, Box} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { useForm } from 'react-hook-form';
 
 const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState([]);
+  const { formState: { errors }, register, setValue, watch } = useForm();
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
+  const searchTerm = watch('searchTerm'); // watch로 searchTerm의 값을 실시간으로 가져옵니다.
   const port = process.env.REACT_APP_ADDRESS_API;
 
   useEffect(() => {
@@ -15,21 +15,21 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
       fetch(`api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${searchTerm}`)
         .then(response => response.json())
         .then(data => {
-            if (data.response && data.response.status === 'OK' && data.response.result && data.response.result.featureCollection.features) {
-              setResults(data.response.result.featureCollection.features.map(item => item.properties));
-            } else {
-              setResults([]);
-              console.error('Invalid API response:', data);
-            }
-          })
-          .catch(error => {
+          if (data.response && data.response.status === 'OK' && data.response.result && data.response.result.featureCollection.features) {
+            setResults(data.response.result.featureCollection.features.map(item => item.properties));
+          } else {
             setResults([]);
-            console.error('Error fetching data:', error);
-          });
-      } else {
-        setResults([]);
-      }
-  }, [searchTerm]);
+           // console.error('Invalid API response:', data);
+          }
+        })
+        .catch(error => {
+          setResults([]);
+        // console.error('Error fetching data:', error);
+        });
+    } else {
+      setResults([]);
+    }
+  }, [searchTerm]); // searchTerm이 변경될 때마다 호출됩니다.
 
   const handleSelect = (item) => {
     const [sido, sigoon, dong] = item.full_nm.split(' ');
@@ -37,10 +37,7 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
     setSelectedSigoon(sigoon);
     setSelectedDong(dong);
     setResults([]);
-    setSearchTerm(item.full_nm);
-    console.log('Selected Sido:', sido);
-    console.log('Selected Sigoon:', sigoon);
-    console.log('Selected Dong:', dong);
+    setValue('searchTerm', item.full_nm); 
   };
 
   const handleKeyDown = (e) => {
@@ -52,29 +49,46 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
     }
   };
 
+  const StyledListItem = styled(ListItem)(({ theme }) => ({
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    cursor: 'pointer',
+  }));
+
   return (
-    <div className="text-sm text-gray-800">
-      <input
-        className='w-full px-4 py-2 mt-2 bg-white border rounded-md'
+<Box sx={{ width: '100%' }}>
+      <TextField
+        id="searchTerm"
         type="text"
-        value={searchTerm}
-        onChange={handleSearch}
-        onKeyDown={handleKeyDown}
-        placeholder='*읍면동 중 하나 입력해주세요 예) 상도동'
+        fullWidth
+        variant="outlined"
+        margin="normal"
+        {...register('searchTerm', {
+          pattern: {
+            value: /^[가-힣\s]*$/,
+            message: "한글만 입력 가능합니다."
+          }
+        })}
+        onKeyDown={handleKeyDown} // Enter 키 처리
+        onChange={(e) => {
+          setValue('searchTerm', e.target.value, { shouldValidate: true }); // 변경된 값을 즉시 검증하도록 설정합니다
+        }}
+        placeholder="*읍면동 중 하나 입력해주세요 예) 상도동"
+        error={!!errors.searchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
+        helperText={errors.searchTerm ? errors.searchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.
       />
-      <ul>
+     <List sx={{ mt: -1, pt: 0, pb: 0 }}>
         {results.map((item, index) => (
-          <li
-            className="p-2 hover:bg-gray-200 cursor-pointer"
+          <StyledListItem
             key={index}
-            onClick={() => handleSelect(item)}
+            onClick={() => handleSelect(item)} // 클릭 시 항목 선택
           >
-            {item.full_nm}
-          </li>
+            <ListItemText primary={item.full_nm} />
+          </StyledListItem>
         ))}
-      </ul>
-    </div>
+      </List>
+    </Box>
   );
 };
-
 export default HomeSearch;

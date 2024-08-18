@@ -5,26 +5,29 @@ const jwt = require('jsonwebtoken');
 const sessionAuth = require('../middleware/sessionAuth');
 const async = require('async');
 const { sendAuthEmail, verifyAuthCode } = require('../service/authController');
+const { getFileUrl } = require('../util/fileUtils'); // getFileUrl 함수 import
+
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 //sns
 const passport = require('passport');
 
 
 router.get('/auth', sessionAuth, async (req, res, next) => {
-    //auth 미들웨어에서 로그인 정보 가져옴
-    return res.json({
-        id: req.user._id,
-        email: req.user.email,
-        name: req.user.name,
-        role: req.user.role,
-        image: req.user.image,
-        cart: req.user.cart,
-        history: req.user.history,
-        //Koo 추가
-        homeLocation : req.user.homeLocation.neighborhood
-         //Koo 추가.end
-    })
-})
+    try {
+        const user = req.user; // 로그인된 사용자 정보
+        if (!user) {
+            return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+        }
+        return res.json({ 
+            user
+         }); // 사용자 정보 반환
+    } catch (error) {
+        next(error); // 에러 처리
+    }
+});
 
 // Email Check Route
 router.post('/check-email', async (req, res) => {
@@ -104,4 +107,141 @@ router.post('/logout', sessionAuth, async (req, res, next) => {
     }
 })
 
-module.exports = router
+
+// src/routes/users.js
+router.get('/myPage', sessionAuth, async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 프로필 이미지 경로를 웹 URL로 변환
+        if (user.profilePic && user.profilePic.picture) {
+            const filePath = path.join(__dirname, '..', 'profile', user.profilePic.picture);
+            user.profilePic.picture = getFileUrl(filePath);
+        }
+        return res.json({ user }); // user 객체를 그대로 반환
+    } catch (error) {
+        next(error);
+    }
+})
+
+// 마이페이지에서 수정
+router.put('/myPage', sessionAuth, async (req, res, next) => {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+        }
+        // 요청된 업데이트 내용
+        const updateData = req.body;
+        // 사용자 정보를 업데이트
+        const updatedUser = await User.findByIdAndUpdate(user._id, updateData, { new: true });
+
+        return res.json(updatedUser);
+    } catch (error) {
+        next(error);
+    }
+})
+
+////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정
+ 
+// 날짜별 폴더 생성 함수
+const createDailyFolder = () => {
+    const today = new Date(); // 현재 날짜와 시간을 가져옵니다.
+    const year = today.getFullYear(); // 현재 연도를 가져옵니다.
+    const month = String(today.getMonth() + 1).padStart(2, '0'); // 현재 월을 2자리 문자열로 변환합니다. (예: 08)
+    const day = String(today.getDate()).padStart(2, '0'); // 현재 일을 2자리 문자열로 변환합니다. (예: 17)
+    
+    // 'profile/년-월-일' 형식의 폴더 경로를 생성합니다.
+    const folderPath = path.join('profile', `${year}-${month}-${day}`);
+    
+    // 폴더가 존재하지 않으면 생성합니다.
+    if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath, { recursive: true }); // 중간 폴더가 없어도 모두 생성합니다.
+    }
+
+    // 'origin_img' 폴더 경로를 생성합니다.
+    const originPath = path.join(folderPath, 'origin_img');
+    // 'thumbnail_img' 폴더 경로를 생성합니다.
+    const thumbnailPath = path.join(folderPath, 'thumbnail_img');
+
+    // 'origin_img' 폴더가 존재하지 않으면 생성합니다.
+    if (!fs.existsSync(originPath)) {
+        fs.mkdirSync(originPath);
+    }
+    
+    // 'thumbnail_img' 폴더가 존재하지 않으면 생성합니다.
+    if (!fs.existsSync(thumbnailPath)) {
+        fs.mkdirSync(thumbnailPath);
+    }
+    
+    // 'origin_img'와 'thumbnail_img' 폴더 경로를 반환합니다.
+    return { originPath, thumbnailPath };
+}
+
+// Multer 설정
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const { originPath } = createDailyFolder(); 
+        cb(null, originPath); // 올바른 폴더 경로에 저장
+    },
+    filename: function (req, file, cb) {
+        // 파일 이름 설정
+        cb(null, `${Date.now()}_${file.originalname}`); // 파일 이름 설정
+    }
+});
+  
+const upload = multer({ storage: storage });
+
+router.put('/profile/image', sessionAuth, upload.single('image'), async (req, res) => {
+    try {
+      const user = req.user;
+  
+      if (!user) {
+        return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+      }
+  
+      const oldImagePath = user.profilePic.picture;
+      // 업로드된 파일의 경로
+      const newImagePath = req.file.path; 
+      // URL로 변환
+      user.profilePic.picture = getFileUrl(newImagePath); 
+      // getFileUrl 함수가 올바른 URL을 반환하도록 확인
+
+      await user.save();
+
+      if (oldImagePath && oldImagePath !== user.profilePic.picture) {
+          const oldImageFilePath = path.join(__dirname, '..', 'profile', oldImagePath.replace('http://localhost:4000/profile/', ''));
+          if (fs.existsSync(oldImageFilePath)) {
+              fs.unlinkSync(oldImageFilePath); // 이전 이미지 삭제
+          }
+      }
+  
+      res.json({ success: true, message: '프로필 이미지가 수정되었습니다.' });
+    } catch (error) {
+      res.status(500).json({ success: false, message: '프로필 이미지 수정 중 오류가 발생했습니다.', error });
+    }
+  })
+  
+  // 프로필 이미지 삭제 라우트
+  router.delete('/profile/image_del', sessionAuth, async (req, res) => {
+    try {
+        const user = req.user;
+    
+        if (!user) {
+            return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+        }
+        // 기본 이미지 URL로 설정
+        user.profilePic.picture = 'https://via.placeholder.com/600x400?text=no+user+image';
+        await user.save(); // 사용자 정보 저장
+        
+        res.json({ success: true, message: '이미지가 삭제되었습니다.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: '이미지 삭제 중 오류가 발생했습니다.', error });
+    }
+});
+////////////////////////////////////////////////// 이미지 삭제 ////////////////////////////////////////////////// 이미지 삭제////////////////////////////////////////////////// 이미지 삭제
+
+module.exports = router; // 올바르게 내보내기

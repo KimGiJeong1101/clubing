@@ -40,7 +40,13 @@ const userSchema = mongoose.Schema({
     required: true, // 성별은 '남성', '여성' 중 하나여야 합니다.
   },
   profilePic: {
-    type: String, // 프로필 사진 (URL 또는 파일 경로로 가정)
+    picture: {
+      type: String, // 이미지 URL 저장
+    },
+    introduction: { // 프로필 소개글
+      type: String,
+      maxLength: 500, // 최대 500자
+    }
   },
   homeLocation: {
     type: {
@@ -117,7 +123,7 @@ const userSchema = mongoose.Schema({
   history: {//최근 본 모임
     type: Array,
     default: [],
-  },
+  }
 });
 
 userSchema.pre("save", async function (next) {

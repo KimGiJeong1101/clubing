@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import { useDispatch } from 'react-redux';
 import { registerUser } from '../../../store/actions/userActions'
 import HomeSearch from './address/HomeSearch';
@@ -18,6 +19,7 @@ import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, 
           Chip, Checkbox, Paper, Link
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 
 const RegisterPage = () => {
@@ -38,6 +40,7 @@ const RegisterPage = () => {
     mode: 'onChange' });
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // 회원가입 폼 제출 시 실행되는 함수
   const onSubmit = (data) => {
@@ -115,13 +118,23 @@ const RegisterPage = () => {
       termsAccepted: terms,
       privacyAccepted: privacy,
       marketingAccepted: marketing,
-      image : `https://via.placeholder.com/600x400?text=no+user+image`
+      profilePic :{
+        picture:`https://via.placeholder.com/600x400?text=no+user+image`
+      } 
     }
    
   
     console.log('들어간 값 확인', body);
 
-    dispatch(registerUser(body));
+    dispatch(registerUser(body))
+      .then(() => {
+        // 회원가입 성공 후 리다이렉트 처리
+        navigate('/'); // 성공 페이지로 리다이렉트
+      })
+      .catch((error) => {
+        console.error('회원가입 실패:', error);
+        // 에러 처리 로직
+      });
 
     // registerUser(body) thunk함수
     //dispatch 함수를 받아와서 액션을 전달할 수 있게 해줍니다. 
@@ -519,6 +532,7 @@ const consentPopupClose = (type) => {
 
 
   return (
+
     <Box 
       sx={{ 
           display: 'flex', 
@@ -527,6 +541,16 @@ const consentPopupClose = (type) => {
           mt: 5, 
           maxWidth: 600, 
           mx: 'auto' }}>
+    <Box 
+          sx={{ 
+            p: 3,
+            mb: 2 ,
+            mt: 2
+            }}>          
+      <Typography variant="h4" component="h1" align="center">
+       로고자리
+      </Typography>
+    </Box>  
     <Box 
       sx={{ 
         p: 3, 

@@ -1,15 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { registerUser, loginUser, authUser, logoutUser } from '../actions/userActions.js';
+import { registerUser, loginUser, authUser, logoutUser, myPage, updateUser } from '../actions/userActions.js';
 import { toast } from "react-toastify";
 import { Snackbar, Alert } from '@mui/material';
 
 const initialState ={
     userData: {
-        id:'',
-        email:'',
-        name:'',
-        role:0,
-        image:'',
+        id: '',
+        email: '',
+        name: '',
+        nickName: '',
+        profilePic: {
+            picture: '',
+            introduction: '',
+        },
+        roles: 1, // 역할 필드 추가
     },
     isAuth: false, //true면 로그인되어 있는
     isLoading: false, // 데이터를 가져오는 중이면 true
@@ -29,9 +33,12 @@ const userReducer = createSlice({
             state.snackbar.open = false;
         }
     },
+    setUserData: (state, action) => {
+        state.userData = action.payload;
+        state.isAuth = true;
+      },
     extraReducers: (builder) => {
         builder
-
 // 회원가입        
         .addCase(registerUser.pending, (state) => {
             state.isLoading = true;
@@ -102,9 +109,45 @@ const userReducer = createSlice({
             state.error = action.payload || '로그아웃 실패';
             toast.error(action.payload || '로그아웃 실패');
         })
+//myPage
+        .addCase(myPage.pending, (state) => {
+        state.isLoading = true;
+        })
+        .addCase(myPage.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.userData = action.payload;
+        state.isAuth = true;
+        })
+        .addCase(myPage.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload || '정보 가져오기 실패';
+        state.isAuth = false;
+        })
+//myPage 수정
+        .addCase(updateUser.pending, (state) => {
+            state.isLoading = true;
+        })
+        .addCase(updateUser.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.userData = action.payload;
+            state.snackbar = {
+            open: true,
+            message: '정보가 성공적으로 업데이트되었습니다.',
+            severity: 'success',
+            };
+        })
+        .addCase(updateUser.rejected, (state, action) => {
+            state.isLoading = false;
+            state.error = action.payload || '정보 업데이트 실패';
+            state.snackbar = {
+            open: true,
+            message: '정보 업데이트에 실패했습니다.',
+            severity: 'error',
+            };
+        })
     }
 });
 
-export const { closeSnackbar } = userReducer.actions;
+export const { closeSnackbar, setUserData } = userReducer.actions;
 export default userReducer.reducer;
 // 여기서는 createSlice로 생성된 reducer를 export 합니다.
