@@ -1,8 +1,13 @@
 import React from 'react'
+import { Typography, Box } from '@mui/material';
 
-function MyChat() {
+const MyChat = () => {
   return (
-    <div>MyChat</div>
+  <Box>
+    <Typography>
+      MyChat
+    </Typography>
+  </Box>
   )
 }
 
