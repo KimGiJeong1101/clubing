@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minLength: 8, // 비밀번호는 최소 10자 이상이어야 합니다.
+    minLength: 6, // 비밀번호는 최소 8자로 바꿔야됌 
   },
   name: {
     type: String,
