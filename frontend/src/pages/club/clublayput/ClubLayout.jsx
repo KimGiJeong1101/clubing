@@ -86,7 +86,7 @@ function ClubLayout() {
                   <FavoriteIcon
                     onClick={() => setIsFavorite(!isFavorite)}
                     sx={{
-                      fontSize: "40px",
+                      fontSize: "26px",
                       padding: "7px",
                       color: isFavorite ? "lightcoral" : "gray",
                       ":hover": {

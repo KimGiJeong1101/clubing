@@ -4,9 +4,44 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../utils/axios';
-import HomeSearch from '../auth/RegisterPage/address/HomeSearch';
+import HomeSearchClub from './main/HomeSearchClub';
+import CategoryModal from './meeting/CategoryModal';
+import CategoryModalSub from './meeting/CategoryModalSub';
 
 const ClubCreate = () => {
+  //큰 카테고리관련 코드
+  const [openCategoryModal, setOpenCategoryModal] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  const handleOpenModal = () => setOpenCategoryModal(true);
+  const handleCloseModal = () => setOpenCategoryModal(false);
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category); // 선택된 카테고리 저장
+    handleCloseModal(); // 모달 닫기
+    handleOpenSubModal();
+
+  };
+  //큰 카테고리관련 코드.END
+
+  //작은 카테고리설정 코드
+  const [openSubCategoryModal,setOpenSubCategoryModal] = useState(false);
+  const [selectedSubCategory, setSelectedSubCategory] = useState('');
+
+  const handleOpenSubModal = () => setOpenSubCategoryModal(true);
+  const handleCloseSubModal = () => setOpenSubCategoryModal(false);
+
+  const handleSubCategorySelect = (subCategory) => {
+    setSelectedSubCategory(subCategory); // 선택된 카테고리 저장
+    handleCloseSubModal(); // 모달 닫기
+  };
+
+  useEffect(()=>{
+    setSelectedSubCategory('');
+  },[selectedCategory])
+  //작은 카테고리설정 코드.end
+
+
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm({
     defaultValues: {
@@ -30,7 +65,7 @@ const ClubCreate = () => {
   // 주소 선택 시 업데이트
   const [homeLocation, setHomeLocation] = useState({ sido: '', sigoon: '', dong: '' });
 
-  // HomeSearch에서 선택된 주소를 useForm의 필드에 반영
+  // HomeSearchClub에서 선택된 주소를 useForm의 필드에 반영
   useEffect(() => {
     setValue('region.city', homeLocation.sido);
     setValue('region.district', homeLocation.sigoon);
@@ -63,7 +98,7 @@ const ClubCreate = () => {
             <Typography sx={{ fontWeight: '600', padding: '0px' }}>지역</Typography>
           </Grid>
           <Grid item xs={9}>
-            <HomeSearch
+            <HomeSearchClub
               setSelectedSido={(sido) => setHomeLocation(prev => ({ ...prev, sido }))}
               setSelectedSigoon={(sigoon) => setHomeLocation(prev => ({ ...prev, sigoon }))}
               setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))}
@@ -88,6 +123,8 @@ const ClubCreate = () => {
               label="ex ) 큰 관심사 : 운동,여행,사교 등등"
               placeholder='눌럿을 때 모달띄워서 큰관심 선택 후 작은관심선택 후 자동기입까지'
               sx={{ width: '100%', mb: 2 }}
+              onClick={handleOpenModal}
+              value={selectedCategory}
               {...register('mainCategory', { required: ' 필수입력 요소.' })}
             />
           </Grid>
@@ -99,6 +136,8 @@ const ClubCreate = () => {
               id="subCategory"
               label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)"
               sx={{ width: '100%', mb: 2 }}
+              onClick={handleOpenModal}
+              value={selectedSubCategory}
               {...register('subCategory', { required: ' 필수입력 요소.' })}
             />
           </Grid>
@@ -120,20 +159,18 @@ const ClubCreate = () => {
               }}
             />
           </Grid>
-          <Grid item xs={8}>
+          <Grid item xs={12}>
             <TextField
               id="title"
               label="모임 이름"
-              multiline
               sx={{ width: '100%', mb: 2 }}
               {...register('title', { required: ' 필수입력 요소.' })}
             />
           </Grid>
-          <Grid item xs={3} sx={{ marginLeft: '70px' }}>
+          <Grid item xs={12}>
             <TextField
               id="subTitle"
-              label="서브 타이틀 ex)카페,친구,운동"
-              multiline
+              label="모임에 대한 간략한 설명을 넣어보세요"
               sx={{ width: '100%', mb: 2 }}
               {...register('subTitle', { required: ' 필수입력 요소.' })}
             />
@@ -165,6 +202,8 @@ const ClubCreate = () => {
             <Button variant="outlined" sx={{ width: '100%' }} type='submit'>모임 만들기</Button>
           </Grid>
         </Grid>
+        <CategoryModal open={openCategoryModal} onClose={handleCloseModal} onCategorySelect={handleCategorySelect} />
+        <CategoryModalSub open={openSubCategoryModal} onClose={handleCloseSubModal} onSubCategorySelect={handleSubCategorySelect} mainCategory ={selectedCategory} />
       </Container>
     </Box>
   );
