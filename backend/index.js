@@ -2,9 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
+const path = require('path');
 const session = require('./src/middleware/session'); // 세션 설정 로드
 require("dotenv").config();
 const winston = require('winston'); // 서버 로그를 확인
+const path = require('path'); 
 
 // 미들웨어 설정
 app.use(cors({
@@ -18,6 +20,10 @@ app.use(express.json());
 // 세션 설정 적용
 app.use(session);
 
+
+// 정적 파일 제공을 위해 uploads 폴더를 공개
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)
 const boardsRouter = require("./src/routes/boards");
@@ -27,13 +33,15 @@ app.use("/boards", boardsRouter);
 const chatsRouter = require("./src/routes/chats");
 app.use("/chats", chatsRouter);
 
+
+//라우터 미들웨어(갤러리)
+// const galleriesRouter = require("./src/routes/galleries");
+// app.use("clubs/galleries", galleriesRouter);
 //라우터 미들웨어(클럽)
 const clubsRouter = require("./src/routes/clubs");
 app.use("/clubs", clubsRouter);
 
-//라우터 미들웨어(갤러리)
-const galleriesRouter = require("./src/routes/galleries");
-app.use("/galleries", galleriesRouter);
+
 
 //라우터 미들웨어(미팅)
 const meetingsRouter = require("./src/routes/meetings");
@@ -81,6 +89,9 @@ const startServer = async () => {
 };
 startServer();
 /////이 이후 하나씩 추가할 거 작성은 주석달아서 추가해놓고 말해주기!
+
+// 'profile' 폴더를 정적 파일 경로로 설정
+app.use('/profile', express.static(path.join(__dirname, 'profile')));
 
 // winston 로그 설정
 const logger = winston.createLogger({

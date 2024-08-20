@@ -1,30 +1,30 @@
 import React, { useState, useEffect } from 'react';
+import {ListItemText, ListItem, List, TextField, Box} from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { useForm } from 'react-hook-form';
 
 const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDong }) => {
-  const [workplaceSearchTerm, setWorkplaceSearchTerm] = useState('');
   const [workplaceResults, setWorkplaceResults] = useState([]);
+  const { formState: { errors }, register, setValue, watch } = useForm();
 
-  const handleWorkplaceSearch = (e) => {
-    setWorkplaceSearchTerm(e.target.value);
-  };
-
+  const workplaceSearchTerm = watch('workplaceSearchTerm'); 
   const port = process.env.REACT_APP_ADDRESS_API;
 
   useEffect(() => {
     if (workplaceSearchTerm) {
-      fetch(`api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${workplaceSearchTerm}`)
+      fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${workplaceSearchTerm}`)
         .then(response => response.json())
         .then(data => {
           if (data.response && data.response.status === 'OK' && data.response.result && data.response.result.featureCollection.features) {
             setWorkplaceResults(data.response.result.featureCollection.features.map(item => item.properties));
           } else {
             setWorkplaceResults([]);
-            console.error('Invalid API response:', data);
+            //console.error('Invalid API response:', data);
           }
         })
         .catch(error => {
           setWorkplaceResults([]);
-          console.error('Error fetching data:', error);
+          //console.error('Error fetching data:', error);
         });
     } else {
       setWorkplaceResults([]);
@@ -37,10 +37,7 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
     setWorkplaceSigoon(w_sigoon);
     setWorkplaceDong(w_dong);
     setWorkplaceResults([]);
-    setWorkplaceSearchTerm(item.full_nm);
-    console.log(w_sido);
-    console.log(w_sigoon);
-    console.log(w_dong);
+    setValue('workplaceSearchTerm', item.full_nm);
   };
 
   const handleWorkplaceKeyDown = (e) => {
@@ -52,25 +49,45 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
     }
   };
 
+  const StyledListItem = styled(ListItem)(({ theme }) => ({
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    cursor: 'pointer',
+  }));
+
   return (
-    <div className="text-sm text-gray-800">
-      <input 
-        className='w-full px-4 py-2 mt-2 bg-white border rounded-md' 
-        type="text" value={workplaceSearchTerm} 
-        onChange={handleWorkplaceSearch} 
+    <Box sx={{ width: '100%' }}>
+      <TextField
+        id="workplaceSearchTerm"
+        type="text"
+        fullWidth
+        variant="outlined"
+        margin="normal"
+        {...register('workplaceSearchTerm', {
+          pattern: {
+            value: /^[가-힣\s]*$/,
+            message: "한글만 입력 가능합니다."
+          }
+        })}
         onKeyDown={handleWorkplaceKeyDown} 
-        placeholder='*읍면동 중 하나 입력해주세요 예) 옹천면'
+        onChange={(e) => {
+          setValue('workplaceSearchTerm', e.target.value, { shouldValidate: true }); // 변경된 값을 즉시 검증하도록 설정합니다
+        }}
+        placeholder='*읍면동 중 하나 입력해주세요 예) 옥천면'
+        error={!!errors.workplaceSearchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
+        helperText={errors.workplaceSearchTerm ? errors.workplaceSearchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.
         />
-      <ul>
+      <List sx={{ mt: -1, pt: 0, pb: 0 }}>
         {workplaceResults.map((item, index) => (
-          <li 
-          className="p-2 hover:bg-gray-200 cursor-pointer"
-          key={index} 
-          onClick={() => handleWorkplaceSelect(item)}>{item.full_nm}</li>
+         <StyledListItem
+            key={index} 
+            onClick={() => handleWorkplaceSelect(item)}>
+            <ListItemText primary={item.full_nm} />
+          </StyledListItem>
         ))}
-      </ul>
-    </div>
+      </List>
+    </Box>
   );
 };
-
 export default WorkplaceSearch;
