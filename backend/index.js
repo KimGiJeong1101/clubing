@@ -23,16 +23,9 @@ app.use(express.json());
 // 세션 설정 적용
 app.use(session);
 
-<<<<<<< HEAD
-// 파일 업로드를 위한 디렉토리 설정
-const uploadDir = path.join(__dirname, 'upload');  //d 추가
-// 업로드된 파일 제공을 위한 정적 파일 미들웨어
-app.use('/upload', express.static(uploadDir)); //d 추가
-=======
 
 // 정적 파일 제공을 위해 uploads 폴더를 공개
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
->>>>>>> b153a66f1184c74c1137d3178a5fa76610387098
 
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)
@@ -43,8 +36,6 @@ app.use("/boards", boardsRouter);
 const chatsRouter = require("./src/routes/chats");
 app.use("/chats", chatsRouter);
 
-<<<<<<< HEAD
-=======
 
 //라우터 미들웨어(갤러리)
 // const galleriesRouter = require("./src/routes/galleries");
@@ -52,7 +43,7 @@ app.use("/chats", chatsRouter);
 //라우터 미들웨어(클럽)
 const clubsRouter = require("./src/routes/clubs");
 app.use("/clubs", clubsRouter);
->>>>>>> b153a66f1184c74c1137d3178a5fa76610387098
+
 
 
 
@@ -123,3 +114,9 @@ const logger = winston.createLogger({
     new winston.transports.Console()
   ],
 });
+
+////////////////////////////////////////////////////////////board////////////////////////////////////////////////////
+// 파일 업로드를 위한 디렉토리 설정
+const uploadDir = path.join(__dirname, 'upload');  //d 추가
+// 업로드된 파일 제공을 위한 정적 파일 미들웨어
+app.use('/upload', express.static(uploadDir)); //d 추가
