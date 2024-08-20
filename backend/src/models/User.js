@@ -24,7 +24,7 @@ const userSchema = mongoose.Schema({
   nickName: {
     type: String,
     required: true, // 이름은 필수입니다.
-    maxLength: 20, // 최대 길이 제한이 있습니다.
+    maxLength: 10, // 최대 길이 제한이 있습니다.
   },
   age: {
     type: {
