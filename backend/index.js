@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
 const session = require('./src/middleware/session'); // 세션 설정 로드
+const path = require('path');  // 파일 경로 처리를 위해 필요 //D추가
+const fs = require('fs'); // 파일 시스템 작업을 위해 필요 //D추가
+
 require("dotenv").config();
 
 // 미들웨어 설정
@@ -17,6 +20,11 @@ app.use(express.json());
 // 세션 설정 적용
 app.use(session);
 
+// 파일 업로드를 위한 디렉토리 설정
+const uploadDir = path.join(__dirname, 'upload');  //d 추가
+// 업로드된 파일 제공을 위한 정적 파일 미들웨어
+app.use('/upload', express.static(uploadDir)); //d 추가
+
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)
 const boardsRouter = require("./src/routes/boards");
@@ -26,13 +34,15 @@ app.use("/boards", boardsRouter);
 const chatsRouter = require("./src/routes/chats");
 app.use("/chats", chatsRouter);
 
-//라우터 미들웨어(클럽)
-const clubsRouter = require("./src/routes/clubs");
-app.use("/clubs", clubsRouter);
 
 //라우터 미들웨어(갤러리)
 const galleriesRouter = require("./src/routes/galleries");
 app.use("/galleries", galleriesRouter);
+
+//라우터 미들웨어(클럽)
+const clubsRouter = require("./src/routes/clubs");
+app.use("/clubs", clubsRouter);
+
 
 //라우터 미들웨어(미팅)
 const meetingsRouter = require("./src/routes/meetings");
