@@ -34,8 +34,10 @@ app.use("/chats", chatsRouter);
 
 
 //라우터 미들웨어(갤러리)
-// const galleriesRouter = require("./src/routes/galleries");
-// app.use("clubs/galleries", galleriesRouter);
+const galleriesRouter = require("./src/routes/galleries");
+app.use("/clubs/galleries", galleriesRouter);
+
+
 //라우터 미들웨어(클럽)
 const clubsRouter = require("./src/routes/clubs");
 app.use("/clubs", clubsRouter);
