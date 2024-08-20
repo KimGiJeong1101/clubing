@@ -2,12 +2,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
+const path = require('path');
 const session = require('./src/middleware/session'); // 세션 설정 로드
 const path = require('path');  // 파일 경로 처리를 위해 필요 //D추가
 const fs = require('fs'); // 파일 시스템 작업을 위해 필요 //D추가
 
 require("dotenv").config();
 const winston = require('winston'); // 서버 로그를 확인
+const path = require('path'); 
 
 // 미들웨어 설정
 app.use(cors({
@@ -21,10 +23,16 @@ app.use(express.json());
 // 세션 설정 적용
 app.use(session);
 
+<<<<<<< HEAD
 // 파일 업로드를 위한 디렉토리 설정
 const uploadDir = path.join(__dirname, 'upload');  //d 추가
 // 업로드된 파일 제공을 위한 정적 파일 미들웨어
 app.use('/upload', express.static(uploadDir)); //d 추가
+=======
+
+// 정적 파일 제공을 위해 uploads 폴더를 공개
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+>>>>>>> b153a66f1184c74c1137d3178a5fa76610387098
 
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)
@@ -35,10 +43,18 @@ app.use("/boards", boardsRouter);
 const chatsRouter = require("./src/routes/chats");
 app.use("/chats", chatsRouter);
 
+<<<<<<< HEAD
+=======
 
 //라우터 미들웨어(갤러리)
-const galleriesRouter = require("./src/routes/galleries");
-app.use("/galleries", galleriesRouter);
+// const galleriesRouter = require("./src/routes/galleries");
+// app.use("clubs/galleries", galleriesRouter);
+//라우터 미들웨어(클럽)
+const clubsRouter = require("./src/routes/clubs");
+app.use("/clubs", clubsRouter);
+>>>>>>> b153a66f1184c74c1137d3178a5fa76610387098
+
+
 
 //라우터 미들웨어(클럽)
 const clubsRouter = require("./src/routes/clubs");
@@ -91,6 +107,9 @@ const startServer = async () => {
 };
 startServer();
 /////이 이후 하나씩 추가할 거 작성은 주석달아서 추가해놓고 말해주기!
+
+// 'profile' 폴더를 정적 파일 경로로 설정
+app.use('/profile', express.static(path.join(__dirname, 'profile')));
 
 // winston 로그 설정
 const logger = winston.createLogger({
