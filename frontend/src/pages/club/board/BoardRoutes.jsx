@@ -9,8 +9,8 @@ function BoardRoutes() {
   return (
      
     <Routes>
-      <Route path='/' element={<Board />} />
-      <Route path='create' element={<BoardCreate />} />
+      <Route path='' element={<Board />} />
+      <Route path='/create' element={<BoardCreate />} />
       <Route path='update/:id' element={<BoardUpdate />} />
     </Routes>
   );

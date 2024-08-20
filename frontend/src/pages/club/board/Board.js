@@ -31,7 +31,7 @@ const Board = () => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:4000/api/posts', {
+      const response = await axios.post('http://localhost:4000/clubs/boards/posts', {
         title,
         category,
         content: editorData
@@ -52,7 +52,7 @@ const Board = () => {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:4000/api/votes', {
+      const response = await axios.post('http://localhost:4000/clubs/boards/votes', {
         title,
         options,
         allowMultiple,

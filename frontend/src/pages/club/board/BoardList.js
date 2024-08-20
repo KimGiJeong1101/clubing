@@ -11,7 +11,7 @@ const ListPosts = ({ onPostSelect, onVoteSelect }) => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/api/all');
+        const response = await axios.get('http://localhost:4000/clubs/boards/all');
         setPosts(response.data.posts);
         setVotes(response.data.votes);
       } catch (error) {
