@@ -7,7 +7,6 @@ import ClubLayout from "./pages/club/clublayput/ClubLayout";
 import Clubs from "./pages/club/Clubs";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import ProtectedPage from "./pages/ProtectedPage";
 import ProtectedRoutes from "./components/common/ProtectedRoutes";
 import NotAuthRoutes from "./components/common/NotAuthRoutes";
 import LoginPage from "./pages/auth/LoginPage";
@@ -51,13 +50,12 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route path="/clublist" element={<Clubs />} />
         <Route path="/meetingList" element={<MeetingList />} />
-        <Route path="/mypage/*" element={<MyPageRoutes />} />
         <Route path="*" element={<NotFound />} />
 
         {/* 로그인한 사람만 갈 수 있는 경로 */}
         <Route element={<ProtectedRoutes isAuth={isAuth} />}>
-          <Route path="/clubs/create" element={<ClubCreate />} />
-          <Route path="/protected" element={<ProtectedPage />} />
+          <Route path="/clubs/create" element={<ClubCreate />} /> 
+          <Route path="/mypage/*" element={<MyPageRoutes />} />
         </Route>
 
         {/* 로그인한 사람은 갈 수 없는 경로 */}

@@ -113,7 +113,7 @@ const LoginPage = () => {
         mb: 2,
         textAlign: 'center',
          }}>
-        로고 넣자요
+        로고 넣자요asdfasdfasdfasdfasdf
         </Typography>
       <Box
         sx={{
@@ -143,9 +143,9 @@ const LoginPage = () => {
           <Mail style={{ 
               marginRight: '5px',
               marginLeft: '-50px', 
-              marginTop: '10px', 
+              marginBottom: '10px',  
               color: 'gray', 
-              fontSize: '35px', }} />
+              fontSize: '40px', }} />
           <TextField
             fullWidth
             label="이메일"
@@ -164,9 +164,9 @@ const LoginPage = () => {
           <LockOutlinedIcon style={{ 
               marginRight: '5px',
               marginLeft: '-50px',  
-              marginTop: '10px', 
+              marginBottom: '10px',  
               color: 'gray', 
-              fontSize: '35px' }} />     
+              fontSize: '40px' }} />     
           <TextField
             fullWidth
             label="패스워드"
