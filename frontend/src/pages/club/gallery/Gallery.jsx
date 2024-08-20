@@ -46,7 +46,7 @@ const Gallery = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // Snackbar 상태 관리
   const queryClient = useQueryClient();
 
-  const userEmail = useSelector(state => state.user?.userData?.email); // 유저 이메일 가져오기
+  const userEmail = useSelector(state => state.user?.userData?.user?.email); // 유저 이메일 가져오기
 
   // Snackbar 닫기 함수
   const handleSnackbarClose = () => {
@@ -135,7 +135,7 @@ const Gallery = () => {
   // 모달을 열고 이미지를 표시하는 핸들러
   const handleOpen = async (id, index) => {
     try {
-      const response = await axios.get(`http://localhost:4000/clubs/${clubNumber}/gallery/images/${id}`);
+      const response = await axios.get(`http://localhost:4000/clubs/gallery/${clubNumber}/images/${id}`);
       const gallery = response.data;
 
       setSelectedIndex(index);

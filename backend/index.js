@@ -35,12 +35,7 @@ app.use("/clubs/chats", chatsRouter);
 
 //라우터 미들웨어(갤러리)
 const galleriesRouter = require("./src/routes/galleries");
-app.use("/clubs/galleries", galleriesRouter);
-
-//라우터 미들웨어(갤러리)
-const galleriesRouter = require("./src/routes/galleries");
-app.use("/clubs/galleries", galleriesRouter);
-
+app.use("/clubs/gallery", galleriesRouter);
 
 //라우터 미들웨어(클럽)
 const clubsRouter = require("./src/routes/clubs");

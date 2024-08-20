@@ -49,7 +49,7 @@ const upload = multer({ storage: storage }).array('files', 8);
 
 
 // 클럽별 갤러리 이미지 등록
-router.post('/:clubNumber/gallery/images', upload, async (req, res, next) => {
+router.post('/:clubNumber/images', upload, async (req, res, next) => {
   try {
       const { originPath, thumbnailPath } = createDailyFolder();
       const files = req.files;
@@ -112,7 +112,7 @@ router.post('/:clubNumber/gallery/images', upload, async (req, res, next) => {
 
 
 // 클럽별 이미지 리스트 반환 라우트
-router.get('/:clubNumber/gallery/images', async (req, res) => {
+router.get('/:clubNumber/images', async (req, res) => {
   try {
       const { clubNumber } = req.params;  // 클럽 번호를 가져옴
       const galleries = await Gallery.find({ clubNumber });  // 해당 클럽 번호에 속하는 갤러리만 조회
@@ -131,7 +131,7 @@ router.get('/:clubNumber/gallery/images', async (req, res) => {
 });
 
 // 클럽별 이미지 상세 정보 가져오기 라우트
-router.get('/:clubNumber/gallery/images/:id', async (req, res) => {
+router.get('/:clubNumber/images/:id', async (req, res) => {
   try {
       const { clubNumber } = req.params;
       const gallery = await Gallery.findOne({ _id: req.params.id, clubNumber });
@@ -154,7 +154,7 @@ router.get('/:clubNumber/gallery/images/:id', async (req, res) => {
 });
 
 // 클럽별 이미지 선택삭제 라우트 (글 작성자와 관리자만 삭제 가능)
-router.delete('/:clubNumber/gallery/images', async (req, res) => {
+router.delete('/:clubNumber/images', async (req, res) => {
   const { imageIds, writer } = req.body;
   const { clubNumber } = req.params;
 
@@ -213,7 +213,7 @@ router.delete('/:clubNumber/gallery/images', async (req, res) => {
 
 
 // 클럽별 전체 이미지 삭제 라우트
-router.delete('/:clubNumber/gallery/images/all', async (req, res) => {
+router.delete('/:clubNumber/images/all', async (req, res) => {
   const { clubNumber } = req.params;
   const { writer } = req.body;
 
@@ -258,7 +258,7 @@ router.delete('/:clubNumber/gallery/images/all', async (req, res) => {
 
 
 // 클럽별 이미지 수정 라우트 (글 작성자와 관리자만 수정 가능)
-router.put('/:clubNumber/gallery/images/:id', upload, async (req, res, next) => {
+router.put('/:clubNumber/images/:id', upload, async (req, res, next) => {
   try {
     const { clubNumber, id } = req.params;
     const { writer } = req.body; // 요청한 사용자의 이메일
