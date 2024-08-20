@@ -45,20 +45,23 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs from "dayjs";
 import "dayjs/locale/ko"; // 한국어 로케일 import
 import axiosInstance from "./../../../utils/axios";
-import { fetchMeetingList } from "../../../store/reducers/clubReducer.js";
+import {
+  fetchCategoryClubList,
+  fetchMeetingList,
+} from "../../../store/reducers/clubReducer.js";
 dayjs.locale("ko");
 
 const Main = () => {
-  const [key, setKey] = useState(0);
   const dispatch = useDispatch();
   //Clubmember=3 이란 거 가져오기 위해서!
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
+  //Clubmember=3 이란 거 가져오기 위해서!.end
 
   //정기모임 글 등록, 두번쨰 모달
   const [dateTime, setDateTime] = useState(null);
-  const [checked, setChecked] = useState(false);
+  const [checked, setChecked] = useState(false); // 정기모임 전체알림 스테이트
   const [category, setCategory] = useState("");
   const checkedChange = (event) => {
     setChecked(event.target.checked);
@@ -77,11 +80,9 @@ const Main = () => {
   } = useForm({ mode: "onChange" });
 
   const onSubmit = (data) => {
-    console.log(dateTime.$d);
     data.dateTime = dateTime.$d.toString();
     data.alertAll = checked;
     data.category = category;
-    console.log(data);
     data.clubNumber = clubNumber;
     axiosInstance
       .post("http://localhost:4000/meetings/create", data)
@@ -89,6 +90,7 @@ const Main = () => {
         console.log(response.data);
         alert("모임 만들기에 성공하쎴음");
         navigate(`/clubs/main?clubNumber=${clubNumber}`);
+        window.location.reload();
       })
       .catch((err) => {
         console.log(err);
@@ -103,19 +105,7 @@ const Main = () => {
     setLocationImg(locationImg);
   };
   //파일.end
-  const [value, setValue] = useState(0);
   const [list, setList] = useState(club);
-
-  const handleChange = (event, newValue) => {
-    let copy = [];
-    for (let i = 0; i < club.length; i++) {
-      if (club[i].detailTag == value) {
-        copy.push(club[i]);
-        setList(copy);
-      }
-    }
-    setValue(newValue);
-  };
 
   //모달창관련 스위치 및 State
   const [open, setOpen] = useState(false);
@@ -136,19 +126,44 @@ const Main = () => {
   };
   //모달창관련.end
 
-  //현재 로그인 정보 가져오기 리덕스로부터 and meeting 정보가져오기
+  // 클럽 리스트 where redux
+  const getCategoryClubList = useSelector((state) => state.categoryClub);
+  const [clubList, setClubList] = useState([]);
+  useEffect(() => {
+    let copy = [];
+    for (let i = 0; i < getCategoryClubList.clubs.length; i++) {
+      console.log(user.userData.email);
+      console.log(getCategoryClubList.clubs[i].admin);
+      if (
+        getCategoryClubList.clubs[i]._id.toString() !==
+        queryParams.get("clubNumber")
+      ) {
+        copy.push(getCategoryClubList.clubs[i]);
+      }
+    }
+    setClubList(copy);
+  }, [getCategoryClubList]);
+  // 클럽 리스트 where redux. end
+
+  //로그인 정보 where redux
   const user = useSelector((state) => state.user);
   const meetingList = useSelector((state) => state.meetingList);
   const [meeetingListBoolean, setMeeetingListBoolean] = useState([]);
   useEffect(() => {
-
     dispatch(fetchMeetingList(clubNumber));
     let copy = [];
-    for (let i = 0; i < meetingList.meetings.length; i++) {
-      if (meetingList.meetings[i].joinMember.includes(user.userData.email)) {
-        copy.push(true);
-      } else {
-        copy.push(false);
+    console.log(`meetingList`);
+    console.log(meetingList.meetings.length);
+    console.log(`meetingList`);
+    if (meetingList.meetings.length!==0) {
+      console.log(`meetingList222`);
+      for (let i = 0; i < meetingList.meetings.length; i++) {
+        if (meetingList.meetings[i].joinMember.includes(user.userData.email)) {
+          //미팅리스트에서의 조인멤버 안에 로긴한 사람 들가있다면
+          copy.push(true);
+        } else {
+          copy.push(false);
+        }
       }
     }
     console.log(copy + "copy");
@@ -156,6 +171,7 @@ const Main = () => {
 
     console.log(meeetingListBoolean);
   }, [clubNumber]);
+  //로그인 정보 where redux.end
 
   //미팅 지우기
   const deleteMeeting = async (meetingNumber) => {
@@ -176,6 +192,9 @@ const Main = () => {
       `http://localhost:4000/clubs/read2/${clubNumber}`
     );
     const data = await response.json();
+    console.log(data.mainCategory);
+    dispatch(fetchCategoryClubList(data.mainCategory));
+    console.log(getCategoryClubList);
     console.log(data);
     return data;
   };
@@ -247,7 +266,7 @@ const Main = () => {
           } else {
             alert("참석 성공");
           }
-          navigate('/mypage/wish');
+          navigate("/mypage/wish");
         })
         .catch((err) => {
           console.error(err);
@@ -737,7 +756,7 @@ const Main = () => {
                 </Typography>
               </Grid>
               <Grid item xs={12}>
-                호스트 <b> {readClub.admin}</b>
+                호스트 <b> {readClub.adminNickName}</b>
               </Grid>
             </Grid>
           </Grid>
@@ -828,7 +847,7 @@ const Main = () => {
             )}
           {readClub.meeting.map((a, i) => {
             return (
-              <Grid container spacing={1} key={i}>
+              <Grid container spacing={1}>
                 <Grid
                   item
                   xs={12}
@@ -1017,7 +1036,7 @@ const Main = () => {
                     letterSpacing: "-.1rem",
                   }}
                 >
-                  {readClub.admin}
+                  {readClub.adminNickName}
                 </Typography>
               </Grid>
               <Grid item xs={12}>
@@ -1091,16 +1110,30 @@ const Main = () => {
             이런 클럽은 어때요
           </Typography>
           {/* 비슷한 클럽 */}
-          <Grid container spacing={2}>
-            <Grid item xs={12} sx={{ height: "200px", marginBottom: "30px" }}>
+          {clubList.length !== 0 && (
+            <Grid
+              item
+              onClick={() => {
+                navigate(`/clubs/main?clubNumber=${clubList[0]._id}`);
+                window.location.reload();
+              }}
+              xs={12}
+              sm={12}
+              md={6}
+              sx={{ height: "200px", marginBottom: "30px" }}
+            >
               <Paper
-                elevation={2}
-                sx={{ padding: "16px", display: "flex", borderRadius: "20px" }}
+                elevation={3}
+                sx={{
+                  padding: "15px",
+                  display: "flex",
+                  borderRadius: "20px",
+                }}
               >
                 <Grid item xs={12} sm={12} md={4}>
                   <Box
                     sx={{
-                      width: "250px",
+                      width: "160px",
                       height: "160px",
                       overflow: "hidden", // 박스 영역을 넘어서는 이미지 잘리기
                       borderRadius: "20px", // 원하는 경우 둥근 모서리 적용
@@ -1111,7 +1144,7 @@ const Main = () => {
                     }}
                   >
                     <img
-                      src={club2[0].src} // 이미지 경로
+                      src={list[0].src} // 이미지 경로
                       alt="Example"
                       style={{
                         width: "100%",
@@ -1122,29 +1155,32 @@ const Main = () => {
                   </Box>
                 </Grid>
                 <Grid item xs={12} sm={12} md={8}>
-                  <Box
-                    sx={{
-                      color: "#666060",
-                      backgroundColor: "#F4F4F4",
-                      display: "inline-flex",
-                      borderRadius: "20px",
-                      padding: "5px 20px",
-                      margin: "10px 0px",
-                      fontWeight: "700",
-                      fontSize: "18px",
-                    }}
-                  >
-                    {club2[0].subTitle}
-                  </Box>
                   <Typography
                     variant="h5"
                     sx={{
                       fontWeight: "700",
-                      fontSize: "22px",
+                      fontSize: "20px",
                       color: "#383535",
+                      paddingTop: "10px",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {club2[0].title}
+                    {clubList[0].title}
+                  </Typography>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: "500",
+                      fontSize: "18px",
+                      color: "#666666",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {clubList[0].subTitle}
                   </Typography>
                   <Typography
                     variant="h6"
@@ -1154,17 +1190,17 @@ const Main = () => {
                       display: "inline-flex",
                     }}
                   >
-                    {club2[0].tag} · {club2[0].where} ·
+                    {clubList[0].mainCategory} ·
                   </Typography>
                   <CommentRoundedIcon
-                    sx={{ color: "green", fontSize: "18px" }}
+                    sx={{ color: "#BF5B16", fontSize: "18px" }}
                   />
                   <Typography
                     variant="h6"
-                    sx={{ color: "green", display: "inline-flex" }}
+                    sx={{ color: "#BF5B16", display: "inline-flex" }}
                   >
                     {" "}
-                    {club2[0].chat}
+                    {list[0].chat}
                   </Typography>
                   <Box
                     sx={{
@@ -1203,15 +1239,13 @@ const Main = () => {
                       }}
                     >
                       <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
-                      <span style={{ marginLeft: "5px" }}>
-                        {club2[0].member.length}/{club2[0].maxMember}
-                      </span>
+                      <span style={{ marginLeft: "5px" }}></span>
                     </Box>
                   </Box>
                 </Grid>
               </Paper>
             </Grid>
-          </Grid>
+          )}
           {/* 비슷한 클럽.end */}
         </Grid>
       </Container>

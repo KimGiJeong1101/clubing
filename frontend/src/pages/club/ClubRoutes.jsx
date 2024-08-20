@@ -10,7 +10,7 @@ function ClubRoutes() {
     <Routes>
       <Route path="main/*" element={<MainRoutes />} />
       <Route path="boards/*" element={<BoardRoutes />} />
-      <Route path="galleries/*" element={<GalleryRoutes />} />
+      <Route path="gallery/*" element={<GalleryRoutes />} />
       <Route path="meeting/*" element={<MeetingRoutes />} />
     </Routes>
   );

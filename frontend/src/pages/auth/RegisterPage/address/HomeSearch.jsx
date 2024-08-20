@@ -11,6 +11,8 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
   const port = process.env.REACT_APP_ADDRESS_API;
 
   useEffect(() => {
+    console.log(port);
+    console.log(searchTerm);
     if (searchTerm) {
       fetch(`api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${searchTerm}`)
         .then(response => response.json())
