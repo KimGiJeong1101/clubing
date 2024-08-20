@@ -21,3 +21,7 @@ frontend/.vscode/
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# package-lock.json
+backend/package-lock.json
+frontend/package-lock.json
