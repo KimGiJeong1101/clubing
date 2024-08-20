@@ -5,7 +5,7 @@ const app = express();
 const path = require("path");
 const session = require("./src/middleware/session"); // 세션 설정 로드
 require("dotenv").config();
-const winston = require("winston"); // 서버 로그를 확인
+const winston = require('winston'); // 서버 로그를 확인
 
 // 미들웨어 설정
 app.use(
