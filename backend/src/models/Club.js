@@ -41,6 +41,9 @@ const clubSchema = mongoose.Schema({
     admin:{
         type : String // 방장
     },
+    adminNickName:{
+        type : String // 방장 닉네임
+    },
     members:{
         type : [String] //여기서 현재 인원
     },
