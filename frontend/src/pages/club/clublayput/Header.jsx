@@ -28,17 +28,12 @@ function Header() {
   useEffect(() => {
     if (clubNumber) {
       dispatch(fetchGetClub(clubNumber));
-      console.log("제발");
-      console.log(getClub.clubs.admin);
-      console.log(user.email);
     }
   }, [dispatch, clubNumber]);
 
   const handleDelete = async () => {
     try {
-      console.log("모임 삭제전");
       await axiosInstance.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
-      console.log("모임 삭제");
       // 삭제 후 원하는 페이지로 이동
       navigate("/clublist");
       alert("삭제 완료");
@@ -74,7 +69,6 @@ function Header() {
       axiosInstance
         .post(`http://localhost:4000/clubs/cencellMember/${clubNumber}`)
         .then((response) => {
-          console.log(response.data);
           alert("모임 탈퇴 성공");
           navigate(`/mypage/wish`);
         })

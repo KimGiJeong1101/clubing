@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import Draggable from 'react-draggable'; // 팝업을 드래그할 수 있도록 해주는 라이브러리
+import Draggable from 'react-draggable';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton, Box } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 // 팝업 내에서 선택된 카테고리 상태 관리
 const CategoryPopup = ({ categories, onSelect, onClose, selectedCategories }) => {
@@ -59,61 +61,91 @@ const CategoryPopup = ({ categories, onSelect, onClose, selectedCategories }) =>
 
   return (
      // 팝업 전체를 감싸는 div는 화면 전체를 덮고, 배경을 어둡게 하여 팝업이 더 잘 보이게 합니다.
-    <div className="popup fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center z-50" onClick={handleClose}>
-      <Draggable>
-      <div 
-        className="bg-white p-6 rounded-md shadow-lg max-w-4xl max-h-[80vh] overflow-auto relative" 
-        onClick={(e) => e.stopPropagation()} 
-        style={{ width: '600px' }}
-      >
-        {/* X 버튼 */}
-    <button 
-      className="absolute top-4 right-4 text-gray-600 hover:text-gray-900"
+     <Box
+      sx={{
+        position: 'fixed',
+        inset: 0,
+        bgcolor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1300, // MUI의 Dialog가 사용하는 zIndex
+      }}
       onClick={handleClose}
     >
-      ×
-    </button>
-        <h2 className="text-xl font-semibold mb-4">카테고리 선택</h2>
+      <Draggable>
+      <Box
+          sx={{
+            bgcolor: 'background.paper',
+            p: 4,
+            borderRadius: 2,
+            boxShadow: 24,
+            width: 600,
+            maxHeight: '80vh',
+            overflow: 'auto',
+            position: 'relative',
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* X 버튼 */}
+          <IconButton
+            sx={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+            }}
+            onClick={handleClose}
+          >
+            <CloseIcon />
+          </IconButton>
+          <Typography variant="h6" gutterBottom>
+            카테고리 선택
+          </Typography>
         {/* 카테고리 리스트 */}
-        {Object.entries(categories).map(([main, subs]) => (
-          <div key={main} className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">{main}</h3>
-            <div className="flex flex-wrap gap-2">
+        <Box sx={{ p: 2 }}>
+      {Object.entries(categories).map(([main, subs]) => (
+          <Box key={main} sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              {main}
+            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {subs.map(sub => (
-                <button
+                <Button
                   key={sub}
-                  type="button"
-                  className={`px-4 py-2 text-sm ${localSelectedCategories.some(cat => cat.main === main && cat.sub === sub) ? 'bg-blue-100' : 'text-blue-600'} hover:bg-blue-100`}
+                  variant={localSelectedCategories.some(cat => cat.main === main && cat.sub === sub) ? 'contained' : 'outlined'}
+                  color="primary"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSelect(main, sub);
                   }}
+                  sx={{ textTransform: 'none' }}
                 >
                   {sub}
-                </button>
+                </Button>
               ))}
-            </div>
-          </div>
+            </Box>
+          </Box>
         ))}
-        <div className="flex justify-end gap-4 mt-4">
-          <button
-            type="button"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md"
+      </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
             onClick={handleSubmit}
           >
             확인
-          </button>
-          <button
-            type="button"
-            className="px-4 py-2 bg-gray-500 text-white rounded-md"
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
             onClick={handleClose}
           >
             닫기
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Box>
+        </Box>
       </Draggable>
-    </div>
+    </Box>
   );
 };
 

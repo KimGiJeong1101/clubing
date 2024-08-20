@@ -2,10 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form'
 import { useDispatch } from 'react-redux'
 import { loginUser } from '../../../store/actions/userActions'
-import { Container, TextField, Button, Typography, Box, Checkbox, FormControlLabel, InputAdornment } from '@mui/material'
+import { Container, TextField, Button, Typography, Box, Checkbox, FormControlLabel, InputAdornment,  Dialog,
+          DialogTitle,  DialogContent,  DialogActions, } from '@mui/material'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'; // 아이콘
 import Mail from '@mui/icons-material/MailOutline'; // 아이콘
 import { useNavigate } from 'react-router-dom'; // useNavigate 임포트
+import FindEmailPage from './FindEmail';
+import FindPasswordPage from './FindPassword'; // 수정된 부분
+import { styled } from '@mui/material/styles';
 
 const LoginPage = () => {
   const {
@@ -91,7 +95,37 @@ const LoginPage = () => {
     }
   }
 
-  //className 대신 sx
+  // 모달 열림 상태 관리
+  const [isPopupOpen, setIsPopupOpen] = useState({
+    email: false,
+    password: false,
+  });
+
+  const consentPopupOpen = (type) => {
+    setIsPopupOpen(prev => ({ ...prev, [type]: true }));
+  };
+
+  const consentPopupClose = (type) => {
+    setIsPopupOpen(prev => ({ ...prev, [type]: false }));
+  };
+
+// 스타일을 정의하는 styled 컴포넌트
+const ClickableSpan = styled('span')(({ theme }) => ({
+  color: 'black', // 기본 텍스트 색상
+  cursor: 'pointer', // 클릭 가능한 커서
+  transition: 'color 0.3s, transform 0.3s', // 색상 및 변형에 대한 부드러운 전환
+
+  '&:hover': {
+    color: theme.palette.primary.dark, // 호버 시 색상 변경
+    transform: 'scale(1.05)', // 호버 시 크기 확대 효과
+  },
+
+  '&:focus': {
+    outline: 'none', // 포커스 시 기본 윤곽선 제거
+    boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.2)', // 포커스 시 그림자 효과
+  },
+}));
+
   return (
     
     <Container 
@@ -113,7 +147,7 @@ const LoginPage = () => {
         mb: 2,
         textAlign: 'center',
          }}>
-        로고 넣자요
+        로고 넣자요asdfasdfasdfasdfasdf
         </Typography>
       <Box
         sx={{
@@ -143,9 +177,9 @@ const LoginPage = () => {
           <Mail style={{ 
               marginRight: '5px',
               marginLeft: '-50px', 
-              marginTop: '10px', 
+              marginBottom: '10px',  
               color: 'gray', 
-              fontSize: '35px', }} />
+              fontSize: '40px', }} />
           <TextField
             fullWidth
             label="이메일"
@@ -164,9 +198,9 @@ const LoginPage = () => {
           <LockOutlinedIcon style={{ 
               marginRight: '5px',
               marginLeft: '-50px',  
-              marginTop: '10px', 
+              marginBottom: '10px',  
               color: 'gray', 
-              fontSize: '35px' }} />     
+              fontSize: '40px' }} />     
           <TextField
             fullWidth
             label="패스워드"
@@ -223,53 +257,43 @@ const LoginPage = () => {
         </form>
       </Box>
       <Box 
-      display="flex" 
-      justifyContent="center" 
-      alignItems="center" 
-      flexDirection="row" // 수직으로 배치하려면 'column'으로 변경
-      sx={{ mt: 2 }}
-    >
-      
-      <Typography 
-          variant="body2" 
-          align="center"
-          sx={{ 
-            mx: 2,
-            '& a': {
-              textDecoration: 'none',
-              transition: 'text-decoration 0.3s',
-              '&:hover': {
-                textDecoration: 'underline', // 호버 시 밑줄을 추가
-              }
-            }
-           }}>
-        <a href="/">
-          아이디 찾기
-        </a>
-      </Typography>
-      <Typography>
-        |
-      </Typography>
-      <Typography 
-          variant="body2" 
-          align="center" 
-          sx={{ 
-            mx: 2,
-            '& a': {
-              textDecoration: 'none',
-              transition: 'text-decoration 0.3s',
-              '&:hover': {
-                textDecoration: 'underline', // 호버 시 밑줄을 추가
-              }
-            }
-           }}>
-        <a href="/">
-          비밀번호 찾기
-        </a>
-      </Typography>
-    </Box>
+          display="flex" 
+          justifyContent="center" 
+          alignItems="center" 
+          flexDirection="row" // 수직으로 배치하려면 'column'으로 변경
+          sx={{ mt: 2 }}
+        >
+            <ClickableSpan 
+              onClick={() => consentPopupOpen('email')}
+              role="button" // 버튼 역할을 명시
+            >
+              아이디 찾기
+            </ClickableSpan>
+            
+            {/* FindEmailPage 모달 */}
+            <FindEmailPage 
+              open={isPopupOpen.email} 
+              onClose={() => consentPopupClose('email')}
+            />
+          <Typography
+            style={{ marginLeft: '10px',  marginRight: '10px' }}
+          >
+          |
+          </Typography>
+          <ClickableSpan 
+            onClick={() => consentPopupOpen('password')}
+            role="button" // 버튼 역할을 명시
+          >
+            비밀번호 찾기
+          </ClickableSpan>
+          {/* FindPasswordPage  모달 */}
+          <FindPasswordPage 
+            open={isPopupOpen.password} 
+            onClose={() => consentPopupClose('password')} 
+          />
+        </Box>
     </Container>
   )
 }
 
-export default LoginPage
+export default LoginPage;

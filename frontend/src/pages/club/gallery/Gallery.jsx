@@ -1,32 +1,475 @@
-import { Box } from "@mui/material";
-import React, { useEffect } from "react";
-import axiosInstance from "../../../utils/axios";
-import { useLocation } from "react-router-dom";
 
-function Gallery() {
-  //Clubmember=3 이란 거 가져오기 위해서!
+import React, { useState } from 'react';
+import ImageList from '@mui/material/ImageList';
+import ImageListItem from '@mui/material/ImageListItem';
+import AnimatedCard from '../../../components/common/AnimatedCard';
+import GalleryModal from './GalleryModal';
+import { Button, Box, Checkbox } from '@mui/material';
+import AddToPhotosIcon from '@mui/icons-material/AddToPhotos';
+import CheckCircleSharpIcon from '@mui/icons-material/CheckCircleSharp';
+import GalleryCreate from './GalleryCreate';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import axios from 'axios';
+import AlertModal from './AlertModal';
+import Modal from '@mui/material/Modal';
+import { useLocation } from 'react-router-dom';
+
+// 이미지 등록 API 요청 함수
+export const registerImages = (clubNumber, newImages) => {
+  return axios.post(`http://localhost:4000/clubs/${clubNumber}/gallery/images`, newImages);
+};
+
+// 이미지 목록을 서버에서 가져오는 함수 (조회 로직)
+export const fetchImages = async (clubNumber) => {
+  const { data } = await axios.get(`http://localhost:4000/clubs/${clubNumber}/gallery/images`);
+  return data;
+};
+
+// 선택한 이미지들을 삭제하는 함수 (삭제 로직)
+export const deleteImages = async (clubNumber, imageIds) => {
+  await axios.delete(`http://localhost:4000/clubs/${clubNumber}/gallery/images`, {
+    data: { imageIds }
+  });
+};
+
+// 모든 이미지를 삭제하는 함수 (전체 삭제 로직)
+export const deleteAllImages = async (clubNumber) => {
+  await axios.delete(`http://localhost:4000/clubs/${clubNumber}/gallery/images/all`);
+};
+
+// 이미지를 수정하는 함수 (수정 로직)
+export const editImage = async (clubNumber, { id, formData }) => {
+  await axios.put(`http://localhost:4000/clubs/${clubNumber}/gallery/images/${id}`, formData);
+};
+
+
+const Gallery = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
-  useEffect(() => {
-    console.log('useEffect 에서 엑시오스인스턴스 테스트 중 실행 ')
-    axiosInstance
-      .get(`/clubs/galleries/read?clubNumber=${clubNumber}`)
-      .then((response) => {
-        console.log(response.data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }, []);
+  const [open, setOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [selectedTitle, setSelectedTitle] = useState('');
+  const [selectedContent, setSelectedContent] = useState('');
+  const [registerOpen, setRegisterOpen] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedImageIds, setSelectedImageIds] = useState([]);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editGallery, setEditGallery] = useState(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const queryClient = useQueryClient();
+
+  // 이미지 데이터를 가져오는 useQuery 훅 (조회 로직)
+  const { data: images = [], error, isLoading, isFetching } = useQuery({
+    queryKey: ['images', clubNumber],
+    queryFn: () => fetchImages(clubNumber),
+    enabled: !!clubNumber
+  });
+
+  const sortedImages = images.slice().reverse();
+
+  // 이미지 등록을 처리하는 useMutation 훅 (등록 로직)
+  const registerMutation = useMutation({
+    mutationFn: (newImages) => registerImages(clubNumber, newImages),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['images', clubNumber]);
+      setRegisterOpen(false);
+    },
+  });
+
+  // 선택된 이미지를 삭제하는 useMutation 훅 (삭제 로직)
+  const deleteMutation = useMutation({
+    mutationFn: (imageIds) => deleteImages(clubNumber, imageIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['images', clubNumber]);
+      setSelectedImageIds([]);
+      setSelectMode(false);
+    },
+  });
+
+  // 모든 이미지를 삭제하는 useMutation 훅 (전체 삭제 로직)
+  const deleteAllMutation = useMutation({
+    mutationFn: () => deleteAllImages(clubNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['images', clubNumber]);
+      setSelectMode(false);
+      setConfirmDeleteOpen(false);
+    },
+  });
+
+  // 이미지를 수정하는 useMutation 훅 (수정 로직)
+  const editMutation = useMutation({
+    mutationFn: (formData) => editImage(clubNumber, { id: editGallery._id, formData }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['images', clubNumber]);
+      setEditOpen(false);
+    },
+  });
+
+
+// 모달을 열고 이미지를 표시하는 핸들러
+const handleOpen = async (id, index) => {
+  try {
+      const response = await axios.get(`http://localhost:4000/clubs/${clubNumber}/gallery/images/${id}`); // gallery가 맞음
+      const gallery = response.data;
+
+      setSelectedIndex(index);
+      setSelectedImages(gallery.originImages);
+      setSelectedTitle(gallery.title);
+      setSelectedContent(gallery.content);
+      setOpen(true);
+  } catch (error) {
+      console.error("Failed to fetch gallery details", error);
+  }
+};
+
+
+  // 모달을 닫는 핸들러
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedImages([]);
+    setSelectedTitle('');
+    setSelectedContent('');
+  };
+
+  // 이전 이미지로 이동하는 핸들러
+  const handlePrev = () => {
+    if (selectedIndex > 0) {
+      handleOpen(sortedImages[selectedIndex - 1]._id, selectedIndex - 1);
+    }
+  };
+
+  // 다음 이미지로 이동하는 핸들러
+  const handleNext = () => {
+    if (selectedIndex < sortedImages.length - 1) {
+      handleOpen(sortedImages[selectedIndex + 1]._id, selectedIndex + 1);
+    }
+  };
+
+  // 이미지 등록 모달을 여는 핸들러
+  const handleRegisterOpen = () => {
+    setRegisterOpen(true);
+  };
+
+  // 이미지 등록 모달을 닫는 핸들러
+  const handleRegisterClose = () => {
+    setRegisterOpen(false);
+  };
+
+  // 이미지 등록 완료 시 호출되는 핸들러
+  const handleRegisterComplete = (formData) => {
+    registerMutation.mutate(formData);
+  };
+
+  // 이미지 수정 모달을 여는 핸들러
+  const handleEditOpen = () => {
+    if (selectedImageIds.length !== 1) {
+      setAlertOpen(true);
+      return;
+    }
+    const selectedGallery = sortedImages.find(img => img._id === selectedImageIds[0]);
+    setEditGallery(selectedGallery);
+    setEditOpen(true);
+  };
+
+  // 이미지 수정 모달을 닫는 핸들러
+  const handleEditClose = () => {
+    setEditOpen(false);
+    setEditGallery(null);
+  };
+
+  // 이미지 수정 완료 시 호출되는 핸들러
+  const handleEditComplete = (formData) => {
+    editMutation.mutate(formData);
+  };
+
+  // 선택 모드를 토글하는 핸들러
+  const handleSelectModeToggle = () => {
+    setSelectMode(!selectMode);
+    if (!selectMode) {
+      setSelectedImageIds([]);
+    }
+  };
+
+  // 이미지를 선택하는 핸들러
+  const handleSelectImage = (id) => {
+    setSelectedImageIds((prevSelectedImageIds) => {
+      if (prevSelectedImageIds.includes(id)) {
+        return prevSelectedImageIds.filter((imageId) => imageId !== id);
+      } else {
+        return [...prevSelectedImageIds, id];
+      }
+    });
+  };
+
+  // 선택된 이미지를 삭제하는 핸들러
+  const handleDeleteSelectedImages = () => {
+    deleteMutation.mutate(selectedImageIds);
+  };
+
+  // 모든 이미지를 삭제하는 핸들러
+  const handleDeleteAllImages = () => {
+    setConfirmDeleteOpen(true);
+  };
+
+  // 전체 삭제 확인 모달을 닫는 핸들러
+  const handleConfirmDeleteClose = () => {
+    setConfirmDeleteOpen(false);
+  };
+
+  // 모든 이미지 삭제를 확인하는 핸들러
+  const handleConfirmDelete = () => {
+    deleteAllMutation.mutate();
+  };
+
+  // 경고 모달을 닫는 핸들러
+  const handleAlertClose = () => {
+    setAlertOpen(false);
+  };
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div>
-      Gallery
-      <Box sx={{ height: "500px", backgroundColor: "black" }}>gdgd</Box>
+    <div style={{ minWidth: '400px', overflowX: 'hidden', position: 'relative' }}>
+      {error && <div>데이터 로드 에러: {error.message}</div>} {/* 에러가 있을 경우 에러 메시지 출력 */}
+      
+      <ImageList
+        sx={{
+          width: '100%',
+          maxWidth: '1400px',
+          backgroundColor: 'white',
+          paddingTop: 5,
+          paddingLeft: 10,
+          paddingRight: 10,
+          paddingBottom: 20,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: '8px',
+          boxSizing: 'border-box',
+        }}
+        cols={3}
+      >
+        {!isLoading && !error && sortedImages.map((item, index) => (
+          <ImageListItem
+            key={item._id}
+            sx={{
+              margin: 0,
+              padding: 0,
+              position: 'relative',
+              overflow: 'hidden',
+              height: 0,
+              paddingBottom: '100%'
+            }}
+            onClick={(event) => {
+              if (event.target.type !== 'checkbox') {
+                handleOpen(item._id, index);
+              }
+            }}
+          >
+            <AnimatedCard image={item.thumbnailImage} />
+            {selectMode && (
+              <Checkbox
+                checked={selectedImageIds.includes(item._id)}
+                onChange={() => handleSelectImage(item._id)}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  zIndex: 1000,
+                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                  borderRadius: '50%',
+                }}
+              />
+            )}
+          </ImageListItem>
+        ))}
+      </ImageList>
+
+      <GalleryModal
+        open={open}
+        handleClose={handleClose}
+        images={selectedImages}
+        title={selectedTitle}
+        content={selectedContent}
+        handlePrev={handlePrev}
+        handleNext={handleNext}
+      />
+
+      <Button
+        sx={{
+          position: 'fixed',
+          top: 120,
+          right: 16,
+          zIndex: 1000,
+          backgroundColor: 'white.main',
+          color: 'primary.main',
+          '&:hover': {
+            backgroundColor: 'white.main',
+          },
+        }}
+        onClick={handleRegisterOpen}
+      >
+        <AddToPhotosIcon />
+      </Button>
+
+      <Button 
+        sx={{
+          position: 'fixed',
+          top: 160, 
+          right: 16,
+          zIndex: 1000,
+          backgroundColor: 'white.main',
+          color: 'primary.main',
+          '&:hover': {
+            backgroundColor: 'white.main',
+          },
+        }}
+        onClick={handleSelectModeToggle}
+      >
+        <CheckCircleSharpIcon/>
+      </Button>
+
+      {selectMode && (
+        <>
+          <Button
+            sx={{
+              position: 'fixed',
+              top: 200,
+              right: 16,
+              zIndex: 1000,
+              backgroundColor: 'white.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'white.main',
+              },
+            }}
+            onClick={handleDeleteSelectedImages}
+          >
+            선택삭제
+          </Button>
+          <Button
+            sx={{
+              position: 'fixed',
+              top: 240,
+              right: 16,
+              zIndex: 1000,
+              backgroundColor: 'white.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'white.main',
+              },
+            }}
+            onClick={handleDeleteAllImages}
+          >
+            전체삭제
+          </Button>
+          <Button
+            sx={{
+              position: 'fixed',
+              top: 280,
+              right: 16,
+              zIndex: 1000,
+              backgroundColor: 'white.main',
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'white.main',
+              },
+            }}
+            onClick={handleEditOpen}
+          >
+            수정
+          </Button>
+        </>
+      )}
+
+      <Modal
+        open={registerOpen}
+        onClose={handleRegisterClose}
+        aria-labelledby="register-modal-title"
+        aria-describedby="register-modal-description"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          <GalleryCreate onRegisterComplete={handleRegisterComplete} />
+        </Box>
+      </Modal>
+
+      <AlertModal
+        open={confirmDeleteOpen}
+        handleClose={handleConfirmDeleteClose}
+        handleConfirm={handleConfirmDelete}
+        title="전체 삭제"
+        description="정말로 모든 이미지를 삭제하시겠습니까?"
+        confirmText="삭제"
+        cancelText="취소"
+      />
+
+      <AlertModal
+        open={alertOpen}
+        handleClose={handleAlertClose}
+        handleConfirm={handleAlertClose}
+        title="이미지 선택 오류"
+        description="수정 하실 때는 하나의 이미지만 선택해주세요."
+        confirmText="확인"
+        cancelText=""
+      />
+
+      <Modal
+        open={editOpen}
+        onClose={handleEditClose}
+        aria-labelledby="edit-modal-title"
+        aria-describedby="edit-modal-description"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '90%',
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            p: 4,
+          }}
+        >
+          {editGallery && (
+            <GalleryCreate
+              onRegisterComplete={handleEditComplete}
+              isEditMode={true}
+              initialData={{
+                title: editGallery.title,
+                content: editGallery.content,
+                images: editGallery.allImages
+              }}
+            />
+          )}
+        </Box>
+      </Modal>
+
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isFetching}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </div>
   );
-}
+};
 
 export default Gallery;

@@ -87,7 +87,6 @@ const Main = () => {
     axiosInstance
       .post("http://localhost:4000/meetings/create", data)
       .then((response) => {
-        console.log(response.data);
         alert("모임 만들기에 성공하쎴음");
         navigate(`/clubs/main?clubNumber=${clubNumber}`);
         window.location.reload();
@@ -120,7 +119,6 @@ const Main = () => {
   const FadHandleClick = (event) => {
     const ariaLabel = event.currentTarget.getAttribute("aria-label");
     setCategory(ariaLabel);
-    console.log(`잘나오나  ${ariaLabel}`);
     setOpen(false);
     setSecondModal(true);
   };
@@ -132,8 +130,6 @@ const Main = () => {
   useEffect(() => {
     let copy = [];
     for (let i = 0; i < getCategoryClubList.clubs.length; i++) {
-      console.log(user.userData.email);
-      console.log(getCategoryClubList.clubs[i].admin);
       if (
         getCategoryClubList.clubs[i]._id.toString() !==
         queryParams.get("clubNumber")
@@ -152,11 +148,7 @@ const Main = () => {
   useEffect(() => {
     dispatch(fetchMeetingList(clubNumber));
     let copy = [];
-    console.log(`meetingList`);
-    console.log(meetingList.meetings.length);
-    console.log(`meetingList`);
     if (meetingList.meetings.length!==0) {
-      console.log(`meetingList222`);
       for (let i = 0; i < meetingList.meetings.length; i++) {
         if (meetingList.meetings[i].joinMember.includes(user.userData.email)) {
           //미팅리스트에서의 조인멤버 안에 로긴한 사람 들가있다면
@@ -166,10 +158,8 @@ const Main = () => {
         }
       }
     }
-    console.log(copy + "copy");
     setMeeetingListBoolean(copy);
 
-    console.log(meeetingListBoolean);
   }, [clubNumber]);
   //로그인 정보 where redux.end
 
@@ -178,7 +168,6 @@ const Main = () => {
     const response = await fetch(
       `http://localhost:4000/meetings/delete/` + meetingNumber
     );
-    console.log(response.data);
     window.location.reload();
   };
   //미팅 지우기.end
@@ -192,10 +181,7 @@ const Main = () => {
       `http://localhost:4000/clubs/read2/${clubNumber}`
     );
     const data = await response.json();
-    console.log(data.mainCategory);
     dispatch(fetchCategoryClubList(data.mainCategory));
-    console.log(getCategoryClubList);
-    console.log(data);
     return data;
   };
   const {
@@ -226,9 +212,7 @@ const Main = () => {
 
   const handleDelete = async () => {
     try {
-      console.log("모임 삭제전");
       await axios.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
-      console.log("모임 삭제");
       // 삭제 후 원하는 페이지로 이동
       navigate("/clublist");
       alert("삭제 완료");
@@ -258,9 +242,7 @@ const Main = () => {
               copy.push(false);
             }
           }
-          console.log(copy + "copy");
           setMeeetingListBoolean(copy);
-          console.log(response.data.message);
           if (response.data.message === "참석 취소") {
             alert("참석 취소");
           } else {
@@ -893,7 +875,6 @@ const Main = () => {
                       >
                         <Button
                           onClick={() => {
-                            console.log(readClub.meeting[i]._id);
                             meetingJoin(readClub.meeting[i]._id);
                           }}
                           variant={

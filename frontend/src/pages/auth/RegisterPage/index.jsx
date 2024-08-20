@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import { useDispatch } from 'react-redux';
 import { registerUser } from '../../../store/actions/userActions'
 import HomeSearch from './address/HomeSearch';
@@ -13,10 +14,16 @@ import axios from 'axios';
 import TermsPopup from './consent/Terms' ;
 import PrivacyPopup from './consent/Privacy';
 import MarketingPopup from './consent/Marketing';
-import { TextField, Button, Typography, Box, FormControl, FormControlLabel, Checkbox, Select, MenuItem, InputLabel } from '@mui/material';
+import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, FormControlLabel,
+          FormControl, InputLabel, Select, MenuItem, FormHelperText, DialogActions,
+          Chip, Checkbox, Paper, Link
+        } from '@mui/material';
+import {Visibility, VisibilityOff} from '@mui/icons-material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+
 
 const RegisterPage = () => {
-  const { register, handleSubmit, formState: { errors }, reset, watch, setValue } = 
+  const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
   useForm({  
             defaultValues: {
               age: { year: '1990', month: '9', day: '10' },
@@ -33,6 +40,7 @@ const RegisterPage = () => {
     mode: 'onChange' });
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // 회원가입 폼 제출 시 실행되는 함수
   const onSubmit = (data) => {
@@ -110,13 +118,24 @@ const RegisterPage = () => {
       termsAccepted: terms,
       privacyAccepted: privacy,
       marketingAccepted: marketing,
-      image : `https://via.placeholder.com/600x400?text=no+user+image`
+      profilePic: {
+        originalImage: 'https://via.placeholder.com/600x400?text=no+user+image',
+        thumbnailImage: 'https://via.placeholder.com/600x400?text=no+user+image',
+      }
     }
    
   
     console.log('들어간 값 확인', body);
 
-    dispatch(registerUser(body));
+    dispatch(registerUser(body))
+      .then(() => {
+        // 회원가입 성공 후 리다이렉트 처리
+        navigate('/'); // 성공 페이지로 리다이렉트
+      })
+      .catch((error) => {
+        console.error('회원가입 실패:', error);
+        // 에러 처리 로직
+      });
 
     // registerUser(body) thunk함수
     //dispatch 함수를 받아와서 액션을 전달할 수 있게 해줍니다. 
@@ -133,7 +152,7 @@ const RegisterPage = () => {
    const [workplace, setWorkplace] = useState({ w_sido: '', w_sigoon: '', w_dong: '' });
    const [interestLocation, setInterestLocation] = useState({ i_sido: '', i_sigoon: '', i_dong: '' });
 
-   // 성별 값 설정 함수
+   // 성별 값 설정 함수 // 무이로 바꿔서 잠시 보류
   const setGender = (value) => {
     setValue('gender', value);
   };
@@ -150,7 +169,7 @@ const RegisterPage = () => {
   };
 
   // 이름 유효성 검사 규칙
-  const validateUserName = (name) => {
+  const userName = (name) => {
     // 최대 길이 검증
     if (name.length > 20) {
       return "최대 20자입니다.";
@@ -169,12 +188,21 @@ const RegisterPage = () => {
     }
     return true; // 모든 검증을 통과한 경우
   };
+
+  // 닉네임
+  const nickName = {
+    maxLength: {
+      value: 20,
+      message: "닉네임은 최대 20자까지 입력할 수 있습니다."
+    }
+  };
+
   // 비밀번호 유효성 검사 규칙
   const userPassword = {
     required: "필수 필드입니다.",
     minLength: {
-      value: 6,
-      message: "최소 6자입니다."
+      value: 8,
+      message: "최소 8자입니다."
     },validate: value => {
       // 비밀번호 유효성 검사 정규 표현식
        const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
@@ -187,6 +215,10 @@ const RegisterPage = () => {
 
   const userPasswordCheck = {
     required: 0,
+    minLength: {
+      value: 8,
+      message: "최소 8자입니다."
+    },
     validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
   };
 
@@ -199,8 +231,15 @@ const RegisterPage = () => {
     return options;
   };
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordCheck, setShowPasswordCheck] = useState(false);
+
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleClickShowPasswordCheck = () => setShowPasswordCheck(!showPasswordCheck);
+
+
 // 생년월일 범주
-  const years = generateOptions(1920, 2050);
+  const years = generateOptions(1950, 2040);
   const months = generateOptions(1, 12);
   const days = generateOptions(1, 31);
 
@@ -267,7 +306,6 @@ useEffect(() => {
 }, [selectedJobs, setValue]);
 
   // 카테고리 선택 핸들러
-  // ui 업데이트에 사용됨
  // 통합된 핸들러
  const handleSelection = (newSelections) => {
   if (isCategoryPopupOpen) {
@@ -301,6 +339,9 @@ useEffect(() => {
   const [message, setMessage] = React.useState('');
   const [isEmailChecked, setIsEmailChecked] = useState(false);
   const [authNumber, setAuthNumber] = useState('');
+  const [timer, setTimer] = useState(0); // 타이머 상태 (초 단위)
+  const [intervalId, setIntervalId] = useState(null); // 타이머 인터벌 ID
+  const [hasExpired, setHasExpired] = useState(false); // 만료 여부 상태
 
   const handleCheckDuplicate = async () => {
      // 이메일 주소가 null이거나 빈 문자열인 경우 처리
@@ -327,25 +368,68 @@ useEffect(() => {
     }
   };
 
-//이메일 인증 보내기
+  //이메일 인증 보내기
 const handleSendAuthEmail = async () => {
   try {
-      const response = await axios.post(`${apiUrl}/users/email-auth`, { email: emailValue });
-      console.log('API asdaaaa응답:', response.data);
+      console.log('인증 이메일 발송 요청됨'); // 이 로그가 콘솔에 나타나야 합니다
+      const response = await axios.post(`${apiUrl}/users/email-auth`, 
+        { email: emailValue },
+        { timeout: 30000 } // 타임아웃을 10초로 설정 (10000ms)
+        );
+      console.log('API 응답이 있습니다. 상태 코드:', response.status);  
+      console.log('API aaaa응답:', response.data);
       if (response.data.ok) {
-        console.log('인증 성공 데이터:', response.data); // 인증 성공 시 로그 추가     
         setCodeId(response.data.codeId); // 서버로부터 받은 codeId를 상태에 저장
         setAuthNumber(response.data.authNum); // 서버로부터 받은 인증번호를 상태에 저장
-        setMessage('인증번호가 전송되었습니다.');
+
+        // 타이머를 3분으로 설정
+        setTimer(180); 
+
+        // 이전 타이머가 있으면 클리어
+        if (intervalId) {
+          clearInterval(intervalId); 
+          setIntervalId(null); // 이전 타이머 초기화 
+        }
+
+        // 새 타이머 시작
+        const id = setInterval(() => {
+          setTimer(prevTimer => {
+            if (prevTimer <= 1) {
+              clearInterval(id);
+              setHasExpired(true); // 만료 상태 설정
+              return 0;
+            }
+            return prevTimer - 1;
+          });
+        }, 1000);
+        
+        setIntervalId(id);
       } else {
-        console.error('서버 오류 응답:', response.data.msg); // 오류 로그 추가
           setError(response.data.msg);
       }
   } catch (err) {
     console.error('API 호출 오류:', err); // 오류 로그 추가
-      setError('서버 오류');
-  }
+    setError('서버 오류');
+  } 
 };
+
+// 타이머가 변경될 때 메시지 업데이트
+useEffect(() => {
+  if (timer > 0) {
+    const minutes = Math.floor(timer / 60);
+    const seconds = timer % 60;
+    const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    setMessage(`인증번호가 전송되었습니다. [인증 기한 : ${formattedTime}]`);
+  } else if (hasExpired) {
+    setMessage('인증번호가 만료되었습니다.');
+  }
+}, [timer, hasExpired]);
+
+  const handleReset = () => {
+    setIsEmailChecked(false);
+    setIsVerified(false);
+    // 필요한 경우 추가 초기화 로직
+  };
 
 //인증 번호 확인
 const [verificationCode, setVerificationCode] = useState('');
@@ -354,7 +438,6 @@ const [isVerified, setIsVerified] = useState(false); // 인증 여부 상태 추
 const [verifyError, setVerifyError] = useState('');
 
     const handleVerifyClick = async () => {
-    
         try {
             const response = await axios.post(`${apiUrl}/users/verifyAuth`, {
                 codeId,
@@ -367,6 +450,14 @@ const [verifyError, setVerifyError] = useState('');
                 setIsVerified(true); 
                 alert('인증에 성공하였습니다.');
                 setVerifyError(''); // 인증 성공 시 에러 메시지 초기화
+                //추가
+                setMessage(''); // 인증 성공 시 메시지 초기화
+                setTimer(0); // 타이머를 0으로 설정
+                setHasExpired(false); // 만료 상태 초기화
+                if (intervalId) {
+                  clearInterval(intervalId); // 인터벌 클리어
+                  setIntervalId(null);
+                }
             } else {
                 // 인증 실패
                 setVerifyError(response.data.msg);
@@ -376,6 +467,17 @@ const [verifyError, setVerifyError] = useState('');
             setVerifyError('인증번호가 틀렸습니다.');
         }
     }
+
+// 전화번호 하이픈  자동생성
+const formatPhoneNumber = (value) => {
+  // 숫자만 추출
+  const numbers = value.replace(/\D/g, '');
+
+  // 하이픈 추가
+  if (numbers.length <= 3) return numbers;
+  if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+  return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+};
 
 /// 약관 동의 상태
 const [isPopupOpen, setIsPopupOpen] = useState({
@@ -435,14 +537,25 @@ const consentPopupClose = (type) => {
 
 
   return (
+
     <Box 
       sx={{ 
           display: 'flex', 
           flexDirection: 'column', 
           justifyContent: 'center', 
           mt: 5, 
-          maxWidth: 400, 
+          maxWidth: 600, 
           mx: 'auto' }}>
+    <Box 
+          sx={{ 
+            p: 3,
+            mb: 2 ,
+            mt: 2
+            }}>          
+      <Typography variant="h4" component="h1" align="center">
+       로고자리
+      </Typography>
+    </Box>  
     <Box 
       sx={{ 
         p: 3, 
@@ -458,8 +571,9 @@ const consentPopupClose = (type) => {
       <Typography variant="body2" component="label" htmlFor="email" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
         이메일
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
         <TextField
+          label="이메일"
           type="email"
           id="email"
           variant="outlined"
@@ -476,14 +590,26 @@ const consentPopupClose = (type) => {
           }}
           sx={{ flex: 1, mr: 1 }}
         />
-        <Button
-          variant="contained"
-          color={isEmailChecked ? 'success' : 'primary'}
-          onClick={isEmailChecked ? handleSendAuthEmail : handleCheckDuplicate}
-          sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정
-        >
-          {isEmailChecked ? '인증하기' : '중복검사'}
-        </Button>
+         <Stack direction="row" spacing={2}>
+          {!isEmailChecked && (
+            <Button variant="contained" color="primary" sx={{ height: '50px' }}
+            onClick={handleCheckDuplicate}>
+              중복검사
+            </Button>
+          )}
+              {isEmailChecked && (
+        <Stack direction="column" spacing={0}>
+          <Button variant="outlined" color="secondary" sx={{ height: '25px' }}
+            onClick={handleReset}>
+            메일수정
+          </Button>
+          <Button variant="contained" color="success" sx={{ height: '25px' }}
+            onClick={handleSendAuthEmail}>
+            인증하기
+          </Button>
+        </Stack>
+          )}
+        </Stack>
       </Box>
       {error && (
         <Typography color="error" sx={{ mt: 1 }}>
@@ -491,7 +617,7 @@ const consentPopupClose = (type) => {
         </Typography>
       )}
       {message && (
-        <Typography color="success" sx={{ mt: 1 }}>
+        <Typography color="error" sx={{ mt: 1 }}>
           {message}
         </Typography>
       )}
@@ -506,8 +632,9 @@ const consentPopupClose = (type) => {
       <Typography variant="body2" component="label" htmlFor="verification" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
         인증번호
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
         <TextField
+          label="인증번호"
           type="text"
           id="verification"
           value={verificationCode}
@@ -543,247 +670,351 @@ const consentPopupClose = (type) => {
       )}
     </Box>
 {/* 비밀번호 */}
-          <div className="mb-2">
-            <label htmlFor="password" className="text-sm font-semibold text-gray-800">
-              비밀번호
-            </label>
-            <input
-              type='password'
-              id='password'
-              className='w-full px-4 py-2 mt-2 bg-white border rounded-md'
-              {...register('password', userPassword)}
-            />
-            {errors?.password && (
-              <div>
-                <span className='text-red-500'>{errors.password.message}</span>
-              </div>
-            )}
-          </div>
-          <div className="mb-2">
-            <label htmlFor="password" className="text-sm font-semibold text-gray-800">
-              비밀번호 확인
-            </label>
-            <input
-              type='password'
-              id='passwordCheck'
-              className='w-full px-4 py-2 mt-2 bg-white border rounded-md'
-              {...register('passwordCheck', userPasswordCheck)}
-            />
-            {errors?.passwordCheck && (
-              <div>
-                <span className='text-red-500'>{errors.passwordCheck.message}</span>
-              </div>
-            )}
-          </div>
+    <Box mb={2}>
+      <Typography variant="body2" component="label" htmlFor="password"
+        sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+        비밀번호
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+        <TextField
+          label="비밀번호"
+          type={showPassword ? 'text' : 'password'}
+          fullWidth
+          variant="outlined"
+          {...register('password', userPassword)}
+          error={!!errors.password}
+          helperText={errors.password ? errors.password.message : ''}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleClickShowPassword}
+                  edge="end"
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+    </Box>
+
+    <Box mb={2}>
+      <Typography variant="body2" component="label" htmlFor="password"
+      sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+      비밀번호 확인
+    </Typography>
+    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+        <TextField
+          label="비밀번호 확인"
+          type={showPasswordCheck ? 'text' : 'password'}
+          fullWidth
+          variant="outlined"
+          {...register('passwordCheck',  userPasswordCheck)}
+          error={!!errors.passwordCheck}
+          helperText={errors.passwordCheck ? errors.passwordCheck.message : ''}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleClickShowPasswordCheck}
+                  edge="end"
+                >
+                  {showPasswordCheck ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
+    </Box>
 {/*이름 */}          
-          <div className="mb-2">
-            <label htmlFor="name" className="text-sm font-semibold text-gray-800">
-              이름
-            </label>
-            <input
-              type='text'
-              id='name'
-              className='w-full px-4 py-2 mt-2 bg-white border rounded-md'
-              {...register('name',  {
-                validate: validateUserName // 사용자 정의 검증 함수
-              })}
-            />
-            {errors?.name && (
-              <div>
-                <span className='text-red-500'>{errors.name.message}</span>
-              </div>
-            )}
-          </div>
+      <Box mb={2}>
+        <Typography 
+          variant="body2" 
+          component="label" 
+          htmlFor="name"
+          sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+        >
+          이름
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+          <TextField
+            id="name"
+            label="이름"
+            type="text"
+            fullWidth
+            variant="outlined"
+            {...register('name', userName)}
+            error={!!errors.name}
+            helperText={errors.name ? errors.name.message : ''}
+          />
+        </Box>
+      </Box>
 {/*닉네임 */}          
-          <div className="mb-2">
-            <label htmlFor="nickName" className="text-sm font-semibold text-gray-800">
-              닉네임
-            </label>
-            <input
-              type='text'
-              id='nickName'
-              className='w-full px-4 py-2 mt-2 bg-white border rounded-md'
-              {...register('nickName' )}
-              // 유효성 검사 및 저장
-            />
-            {errors?.nickname && (
-              <div>
-                <span className='text-red-500'>{errors.nickname.message}</span>
-              </div>
-            )}
-          </div>          
+    <Box mb={2}>
+      <Typography 
+      variant="body2" 
+      component="label" 
+      htmlFor="nickName"
+      sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+      >
+      닉네임
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+      <TextField
+        id='nickName'
+        label="닉네임"
+        type='text'
+        fullWidth
+        variant="outlined"
+        {...register('nickName', nickName)}
+        error={!!errors.nickName}
+        helperText={errors.nickName ? errors.nickName.message : ''}
+        />
+      </Box>
+    </Box>         
 {/*생년월일 */}
-<div className="mb-2">
-        <label htmlFor="age" className="text-sm font-semibold text-gray-800">
-          생년월일
-        </label>
-        <div className="flex gap-4 mt-2">
-          {/* 생년 */}
-          <div className="flex-1">
-            <select
-              id="year"
-              className="w-full px-4 py-2 bg-white border rounded-md"
-              {...register('age.year', {
-                required: '출생년도는 필수입니다.',
-              })}
-            >
-              <option value="">선택</option>
-              {years.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-            {errors?.age?.year && (
-              <div>
-                <span className="text-red-500">{errors.age.year.message}</span>
-              </div>
-            )}
-          </div>
-
-          {/* 월 */}
-          <div className="flex-1">
-            <select
-              id="month"
-              className="w-full px-4 py-2 bg-white border rounded-md"
-              {...register('age.month', {
-                required: '월은 필수입니다.',
-              })}
-            >
-              <option value="">선택</option>
-              {months.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </select>
-            {errors?.age?.month && (
-              <div>
-                <span className="text-red-500">{errors.age.month.message}</span>
-              </div>
-            )}
-          </div>
-
-          {/* 일 */}
-          <div className="flex-1">
-            <select
-              id="day"
-              className="w-full px-4 py-2 bg-white border rounded-md"
-              {...register('age.day', {
-                required: '일은 필수입니다.',
-              })}
-            >
-              <option value="">선택</option>
-              {days.map((day) => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
-            </select>
-            {errors?.age?.day && (
-              <div>
-                <span className="text-red-500">{errors.age.day.message}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-{/* 성별 선택 버튼 */}
-    <div className="mb-2">
-        <label htmlFor="gender" className="text-sm font-semibold text-gray-800">성별</label>
-        <div className="flex gap-4 mt-2">
-          <button
-            type="button"
-            className={`w-full px-4 py-2 bg-blue-500 text-white rounded-md ${watch('gender') === '남성' ? 'bg-blue-700' : ''}`}
-            onClick={() => setGender('남성')}
-            {...register('gender')} 
-          >
-            남자
-          </button>
-          <button
-            type="button"
-            className={`w-full px-4 py-2 bg-pink-500 text-white rounded-md ${watch('gender') === '여성' ? 'bg-pink-700' : ''}`}
-            onClick={() => setGender('여성')}
-            {...register('gender')} 
-          >
-            여자
-          </button>
-        </div>
-        {errors?.gender && <span className="text-red-500">{errors.gender.message}</span>}
-      </div>
-{/* 전화번호 */}
-<div className="mb-2">
-  <label htmlFor="phone" className="text-sm font-semibold text-gray-800">
-    전화번호
-  </label>
-  <div className="mt-2">
-    <input
-      type="text"
-      id="phone"
-      className="w-full px-4 py-2 bg-white border rounded-md"
-      placeholder="010-7430-3504"
-      {...register('phone', {
-        required: '전화번호는 필수입니다.',
-        pattern: {
-          value: /^\d{3}-\d{4}-\d{4}$/, // 예: 010-7430-3504
-          message: '전화번호 형식을 확인해 주세요.\n 예) 010-7430-3504',
-        }
-      })}
+<Box mb={2}>
+  <Typography 
+    variant="body2" 
+    component="label" 
+    htmlFor="age"
+    sx={{ fontWeight: 'bold', color: 'text.secondary' }}
+  >
+    생년월일
+  </Typography>
+<Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+    {/* 생년 */}
+    <FormControl fullWidth variant="outlined" error={!!errors.age?.year}>
+    <InputLabel id="year-label">출생년도</InputLabel>
+    <Controller
+      name="age.year"
+      control={control}
+      defaultValue=""
+      rules={{ required: '출생년도는 필수입니다.' }}
+      render={({ field }) => (
+        <Select
+          {...field}
+          labelId="year-label"
+          label="연도"
+        >
+          <MenuItem value="">선택</MenuItem>
+          {years.map((year) => (
+            <MenuItem key={year} value={year}>
+              {year}
+            </MenuItem>
+          ))}
+        </Select>
+      )}
     />
-    {errors.phone && (
-      <div>
-        <span className="text-red-500">{errors.phone.message}</span>
-      </div>
-    )}
-  </div>
-</div>
+    <FormHelperText>{errors.age?.year?.message}</FormHelperText>
+  </FormControl>
+{/* 월 */}
+  <FormControl fullWidth variant="outlined" error={!!errors.age?.month}>
+    <InputLabel id="month-label">월</InputLabel>
+    <Controller
+      name="age.month"
+      control={control}
+      defaultValue=""
+      rules={{ required: '월은 필수입니다.' }}
+      render={({ field }) => (
+        <Select
+          {...field}
+          labelId="month-label"
+          label="월"
+        >
+          <MenuItem value="">선택</MenuItem>
+          {months.map((month) => (
+            <MenuItem key={month} value={month}>
+              {month}
+            </MenuItem>
+          ))}
+        </Select>
+      )}
+    />
+    <FormHelperText>{errors.age?.month?.message}</FormHelperText>
+  </FormControl>
+
+  {/* 일 */}
+  <FormControl fullWidth variant="outlined" error={!!errors.age?.day}>
+    <InputLabel id="day-label">일</InputLabel>
+    <Controller
+      name="age.day"
+      control={control}
+      defaultValue=""
+      rules={{ required: '일은 필수입니다.' }}
+      render={({ field }) => (
+        <Select
+          {...field}
+          labelId="day-label"
+          label="일"
+        >
+          <MenuItem value="">선택</MenuItem>
+          {days.map((day) => (
+            <MenuItem key={day} value={day}>
+              {day}
+            </MenuItem>
+          ))}
+        </Select>
+      )}
+    />
+    <FormHelperText>{errors.age?.day?.message}</FormHelperText>
+  </FormControl>
+  </Box>
+</Box>
+{/* 성별 선택 버튼 */}
+<Box mb={2}>
+      <Typography variant="body2" component="label" htmlFor="gender" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+        성별
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+        <Controller
+          name="gender"
+          control={control}
+          defaultValue=" "
+          rules={{ required: '성별을 선택해 주세요.' }} // 필수 입력 설정
+          render={({ field }) => (
+            <>
+              <Button
+                variant="contained"
+                onClick={() => field.onChange('남성')}
+                sx={{
+                  flexGrow: 1,
+                  // '남성' ? '선택' : '비선택'
+                  backgroundColor: watch('gender') === '남성' ? '#004ba0' : '#2196f7', // 선택된 경우와 비선택된 경우 색상 설정
+                  color: 'white',
+                  border: watch('gender') === '남성' ? '3px solid #4a90e2' : '3px solid transparent', // 선택된 경우 테두리 색상
+                  boxShadow: watch('gender') === '남성' ? '0 0 0 3px #4a90e2' : 'none', // 선택된 경우 외부 그림자
+                  '&:hover': {
+                    backgroundColor: watch('gender') === '남성' ? '#00274d' : '#1976d2', // 호버 시 배경색
+                  boxShadow: watch('gender') === '남성' ? '0 0 0 3px #4a90e2' : 'none', // 선택된 경우 외부 그림자
+                    
+                  }
+                }}
+              >
+                남자
+              </Button>
+              <Button
+                variant="contained"
+                onClick={() => field.onChange('여성')}
+                sx={{
+                  flexGrow: 1,
+                  backgroundColor: watch('gender') === '여성' ? '#ff4081' : '#ff4081', // 선택된 경우와 비선택된 경우 색상 설정
+                  color: 'white',
+                  border: watch('gender') === '여성' ? '3px solid #f48fb1' : '3px solid transparent', // 선택된 경우 테두리 색상
+                  boxShadow: watch('gender') === '여성' ? '0 0 0 3px #f48fb1' : 'none', // 선택된 경우 외부 그림자
+                  '&:hover': {
+                    backgroundColor: watch('gender') === '여성' ? '#8e0000' : '#c2185b', // 호버 시 배경색
+                    boxShadow: watch('gender') === '여성' ? '0 0 0 3px #f48fb1' : 'none', // 선택된 경우 외부 그림자
+                  }
+                }}
+              >
+                여자
+              </Button>
+            </>
+          )}
+        />
+      </Box>
+      {errors.gender && <FormHelperText error>{errors.gender.message}</FormHelperText>}
+    </Box>
+{/* 전화번호 */}
+  <Box mb={2}>
+      <Typography variant="body2" component="label" htmlFor="phone" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+        전화번호 (* 번호만 입력해 주세요)
+      </Typography>
+      <Box mt={1}>
+        <Controller
+          name="phone"
+          control={control}
+          defaultValue=""
+          rules={{
+            required: '전화번호는 필수입니다.',
+            pattern: {
+              value: /^\d{3}-\d{4}-\d{4}$/, // 예: 010-7430-3504
+              message: '전화번호 형식을 확인해 주세요.\n 예) 010-7430-3504',
+            }
+          }}
+          render={({ field }) => (
+            <>
+              <TextField
+                {...field}
+                id="phone"
+                fullWidth
+                variant="outlined"
+                placeholder="010-7430-3504"
+                error={!!errors.phone}
+                helperText={errors.phone ? errors.phone.message : ''}
+                onChange={(e) => {
+                  const formattedValue = formatPhoneNumber(e.target.value);
+                  setValue('phone', formattedValue, { shouldValidate: true }); // 포맷된 값을 폼 상태에 설정
+                }}
+                value={watch('phone')}
+              />
+            </>
+          )}
+        />
+      </Box>
+    </Box>
 {/*집주소 */}
-<div>
-      <div className="flex items-center mt-2">
-        <h1 className="text-sm font-semibold text-gray-800">집주소</h1>
-        <h3 className="text-sm font-normal ml-2">(*동을 입력해주세요)</h3>
-      </div>
+<Box mb={2}>
+  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+   <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+      집주소
+    </Typography>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+      (*읍면동 중 하나를 입력해 주세요)
+    </Typography>
+  </Box>
       <HomeSearch 
         setSelectedSido={(sido) => setHomeLocation(prev => ({ ...prev, sido }))} 
         setSelectedSigoon={(sigoon) => setHomeLocation(prev => ({ ...prev, sigoon }))} 
         setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))} />
+ 
 {/*직장 */}
-      <div className="flex items-center mt-2">
-        <h1 className="text-sm font-semibold text-gray-800">직장위치</h1>
-        <h3 className="text-sm font-normal ml-2">(*동을 입력해주세요)</h3>
-      </div>
+<Box sx={{ display: 'flex', alignItems: 'center', mt: 2  }}>
+   <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+      직장주소
+    </Typography>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    (*읍면동 중 하나를 입력해 주세요)
+    </Typography>
+  </Box>
       <WorkplaceSearch 
         setWorkplaceSido={(sido) => setWorkplace(prev => ({ ...prev, w_sido: sido }))} 
         setWorkplaceSigoon={(sigoon) => setWorkplace(prev => ({ ...prev, w_sigoon: sigoon }))} 
-        setWorkplaceDong={(dong) => setWorkplace(prev => ({ ...prev, w_dong: dong }))} />
+        setWorkplaceDong={(dong) => setWorkplace(prev => ({ ...prev, w_dong: dong }))} />             
+
 {/*관심지역 */}
-      <div className="flex items-center mt-2">
-        <h1 className="text-sm font-semibold text-gray-800">관심지역</h1>
-        <h3 className="text-sm font-normal ml-2">(*동을 입력해주세요)</h3>
-      </div>
+<Box sx={{ display: 'flex', alignItems: 'center', mt: 2  }}>
+   <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+   관심지역
+    </Typography>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    (*읍면동 중 하나를 입력해 주세요)
+    </Typography>
+  </Box>
       <InterestSearch 
         setInterestSido={(sido) => setInterestLocation(prev => ({ ...prev, i_sido: sido }))} 
         setInterestSigoon={(sigoon) => setInterestLocation(prev => ({ ...prev, i_sigoon: sigoon }))} 
         setInterestDong={(dong) => setInterestLocation(prev => ({ ...prev, i_dong: dong }))} />
-    </div>
+</Box>     
 {/*직종 */}
-<div className="mt-2">
-<div className="mb-2">
-        {/* 버튼 */}
-        <button
-          type="button"
-          className="mr-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+<Box>
+      {/* 직종 선택 버튼 */}
+      <Box mb={2} display="flex" alignItems="center" gap={2}>
+        <Button
+          variant="contained"
+          color="primary"
           onClick={() => handlePopupOpen('job')}
         >
           직종 선택
-        </button>
-
-        <label htmlFor="Category" className="text-sm font-semibold text-gray-800"
-        type='text'
-        >
-        (최대 3개 선택 가능)
-        </label>
-      </div>
+        </Button>
+        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+          (최대 3개 선택 가능)
+        </Typography>
+      </Box>
 
       {isJobPopupOpen && (
        <JobPopup
@@ -793,158 +1024,212 @@ const consentPopupClose = (type) => {
           selectedJobs={selectedJobs}// 선택된 카테고리 전달
         />
       )}
-      
-      {/* 선택된 카테고리 리스트 표시 */}
-      <div className="mt-2 mb-4">
-        <h3 className="text-sm font-semibold">선택된 직종</h3>
-        <ul className="flex flex-wrap gap-2">
+
+      {/* 선택된 직종 리스트 */}
+      <Box 
+      sx={{ 
+        mb: 2, 
+        p: 2, 
+        bgcolor: 'background.paper', // 배경색 설정
+        borderRadius: 2, // 모서리 둥글게
+        boxShadow: 1, // 그림자 추가
+        border: '1px solid', // 테두리 추가
+        borderColor: 'divider' // 테두리 색상 설정
+      }}
+    >
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {selectedJobs.map((job, index) => (
-            <li
+            <Chip
               key={index}
-              className="bg-gray-200 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-300"
-            >
-              {job}
-            </li>
+              label={job}
+              onDelete={() => setSelectedJobs(prev => prev.filter(j => j !== job))}
+              sx={{ bgcolor: 'lightgrey', color: 'black' }} // 배경색과 글자색을 직접 설정
+            />
           ))}
-        </ul>
-      </div>
-    </div>
-{/*카테고리 */}
-<div className="">
-<div className="mb-2">
-        {/* 버튼 */}
-        <button
-          type="button"
-          className="mr-2 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-700"
+        </Box>
+      </Box>
+</Box>
+{/* 카테고리 */}
+<Box>
+      {/* 카테고리 선택 버튼 */}
+      <Box mb={2} display="flex" alignItems="center" gap={2}>
+        <Button
+          variant="contained"
+          color="primary"
           onClick={() => handlePopupOpen('category')}
         >
           카테고리 선택
-        </button>
+        </Button>
+        <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+          3개 이상 선택해 주세요
+        </Typography>
+      </Box>
 
-        <label htmlFor="Category" className="text-sm font-semibold text-gray-800"
-        type='text'
-        >
-        3개 이상 선택해 주세요
-        </label>
-      </div>
-
+      {/* 카테고리 팝업 */}
       {isCategoryPopupOpen && (
         <CategoryPopup 
           categories={categories} 
           onSelect={handleSelection}
           onClose={() => handlePopupClose('category')}
-          selectedCategories={selectedCategories} // 선택된 카테고리 전달
+          selectedCategories={selectedCategories}
         />
       )}
-      
+
       {/* 선택된 카테고리 리스트 표시 */}
-      <div className="mt-2">
-        <h3 className="text-sm font-semibold">선택된 카테고리</h3>
-        <ul>
+      <Box 
+        sx={{ 
+          mb: 2, 
+          p: 2, 
+          bgcolor: 'background.paper', // 배경색 설정
+          borderRadius: 2, // 모서리 둥글게
+          boxShadow: 1, // 그림자 추가
+          border: '1px solid', // 테두리 추가
+          borderColor: 'divider' // 테두리 색상 설정
+        }}
+      >
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {Object.entries(groupedCategories).map(([main, subs]) => (
-            <li key={main} className="mb-2">
-              <h4 className="font-semibold">{main}</h4>
-              <ul className="flex flex-wrap gap-2">
+            <Box key={main} sx={{ width: '100%' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
+                {main}
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {subs.map((sub, index) => (
-                  <li key={index} className="bg-gray-200 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-300">
-                    {sub}
-                  </li>
+                  <Chip
+                    key={index}
+                    label={sub}
+                    onDelete={() => setSelectedCategories(prev => prev.filter(cat => !(cat.main === main && cat.sub === sub)))}
+                    sx={{ bgcolor: 'lightgrey', color: 'black' }} // 배경색과 글자색을 직접 설정
+                  />
                 ))}
-              </ul>
-            </li>
+              </Box>
+            </Box>
           ))}
-        </ul>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
 {/*약관 동의 */}
 {/* 동의 항목 */}
-<div className="mt-4">
-    <div className="mb-2">
-      <label className="flex flex-col">
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            checked={checkboxState.all}
-            onChange={handleAllCheck}
-            className="mr-2"
-          />
-          <h2 className="text-lg font-semibold">전체 동의하기</h2>
-        </div>
-        <span
-          className="text-gray-600 mt-2" // Margin to space out from the title
-          style={{
+<Box mt={4}>
+      <Box mb={2}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={checkboxState.all}
+              onChange={handleAllCheck}
+              color="primary"
+            />
+          }
+          label={
+            <Typography variant="h6" component="span" sx={{ fontWeight: 'bold' }}>
+              전체 동의하기
+            </Typography>
+          }
+        />
+        <Paper
+          sx={{
             boxSizing: 'border-box',
-            maxHeight: '100px',
-            padding: '10px',
-            borderRadius: '6px',
+            maxHeight: 100,
+            padding: 2,
+            borderRadius: 1,
             border: '1px solid #d6d6d6',
+            marginTop: 2,
+            overflow: 'auto', // Ensure content is scrollable if it overflows
           }}
         >
-          실명 인증된 아이디로 가입, 위치기반서비스 이용약관(선택), 이벤트・혜택 정보 수신(선택) 동의를 포함합니다.
-        </span>
-      </label>
-    </div>
+          <Typography variant="body2" color="textSecondary">
+            실명 인증된 아이디로 가입, 위치기반서비스 이용약관(선택), 이벤트・혜택 정보 수신(선택) 동의를 포함합니다.
+          </Typography>
+        </Paper>
+      </Box>
 {/* clubing 이용약관 */}
-      <div className="mb-2">
-        <label htmlFor="terms-checkbox" className="flex items-center">
-          <input
-            type="checkbox"
-            id="terms-checkbox"
-            checked={checkboxState.terms}
-            onChange={() => handleCheck('terms')}
-            className="mr-2"
-          />
-          [필수] clubing 이용약관
-          <button
-            type="button"
-            onClick={() => consentPopupOpen('terms')}
-            className="ml-2 text-blue-500 underline"
-          >
-            전체
-          </button>
-        </label>
-      </div>
-{/* 개인정보 */}
-    <div className="mb-2">
-      <label htmlFor="privacy-checkbox" className="flex items-center">
-        <input
-          type="checkbox"
-          id="privacy-checkbox" // id를 추가하여 고유하게 식별
-          checked={checkboxState.privacy}
-          onChange={() => handleCheck('privacy')} // 상태 변경 핸들러
-          className="mr-2" // 스타일링
+    <Box >
+      <Box display="flex" alignItems="center">
+        <FormControlLabel
+          control={
+            <Checkbox
+              id="terms-checkbox"
+              checked={checkboxState.terms}
+              onChange={() => handleCheck('terms')}
+              color="primary"
+            />
+          }
+          label={
+            <Typography variant="body1" component="span">
+              [필수] clubing 이용약관
+            </Typography>
+          }
+          sx={{ marginRight: 1 }} // 라벨과 체크박스 사이에 공간 추가
         />
-        [필수] 개인정보 수집 및 이용
-        <button
-          type="button"
-          onClick={() => consentPopupOpen('privacy')} // 동의 팝업 열기 핸들러
-          className="ml-2 text-blue-500 underline" // 스타일링
+        <Button
+          variant="text"
+          color="primary"
+          onClick={() => consentPopupOpen('terms')}
+          sx={{ textDecoration: 'underline' }}
         >
           전체
-        </button>
-      </label>
-    </div>
+        </Button>
+      </Box>
+    </Box>
+{/* 개인정보 */}
+<Box>
+      <Box display="flex" alignItems="center">
+        <FormControlLabel
+          control={
+            <Checkbox
+              id="privacy-checkbox"
+              checked={checkboxState.privacy}
+              onChange={() => handleCheck('privacy')}
+              color="primary"
+            />
+          }
+          label={
+            <Typography variant="body1" component="span">
+              [필수] 개인정보 수집 및 이용
+            </Typography>
+          }
+          sx={{ marginRight: 1 }} // 체크박스와 라벨 사이에 간격 추가
+        />
+        <Button
+          variant="text"
+          color="primary"
+          onClick={() => consentPopupOpen('privacy')}
+          sx={{ textDecoration: 'underline' }}
+        >
+          전체
+        </Button>
+      </Box>
+    </Box>
 {/* 마케팅 동의 */}
-        <div className="mb-2">
-          <label htmlFor="marketing-checkbox" className="flex items-center">
-            <input
-              type="checkbox"
+<Box mb={2}>
+      <Box display="flex" alignItems="center">
+        <FormControlLabel
+          control={
+            <Checkbox
               id="marketing-checkbox"
               checked={checkboxState.marketing}
               onChange={() => handleCheck('marketing')}
-              className="mr-2"
+              color="primary"
             />
-            [선택] 마케팅 동의
-            <button
-              type="button"
-              onClick={() => consentPopupOpen('marketing')}
-              className="ml-2 text-blue-500 underline"
-            >
-              전체
-            </button>
-          </label>
-        </div>
-      </div>
+          }
+          label={
+            <Typography variant="body1" component="span">
+              [선택] 마케팅 동의
+            </Typography>
+          }
+          sx={{ marginRight: 1 }} // 체크박스와 라벨 사이에 간격 추가
+        />
+        <Button
+          variant="text"
+          color="primary"
+          onClick={() => consentPopupOpen('marketing')}
+          sx={{ textDecoration: 'underline' }}
+        >
+          전체
+        </Button>
+      </Box>
+    </Box>
+</Box>
 
       {/* 팝업 모달 */}
       {isPopupOpen.terms && (
@@ -966,17 +1251,29 @@ const consentPopupClose = (type) => {
         />
       )}
 {/*회원가입 버튼 */}
-          <div className='mt-6'>
-            <button type='submit' className='w-full px-4 py-2 text-white duration-200 bg-black rounded-md hover:bg-gray-700'>
+          <Box mt={6}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px', backgroundColor: 'black', '&:hover': { backgroundColor: 'gray.700' } }}
+            >
               회원가입
-            </button>
-          </div>
-          <p className='mt-8 text-xs font-light text-center text-gray-700'>
-            아이디가 있다면?{" "}
-            <a href='/login' className='font-medium hover:underline'>
-              로그인
-            </a>
-          </p>
+            </Button>
+
+            <Typography
+              mt={8}
+              variant="body2"
+              color="text.secondary"
+              align="center"
+              sx={{ fontWeight: 'light' }}
+            >
+              아이디가 있다면?{" "}
+              <Link href="/login" underline="hover" color="primary">
+                로그인
+              </Link>
+            </Typography>
+          </Box>
         </form>
       </Box>
       </Box>
