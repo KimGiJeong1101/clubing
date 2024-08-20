@@ -34,6 +34,5 @@
   },
   "devDependencies": {
     "prettier": "^3.3.3"
-  },
-  "proxy": "https://api.vworld.kr"
+  }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import { useDispatch } from 'react-redux';
 import { registerUser } from '../../../store/actions/userActions'
 import HomeSearch from './address/HomeSearch';
@@ -18,6 +19,7 @@ import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, 
           Chip, Checkbox, Paper, Link
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 
 const RegisterPage = () => {
@@ -38,6 +40,7 @@ const RegisterPage = () => {
     mode: 'onChange' });
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // 회원가입 폼 제출 시 실행되는 함수
   const onSubmit = (data) => {
@@ -115,13 +118,24 @@ const RegisterPage = () => {
       termsAccepted: terms,
       privacyAccepted: privacy,
       marketingAccepted: marketing,
-      image : `https://via.placeholder.com/600x400?text=no+user+image`
+      profilePic: {
+        originalImage: 'https://via.placeholder.com/600x400?text=no+user+image',
+        thumbnailImage: 'https://via.placeholder.com/600x400?text=no+user+image',
+      }
     }
    
   
     console.log('들어간 값 확인', body);
 
-    dispatch(registerUser(body));
+    dispatch(registerUser(body))
+      .then(() => {
+        // 회원가입 성공 후 리다이렉트 처리
+        navigate('/'); // 성공 페이지로 리다이렉트
+      })
+      .catch((error) => {
+        console.error('회원가입 실패:', error);
+        // 에러 처리 로직
+      });
 
     // registerUser(body) thunk함수
     //dispatch 함수를 받아와서 액션을 전달할 수 있게 해줍니다. 
@@ -187,8 +201,8 @@ const RegisterPage = () => {
   const userPassword = {
     required: "필수 필드입니다.",
     minLength: {
-      value: 6,
-      message: "최소 6자입니다."
+      value: 8,
+      message: "최소 8자입니다."
     },validate: value => {
       // 비밀번호 유효성 검사 정규 표현식
        const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
@@ -201,6 +215,10 @@ const RegisterPage = () => {
 
   const userPasswordCheck = {
     required: 0,
+    minLength: {
+      value: 8,
+      message: "최소 8자입니다."
+    },
     validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
   };
 
@@ -356,7 +374,7 @@ const handleSendAuthEmail = async () => {
       console.log('인증 이메일 발송 요청됨'); // 이 로그가 콘솔에 나타나야 합니다
       const response = await axios.post(`${apiUrl}/users/email-auth`, 
         { email: emailValue },
-        { timeout: 10000 } // 타임아웃을 10초로 설정 (10000ms)
+        { timeout: 30000 } // 타임아웃을 10초로 설정 (10000ms)
         );
       console.log('API 응답이 있습니다. 상태 코드:', response.status);  
       console.log('API aaaa응답:', response.data);
@@ -519,6 +537,7 @@ const consentPopupClose = (type) => {
 
 
   return (
+
     <Box 
       sx={{ 
           display: 'flex', 
@@ -527,6 +546,16 @@ const consentPopupClose = (type) => {
           mt: 5, 
           maxWidth: 600, 
           mx: 'auto' }}>
+    <Box 
+          sx={{ 
+            p: 3,
+            mb: 2 ,
+            mt: 2
+            }}>          
+      <Typography variant="h4" component="h1" align="center">
+       로고자리
+      </Typography>
+    </Box>  
     <Box 
       sx={{ 
         p: 3, 

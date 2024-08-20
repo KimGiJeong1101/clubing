@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer'); // Nodemailer를 사용해 이메일 전송
 const AuthCode = require('../models/authCodes'); 
+const emailTemplate = require('./emailTemplate');
 
 // SMTP 설정
 const smtpTransport = nodemailer.createTransport({
@@ -36,58 +37,38 @@ exports.sendAuthEmail = async (req, res) => {
     const number = generateRandomNumber(111111, 999999); // 인증번호 생성
     const { email } = req.body; // 요청 본문에서 이메일 주소 가져오기
 
-    // 환경 변수에서 요청 제한과 창 기간 가져오기
-    const requestLimit = parseInt(process.env.EMAIL_REQUEST_LIMIT, 10);
-    const requestWindow = parseInt(process.env.EMAIL_REQUEST_WINDOW, 10);
+    const expires = Date.now() + 3 * 60 * 1000; // 3분 후 만료
+    const now = Date.now();
 
-     // 요청 기록 조회
-     let authCode = await AuthCode.findOne({ email });
+    try {
+        // 새로운 인증 코드 데이터 삽입
+        const authCode = new AuthCode({
+            email,
+            codeId,
+            number,
+            expires,
+            requestAt: now,
+            requestCount: 1 // 요청 카운트 초기화
+        });
 
-     if (authCode) {
-         const now = Date.now();
-         const timeSinceLastRequest = now - authCode.lastRequestAt;
- 
-         // 요청 횟수와 시간 제한 확인
-         if (authCode.requestCount >= requestLimit && timeSinceLastRequest < requestWindow) {
-             return res.status(429).json({ ok: false, msg: '인증 요청 횟수를 초과했습니다. 나중에 다시 시도해 주세요.' });
-         }
- 
-         // 시간 제한이 지나면 요청 카운트 리셋
-         if (timeSinceLastRequest >= requestWindow) {
-             authCode.requestCount = 0;
-             authCode.lastRequestAt = now;
-         }
- 
-         // 요청 카운트 증가
-         authCode.requestCount += 1;
-     } else {
-         // 새로운 이메일 요청 기록 생성
-         authCode = new AuthCode({
-             email,
-             codeId,
-             number,
-             expires: Date.now() + 3 * 60 * 1000, // 3분 후 만료
-             lastRequestAt: Date.now(),
-             requestCount: 1
-         });
-     }
- 
-     try {
-         await authCode.save();
- 
-         const mailOptions = {
-             from: process.env.EMAIL_USER,
-             to: email,
-             subject: "인증 관련 메일입니다.",
-             html: `<h1>인증번호를 입력해주세요</h1><p>${number}</p>`,
-         };
- 
-         await smtpTransport.sendMail(mailOptions);
-         res.json({ ok: true, codeId, authNum: number });
-     } catch (err) {
-         console.error('메일 전송 오류:', err);
-         res.json({ ok: false, msg: '메일 전송에 실패하였습니다.', error: err.message });
-     } finally {
-         smtpTransport.close();
-     }
- };
+        await authCode.save();
+
+        // HTML 템플릿을 문자열로 설정
+        const htmlContent = emailTemplate(number); // 템플릿 파일에서 HTML 내용 읽기
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Clubing 인증 메일입니다.",
+            html: htmlContent, // HTML 문자열을 직접 사용
+        };
+
+        await smtpTransport.sendMail(mailOptions);
+        res.json({ ok: true, codeId, authNum: number }); // 응답에 새 인증 코드와 번호 포함
+    } catch (err) {
+        console.error('메일 전송 오류:', err);
+        res.status(500).json({ ok: false, msg: '메일 전송에 실패하였습니다.', error: err.message }); // 500 상태 코드로 수정
+    } finally {
+        smtpTransport.close(); // SMTP 연결 종료
+    }
+};
