@@ -148,18 +148,24 @@ const Main = () => {
   useEffect(() => {
     dispatch(fetchMeetingList(clubNumber));
     let copy = [];
-    if (meetingList.meetings.length!==0) {
-      for (let i = 0; i < meetingList.meetings.length; i++) {
-        if (meetingList.meetings[i].joinMember.includes(user.userData.email)) {
-          //미팅리스트에서의 조인멤버 안에 로긴한 사람 들가있다면
-          copy.push(true);
-        } else {
-          copy.push(false);
-        }
+    console.log(`meetingList`);
+    console.log(meetingList);
+    console.log(`meetingList`);
+    console.log(`user.userData.user.email`);
+    console.log(user.userData.user.email);
+    console.log(`user.userData.user.email`);
+
+    for (let i = 0; i < meetingList.meetings.length; i++) {
+      if (
+        meetingList.meetings[i].joinMember.includes(user.userData.user.email)
+      ) {
+        //미팅리스트에서의 조인멤버 안에 로긴한 사람 들가있다면
+        copy.push(true);
+      } else {
+        copy.push(false);
       }
     }
     setMeeetingListBoolean(copy);
-
   }, [clubNumber]);
   //로그인 정보 where redux.end
 
@@ -224,7 +230,7 @@ const Main = () => {
 
   //정모 참석하기 버튼 눌렀을 때 , 콜백함수
   const meetingJoin = (meetingId) => {
-    if (!user.userData.email) {
+    if (!user.userData.user.email) {
       alert("로그인이 필요한 서비스 입니다.");
       navigate("/login");
     } else {
@@ -235,7 +241,9 @@ const Main = () => {
           let copy = [];
           for (let i = 0; i < meetingList.meetings.length; i++) {
             if (
-              meetingList.meetings[i].joinMember.includes(user.userData.email)
+              meetingList.meetings[i].joinMember.includes(
+                user.userData.user.email
+              )
             ) {
               copy.push(true);
             } else {
@@ -686,7 +694,7 @@ const Main = () => {
       </Container>
       <Container maxWidth="md" sx={{ backgroundColor: "white" }}>
         {/* 모달창 버튼*/}
-        {readClub.admin === user.userData.email && (
+        {readClub.admin === user.userData.user.email && (
           <>
             <Fab
               onClick={handleClick}
@@ -783,11 +791,11 @@ const Main = () => {
           </Typography>
           {/* 정기 모임 */}
           {readClub.meeting.length === 0 &&
-            user.userData.email !== readClub.admin && (
+            user.userData.user.email !== readClub.admin && (
               <Box>아직 정기모임이 없습니다.</Box>
             )}
           {readClub.meeting.length === 0 &&
-            user.userData.email === readClub.admin && (
+            user.userData.user.email === readClub.admin && (
               <Grid container spacing={2}>
                 <Grid item xs={12} sx={{ marginBottom: "30px" }}>
                   <Paper
@@ -884,7 +892,7 @@ const Main = () => {
                         >
                           {meeetingListBoolean[i] ? "취소" : "참석하기"}
                         </Button>
-                        {user.userData.email === readClub.admin && (
+                        {user.userData.user.email === readClub.admin && (
                           <Button
                             variant="outlined"
                             onClick={() => {
@@ -963,7 +971,7 @@ const Main = () => {
 
           {/* 비슷한 클럽.end */}
           {readClub.meeting.length !== 0 &&
-            user.userData.email === readClub.admin && (
+            user.userData.user.email === readClub.admin && (
               <Grid item xs={12}>
                 <Button
                   variant="contained"
