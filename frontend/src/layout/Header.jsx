@@ -19,7 +19,11 @@ import GroupAdd from '@mui/icons-material/GroupAdd';
 function Header() {
 
   //스크롤에 따라 보이고 안보이고 
-const homeLocation = useSelector((state) => state.user.userData.homeLocation);
+  const homeLocation = useSelector(state => {
+    // state.user가 undefined인 경우를 체크하고, 그 외의 경우에 접근합니다.
+    const user = state.user?.userData?.user;
+    return user?.homeLocation?.neighborhood || ' ';
+  });
 
   const routes = [
     { to: '/login', name: '로그인', auth: false },
@@ -46,8 +50,6 @@ const homeLocation = useSelector((state) => state.user.userData.homeLocation);
       }
     };
 
-
-  
   return (
     <Box
       sx={{
@@ -84,8 +86,11 @@ const homeLocation = useSelector((state) => state.user.userData.homeLocation);
               component="div"
               sx={{ flexGrow: 1, color: "black" }}
             >
-              {homeLocation && <p>{homeLocation}</p>}
-              {!homeLocation && <p>로그인 정보가 없습니다.</p>}
+              {homeLocation && homeLocation !== ' ' ? (
+                <p>{homeLocation}</p>
+              ) : (
+                <p>로그인 정보가 없습니다.</p>
+              )}
             </Typography>
             {routes.map(({ to, name, auth }) => {
               return isAuth === auth ? (

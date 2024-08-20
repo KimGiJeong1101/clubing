@@ -6,6 +6,7 @@ const path = require('path');
 const session = require('./src/middleware/session'); // 세션 설정 로드
 require("dotenv").config();
 const winston = require('winston'); // 서버 로그를 확인
+const path = require('path'); 
 
 // 미들웨어 설정
 app.use(cors({
@@ -90,6 +91,9 @@ const startServer = async () => {
 };
 startServer();
 /////이 이후 하나씩 추가할 거 작성은 주석달아서 추가해놓고 말해주기!
+
+// 'profile' 폴더를 정적 파일 경로로 설정
+app.use('/profile', express.static(path.join(__dirname, 'profile')));
 
 // winston 로그 설정
 const logger = winston.createLogger({

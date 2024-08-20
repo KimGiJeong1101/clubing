@@ -61,3 +61,29 @@ export const logoutUser = createAsyncThunk(
     }
   }
 );
+
+// 마이 페이지 정보 불러오기
+export const myPage = createAsyncThunk(
+  'user/myPage',
+  async (_, thunkAPI) => {
+    try {
+      const response = await axiosInstance.get('/users/myPage');
+      return response.data; // response.ok 대신 response.data를 반환
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data); // 오류 발생 시 rejectWithValue 사용
+    }
+  }
+);
+
+// 마이 페이지 정보 수정
+export const updateUser = createAsyncThunk(
+  'user/updateUser',
+  async (userData, thunkAPI) => {
+    try {
+      const response = await axiosInstance.put('/users/myPage', userData);
+      return response.data;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.response.data);
+    }
+  }
+);
