@@ -43,7 +43,7 @@ const Board = () => {
     } catch (error) {
       console.error('Error saving content:', error.response ? error.response.data : error.message);
     }
-  };
+  }; 
 
   // 투표 저장 함수
   const handleVoteSave = async () => {

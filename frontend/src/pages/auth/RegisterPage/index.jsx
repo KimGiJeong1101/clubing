@@ -199,27 +199,27 @@ const RegisterPage = () => {
 
   // 비밀번호 유효성 검사 규칙
   const userPassword = {
-    required: "필수 필드입니다.",
-    minLength: {
-      value: 8,
-      message: "최소 8자입니다."
-    },validate: value => {
-      // 비밀번호 유효성 검사 정규 표현식
-       const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
-       if (!regex.test(value)) {
-         return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
-       }
-       return true; // 유효성 검사 통과
-    }
+    // required: "필수 필드입니다.",
+    // minLength: {
+    //   value: 8,
+    //   message: "최소 8자입니다."
+    // },validate: value => {
+    //   // 비밀번호 유효성 검사 정규 표현식
+    //    const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
+    //    if (!regex.test(value)) {
+    //      return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
+    //    }
+    //    return true; // 유효성 검사 통과
+    // }
   };
 
   const userPasswordCheck = {
-    required: 0,
-    minLength: {
-      value: 8,
-      message: "최소 8자입니다."
-    },
-    validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
+    // required: 0,
+    // minLength: {
+    //   value: 8,
+    //   message: "최소 8자입니다."
+    // },
+    // validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
   };
 
   // 연도, 월, 일을 위한 옵션 생성

@@ -10,10 +10,11 @@ const initialState ={
         name: '',
         nickName: '',
         profilePic: {
-            picture: '',
+            originalImage:  '',
+            thumbnailImage:'',
             introduction: '',
         },
-        roles: 1, // 역할 필드 추가
+        roles: '', // 역할 필드 추가
     },
     isAuth: false, //true면 로그인되어 있는
     isLoading: false, // 데이터를 가져오는 중이면 true

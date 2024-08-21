@@ -7,7 +7,7 @@ import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import ImageCarousel from '../../../components/common/ImageCarousel'; 
 
-const GalleryModal = ({ open, handleClose, images, title, handlePrev, handleNext }) => {
+const GalleryModal = ({ open, handleClose, images, title,content, handlePrev, handleNext }) => {
   return (
     <Modal
       open={open}
@@ -124,7 +124,7 @@ const GalleryModal = ({ open, handleClose, images, title, handlePrev, handleNext
             >
               Content
             </Typography>
-            <Typography variant="body1">{title}</Typography>
+            <Typography variant="body1">{content}</Typography>
           </Box>
 
           <Box
