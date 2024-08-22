@@ -7,16 +7,17 @@ import {
   Typography,
 } from "@mui/material";
 import { MuiFileInput } from "mui-file-input";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axios";
 import HomeSearchClub from "./main/HomeSearchClub";
 import CategoryModal from "./meeting/CategoryModal";
 import CategoryModalSub from "./meeting/CategoryModalSub";
+import ImageCropper from "./ImageCropper.jsx"; // 크롭 컴포넌트 import
 
 const ClubCreate = () => {
-  //큰 카테고리관련 코드
+  // 큰 카테고리 관련 코드
   const [openCategoryModal, setOpenCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
 
@@ -24,13 +25,12 @@ const ClubCreate = () => {
   const handleCloseModal = () => setOpenCategoryModal(false);
 
   const handleCategorySelect = (category) => {
-    setSelectedCategory(category); // 선택된 카테고리 저장
-    handleCloseModal(); // 모달 닫기
+    setSelectedCategory(category);
+    handleCloseModal();
     handleOpenSubModal();
   };
-  //큰 카테고리관련 코드.END
 
-  //작은 카테고리설정 코드
+  // 작은 카테고리 설정 코드
   const [openSubCategoryModal, setOpenSubCategoryModal] = useState(false);
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
 
@@ -38,14 +38,13 @@ const ClubCreate = () => {
   const handleCloseSubModal = () => setOpenSubCategoryModal(false);
 
   const handleSubCategorySelect = (subCategory) => {
-    setSelectedSubCategory(subCategory); // 선택된 카테고리 저장
-    handleCloseSubModal(); // 모달 닫기
+    setSelectedSubCategory(subCategory);
+    handleCloseSubModal();
   };
 
   useEffect(() => {
     setSelectedSubCategory("");
   }, [selectedCategory]);
-  //작은 카테고리설정 코드.end
 
   const navigate = useNavigate();
   const {
@@ -66,29 +65,32 @@ const ClubCreate = () => {
     mode: "onChange",
   });
 
-  //사진 파일 관련 코드
+  // 사진 파일 관련 코드
   const [locationImg, setLocationImg] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
 
   const handleFileChange = (e) => {
-    console.log("File change event triggered"); // 이벤트 발생 확인
     const file = e.target.files[0];
     if (file) {
-      console.log("File selected:", file); // 파일 선택 확인
-
-      setValue("img", file); // react-hook-form에 파일 설정
-      setLocationImg(file);
-      console.log(locationImg);
-      // 미리보기 설정
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
-        console.log("Preview URL set:", reader.result); // 미리보기 URL 설정 확인
+        setLocationImg(file);
+        console.log(cropModalOpen);
+        setCropModalOpen(true); // 크롭 모달 열기
+        console.log(cropModalOpen);
       };
       reader.readAsDataURL(file);
     }
+    console.log(cropModalOpen);
   };
-  //사진 파일 관련 코드.end
+
+  const handleCropComplete = (croppedImage) => {
+    setPreview(croppedImage); // 크롭된 이미지 미리보기 설정
+    setValue("img", croppedImage); // react-hook-form에 파일 설정
+    setCropModalOpen(false); // 크롭 모달 닫기
+  };
 
   // 주소 선택 시 업데이트
   const [homeLocation, setHomeLocation] = useState({
@@ -97,7 +99,6 @@ const ClubCreate = () => {
     dong: "",
   });
 
-  // HomeSearchClub에서 선택된 주소를 useForm의 필드에 반영
   useEffect(() => {
     setValue("region.city", homeLocation.sido);
     setValue("region.district", homeLocation.sigoon);
@@ -192,7 +193,7 @@ const ClubCreate = () => {
               type="file"
               accept="image/png, image/gif, image/jpeg"
               onChange={handleFileChange}
-              style={{display : 'none'}}
+              style={{display: 'none'}}
             />
             <label htmlFor="img">
               <Button
@@ -204,7 +205,7 @@ const ClubCreate = () => {
               </Button>
             </label>
             {preview && (
-              <Box mt={2} sx={{ width: "100%", height: "230px" }}>
+              <Box mt={2} sx={{ width: "100%", height: "200px" }}>
                 <img
                   src={preview}
                   alt="미리보기"
@@ -235,9 +236,9 @@ const ClubCreate = () => {
               id="content"
               label="내용 입력"
               multiline
-              rows={10} // 텍스트 영역의 기본 행 수
-              variant="outlined" // 텍스트 필드의 스타일 (outlined, filled, standard)
-              sx={{ width: "100%", mb: 2 }} // 스타일 설정 (예: 너비, 마진)
+              rows={10}
+              variant="outlined"
+              sx={{ width: "100%", mb: 2 }}
               {...register("content", { required: " 필수입력 요소." })}
             />
           </Grid>
@@ -270,6 +271,13 @@ const ClubCreate = () => {
           onSubCategorySelect={handleSubCategorySelect}
           mainCategory={selectedCategory}
         />
+        {cropModalOpen && (
+          <ImageCropper
+            src={preview}
+            onCropComplete={handleCropComplete}
+            onClose={() => setCropModalOpen(false)}
+          />
+        )}
       </Container>
     </Box>
   );
