@@ -22,6 +22,15 @@ const fetchMeetingList = createAsyncThunk(
   }
 );
 
+const fetchCategoryClubList = createAsyncThunk("CategoryClubList/fetchCategoryClubList", async (Category) => {
+  const response = await fetch(`http://localhost:4000/clubs/category/${Category}`);
+  const data = await response.json();
+  console.log('data')
+  console.log(data)
+  console.log('data')
+  return data;
+});
+
 // Slice 정의
 const clubList = createSlice({
   name: "clubList",
@@ -84,8 +93,29 @@ const meetingList = createSlice({
   },
 });
 
+const categoryClubList = createSlice({
+  name: "categoryClubList",
+  initialState: { clubs: [], status: "idle", error: null },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchCategoryClubList.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchCategoryClubList.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.clubs = action.payload;
+      })
+      .addCase(fetchCategoryClubList.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+  },
+});
+
 // 리듀서 export
 export const clubListReducer = clubList.reducer;
+export const categoryClubListReducer = categoryClubList.reducer;
 export const meetingListReducer = meetingList.reducer;
 export const getClubReducer = getClub.reducer;
-export { fetchClubList, fetchGetClub, fetchMeetingList };
+export { fetchClubList, fetchGetClub, fetchMeetingList ,fetchCategoryClubList};
