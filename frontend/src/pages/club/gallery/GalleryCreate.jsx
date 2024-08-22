@@ -284,3 +284,4 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {}, isEditMode = fals
 };
 
 export default GalleryCreate;
+
