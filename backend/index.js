@@ -5,7 +5,7 @@ const app = express();
 const path = require("path");
 const session = require("./src/middleware/session"); // 세션 설정 로드
 require("dotenv").config();
-const winston = require("winston"); // 서버 로그를 확인
+const winston = require('winston'); // 서버 로그를 확인
 
 // 미들웨어 설정
 app.use(
@@ -35,11 +35,8 @@ app.use("/clubs/chats", chatsRouter);
 
 //라우터 미들웨어(갤러리)
 const galleriesRouter = require("./src/routes/galleries");
-app.use("/clubs/galleries", galleriesRouter);
+app.use("/clubs/gallery", galleriesRouter);
 
-//라우터 미들웨어(갤러리)
-// const galleriesRouter = require("./src/routes/galleries");
-// app.use("clubs/galleries", galleriesRouter);
 //라우터 미들웨어(클럽)
 const clubsRouter = require("./src/routes/clubs");
 app.use("/clubs", clubsRouter);

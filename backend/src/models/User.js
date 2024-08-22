@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minLength: 8, // 비밀번호는 최소 10자 이상이어야 합니다.
+    minLength: 6, // 비밀번호는 최소 8자로 바꿔야됌 
   },
   name: {
     type: String,
@@ -24,7 +24,7 @@ const userSchema = mongoose.Schema({
   nickName: {
     type: String,
     required: true, // 이름은 필수입니다.
-    maxLength: 20, // 최대 길이 제한이 있습니다.
+    maxLength: 10, // 최대 길이 제한이 있습니다.
   },
   age: {
     type: {
