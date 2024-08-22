@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
-import AnimatedCard from '../../../components/common/AnimatedCard';
+import AnimatedCard from '../../../components/commonEffect/AnimatedCard';
 import GalleryModal from './GalleryModal';
 import { Button, Box, Checkbox, Snackbar, Alert } from '@mui/material';
 import AddToPhotosIcon from '@mui/icons-material/AddToPhotos';
