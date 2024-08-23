@@ -3,9 +3,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
 const path = require("path");
-const session = require("./src/middleware/session"); // 세션 설정 로드
+const session = require('./src/middleware/session');  // 세션 설정 로드
 require("dotenv").config();
-const winston = require('winston'); // 서버 로그를 확인
+const jwt = require('jsonwebtoken'); // JWT 패키지 로드
 
 // 미들웨어 설정
 app.use(
@@ -20,6 +20,33 @@ app.use(express.json());
 
 // 세션 설정 적용
 app.use(session);
+
+// JWT 검증 및 만료 시간 확인 미들웨어
+app.use((req, res, next) => {
+  const token = req.session.accessToken; // 세션에서 JWT 가져오기
+  if (token) {
+    try {
+      const decodedToken = jwt.decode(token);
+      if (decodedToken && decodedToken.exp) {
+        const exp = decodedToken.exp;
+        //console.log('토큰 만료 시간:', new Date(exp * 1000).toLocaleString()); // exp는 초 단위이므로 밀리초로 변환
+        const currentTime = Math.floor(Date.now() / 1000); // 현재 시간 (초 단위)
+        if (exp < currentTime) {
+          //console.log('토큰이 만료되었습니다.');
+        } else {
+          //console.log('토큰이 유효합니다.');
+        }
+      } else {
+        //console.log('토큰에 만료 시간이 없습니다.');
+      }
+    } catch (error) {
+      //console.error('토큰 디코딩 오류:', error);
+    }
+  } else {
+    //console.log('토큰이 없습니다.');
+  }
+  next();
+});
 
 // 정적 파일 제공을 위해 uploads 폴더를 공개
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -58,18 +85,8 @@ const userSignsRouter = require("./src/routes/userSigns");
 app.use("/userSigns", userSignsRouter);
 /////////////////////////////////////라우터 구간 .end
 
-// 에러처리 미들웨어
-app.use((err, req, res, next) => {
-  logger.error("에러 발생:", err); // winston을 사용하여 에러를 로그 파일에 기록
-  res.status(err.status || 500);
-  // 에러 객체의 상태 코드를 가져와서 응답 상태 코드를 설정합니다. 없으면 기본적으로 500 상태 코드를 사용합니다.
-  res.send(err.message || "서버에서 에러가 발생했습니다.");
-  // 에러 메시지를 클라이언트에게 전송합니다. 에러 메시지가 없으면 기본 메시지를 사용합니다.
-});
-
 // 루트 경로 접근 시 로그
 app.get("/", (req, res) => {
-  logger.info("루트 경로 접근됨"); // winston을 사용하여 루트 접근 로그 기록
   res.send("Hello, World!");
 });
 
@@ -89,20 +106,8 @@ startServer();
 /////이 이후 하나씩 추가할 거 작성은 주석달아서 추가해놓고 말해주기!
 
 // 'profile' 폴더를 정적 파일 경로로 설정
-app.use("/profile", express.static(path.join(__dirname, "profile")));
+app.use('/profile', express.static(path.join(__dirname, 'profile')));
 
-// winston 로그 설정
-const logger = winston.createLogger({
-  level: "info",
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.File({ filename: "combined.log" }),
-    new winston.transports.Console(),
-  ],
-});
 
 ////////////////////////////////////////////////////////////board////////////////////////////////////////////////////
 // 파일 업로드를 위한 디렉토리 설정
