@@ -1,20 +1,10 @@
+.tui-image-editor-header-buttons {
+  display: none;
+}
+.tui-image-editor-help-menu {
+  display: none;
+}
+.react-sortable-hoc-placeholder {
+  visibility: hidden;
+}
 
-.tui-image-editor-header-buttons{
-    display: none;
-  }
-  .tui-image-editor-help-menu{
-    display: none;
-  }
-  .react-sortable-hoc-placeholder {
-    visibility: hidden;
-  }
-  
-  .dragging-item {
-    position: absolute;
-    pointer-events: none;
-    top: 0;
-    left: 0;
-    transform: translate(0, 0);
-    z-index: 1000;
-  }
-  

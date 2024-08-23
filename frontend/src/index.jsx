@@ -3,12 +3,13 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter } from "react-router-dom"; // BrowserRouter 임포트
+import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Provider } from "react-redux";
 import { store, persistor } from "./store/index.js";
 import { PersistGate } from "redux-persist/integration/react";
-import { SnackbarProvider } from "./SnackbarContext";
+
 
 const queryClient = new QueryClient();
 
@@ -17,11 +18,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-          <SnackbarProvider> {/* SnackbarProvider로 감싸기 */}
-            <App />
-          </SnackbarProvider>
+          <App />
         </PersistGate>
       </Provider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </BrowserRouter>
 );
