@@ -6,7 +6,7 @@ import axios from 'axios';
 
 // Fetch a single post by ID
 const fetchPost = async (postId) => {
-  const response = await axios.get(`http://localhost:4000/api/posts/${postId}`);
+  const response = await axios.get(`http://localhost:4000/clubs/boards/posts/${postId}`);
   return response.data;
 };
 

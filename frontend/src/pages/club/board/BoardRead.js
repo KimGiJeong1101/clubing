@@ -2,40 +2,68 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Container, Typography, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import CKEditor5Editor from '../../../components/club/ClubBoardRead';
-import {usePost} from '../../../hooks/usePost'
+import UpdatePost from '../../../components/club/ClubBoardUpdateEditor';
+import { usePost } from '../../../hooks/usePost';
 
-const Read = ({ postId }) => {
+const Read = ({ postId, onClose }) => {
   const { data: post, isLoading, error } = usePost(postId);
-  const [openEditModal, setOpenEditModal] = React.useState(false);
-  const [title, setTitle] = React.useState('');
-  const [category, setCategory] = React.useState('');
-  const [content, setContent] = React.useState('');
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('');
+  const [content, setContent] = useState('');
+  const [image, setImage] = useState('');
 
+   // 상태 업데이트를 명확히 하기 위해 useEffect 사용
+   useEffect(() => {
+    if (post) {
+      setTitle(post.title);
+      setCategory(post.category);
+      setContent(post.content);
+      setImage(post.image || '');
+    } else {
+      // 상태 초기화
+      setTitle('');
+      setCategory('');
+      setContent('');
+      setImage('');
+    }
+  }, [post]);
+
+  
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:4000/api/posts/${postId}`);
+      await axios.delete(`http://localhost:4000/clubs/boards/posts/${postId}`);
       alert('Post deleted successfully');
-      // Redirection or state update to handle post deletion
+      onClose(); // Close Read component after delete
     } catch (error) {
       console.error('Error deleting post:', error);
     }
   };
+  
 
-  const handleEdit = async () => {
+  const handleSave = async () => {
     try {
-      await axios.put(`http://localhost:4000/api/posts/${postId}`, {
+      await axios.put(`http://localhost:4000/clubs/boards/posts/${postId}`, {
         title,
         category,
-        content
+        content,
+        image
       });
       alert('Post updated successfully');
       setOpenEditModal(false);
+      onClose(); // Close Read component after save
     } catch (error) {
       console.error('Error updating post:', error);
     }
   };
 
   const handleOpenEditModal = () => {
+    if (post) {
+      setTitle(post.title);
+      setCategory(post.category);
+      setContent(post.content);
+      setImage(post.image || '');
+    }
     setOpenEditModal(true);
   };
 
@@ -47,6 +75,7 @@ const Read = ({ postId }) => {
   if (error) return <p>Error fetching post: {error.message}</p>;
   if (!post) return <p>No post found</p>;
 
+  
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -63,7 +92,6 @@ const Read = ({ postId }) => {
           <div className="fetched-content">
             <CKEditor5Editor
               content={post.content}
-              onChange={(data) => setContent(data)}
               readOnly={true}
             />
           </div>
@@ -80,16 +108,22 @@ const Read = ({ postId }) => {
       <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="md">
         <DialogTitle>게시물 수정</DialogTitle>
         <DialogContent>
-          <CKEditor5Editor
-            content={content}
+          <UpdatePost
+            post={{ title, category, content, image }}
             onChange={(data) => setContent(data)}
+            title={title}
+            setTitle={setTitle}
+            category={category}
+            setCategory={setCategory}
+            content={content}
+            setImage={setImage}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseEditModal} color="primary">
             닫기
           </Button>
-          <Button onClick={handleEdit} color="primary">
+          <Button onClick={handleSave} color="primary">
             저장
           </Button>
         </DialogActions>

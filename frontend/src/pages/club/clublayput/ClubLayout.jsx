@@ -16,7 +16,7 @@ function ClubLayout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const getClub = useSelector((state) => state.getClub);
-  const user = useSelector((state) => state.user.userData);
+  const user = useSelector((state) => state.user.userData.user);
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [joinHandler, setJoinHandler] = useState(false);

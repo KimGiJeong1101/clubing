@@ -1,29 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Typography, Button, List, ListItem, ListItemText } from '@mui/material';
-import ReadVote from './BoardReadVote'; // Import the new component
+import { Container, Typography, List, ListItem, ListItemText, Box } from '@mui/material';
+import Read from './BoardRead';
+import ReadVote from './BoardReadVote';
+import { useLocation } from 'react-router-dom';
 
-const ListPosts = ({ onPostSelect, onVoteSelect }) => {
-  const [posts, setPosts] = useState([]);
-  const [votes, setVotes] = useState([]);
-  const [selectedVoteId, setSelectedVoteId] = useState(null);
+const ListPosts = () => {
+  const [items, setItems] = useState([]);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [selectedItemCategory, setSelectedItemCategory] = useState('');
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const clubNumber = queryParams.get("clubNumber");
 
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        const response = await axios.get('http://localhost:4000/clubs/boards/all');
-        setPosts(response.data.posts);
-        setVotes(response.data.votes);
+          const response = await axios.get(`http://localhost:4000/clubs/boards/all?clubNumber=${clubNumber}`);
+          setItems(response.data);
       } catch (error) {
-        console.error('Error fetching data:', error);
+          console.error('Error fetching data:', error);
       }
-    };
+  };
 
     fetchAllData();
   }, []);
 
-  const handleVoteSelect = (id) => {
-    setSelectedVoteId(id);
+  const handleSelect = (id, category) => {
+    if (selectedItemId === id) {
+      // 현재 클릭한 게시물이 이미 열려있다면, 닫음
+      setSelectedItemId(null);
+      setSelectedItemCategory('');
+    } else {
+      // 새로운 게시물을 클릭하면 열음
+      setSelectedItemId(id);
+      setSelectedItemCategory(category);
+    }
   };
 
   return (
@@ -32,26 +45,29 @@ const ListPosts = ({ onPostSelect, onVoteSelect }) => {
         게시물 및 투표 목록
       </Typography>
       <Typography variant="h6" component="h2">
-        게시물
+        이 위치에 카테고리 선택하는 거 출력
       </Typography>
       <List>
-        {posts.map(post => (
-          <ListItem key={post._id} button onClick={() => onPostSelect(post._id)}>
-            <ListItemText primary={post.title} secondary={`Category: ${post.category}`} />
-          </ListItem>
+        {items.map((item) => (
+          <React.Fragment key={item._id}>
+            <ListItem
+              button
+              onClick={() => handleSelect(item._id, item.options && item.options.length > 0 ? '투표' : '게시물')}
+            >
+              <ListItemText
+                primary={item.title}
+                secondary={`Category: ${item.category || '투표'} ${item.endTime ? `End Time: ${new Date(item.endTime).toLocaleString()}` : ''}`}
+              />
+            </ListItem>
+            {selectedItemId === item._id && (
+              <Box sx={{ padding: 2 }}>
+                {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} />}
+                {selectedItemCategory === '게시물' && <Read postId={selectedItemId} onClose={() => handleSelect(null, '')} />}
+              </Box>
+            )}
+          </React.Fragment>
         ))}
       </List>
-      <Typography variant="h6" component="h2">
-        투표
-      </Typography>
-      <List>
-        {votes.map(vote => (
-          <ListItem key={vote._id} button onClick={() => handleVoteSelect(vote._id)}>
-            <ListItemText primary={vote.title} secondary={`End Time: ${new Date(vote.endTime).toLocaleString()}`} />
-          </ListItem>
-        ))}
-      </List>
-      {selectedVoteId && <ReadVote voteId={selectedVoteId} />}
     </Container>
   );
 };

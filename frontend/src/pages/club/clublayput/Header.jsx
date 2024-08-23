@@ -18,7 +18,7 @@ function Header() {
   const getClub = useSelector((state) => state.getClub);
   const navigate = useNavigate();
 
-  const user = useSelector((state) => state.user.userData);
+  const user = useSelector((state) => state.user.userData.user);
   // URL에서 ID 추출
   //Clubmember=3 이란 거 가져오기 위해서!
 
@@ -165,7 +165,7 @@ function Header() {
               클럽 삭제하기
             </Box>
           )}
-          {user.email !== getClub.clubs.admin &&
+          {/* {user.email !== getClub.clubs.admin &&
             getClub.clubs.members.includes(user.email) && (
               <Box
                 onClick={() => {
@@ -175,7 +175,7 @@ function Header() {
               >
                 클럽 탈퇴하기
               </Box>
-            )}
+            )} */}
             <Box
               onClick={() => {
               }}

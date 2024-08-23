@@ -92,7 +92,7 @@ export default function CKEditor5Editor({ onChange, title, setTitle, category, s
           const data = new FormData();
           loader.file.then((file) => {
             data.append("file", file);
-            axios.post('http://localhost:4000/api/upload', data)
+            axios.post('http://localhost:4000/clubs/boards/upload', data)
               .then((res) => {
                 setImage(res.data.filename); // 업로드된 이미지의 파일명 저장
                 // dateFolder와 filename을 서버에서 받아오는 것이므로, 여기서 설정할 수 있어야 합니다.

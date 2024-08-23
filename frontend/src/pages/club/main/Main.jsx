@@ -155,14 +155,16 @@ const Main = () => {
     console.log(user.userData.user.email);
     console.log(`user.userData.user.email`);
 
-    for (let i = 0; i < meetingList.meetings.length; i++) {
-      if (
-        meetingList.meetings[i].joinMember.includes(user.userData.user.email)
-      ) {
-        //미팅리스트에서의 조인멤버 안에 로긴한 사람 들가있다면
-        copy.push(true);
-      } else {
-        copy.push(false);
+    if (meetingList.meetings.length !== 0) {
+      for (let i = 0; i < meetingList.meetings.length; i++) {
+        if (
+          meetingList.meetings[i].joinMember.includes(user.userData.user.email)
+        ) {
+          //미팅리스트에서의 조인멤버 안에 로긴한 사람 들가있다면
+          copy.push(true);
+        } else {
+          copy.push(false);
+        }
       }
     }
     setMeeetingListBoolean(copy);
