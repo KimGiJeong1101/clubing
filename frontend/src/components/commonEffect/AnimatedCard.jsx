@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { Box } from '@mui/material';
+import React, { useState } from "react";
+import { Box } from "@mui/material";
 
 const AnimatedCard = ({ image }) => {
-  const [transform, setTransform] = useState('perspective(350px) rotateX(0deg) rotateY(0deg)');
+  const [transform, setTransform] = useState(
+    "perspective(350px) rotateX(0deg) rotateY(0deg)"
+  );
 
   const handleMouseMove = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -14,11 +16,13 @@ const AnimatedCard = ({ image }) => {
     const rotateY = ((x - halfWidth) / halfWidth) * 20;
     const rotateX = -((y - halfHeight) / halfHeight) * 20;
 
-    setTransform(`perspective(350px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`);
+    setTransform(
+      `perspective(350px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`
+    );
   };
 
   const handleMouseOut = () => {
-    setTransform('perspective(350px) rotateX(0deg) rotateY(0deg)');
+    setTransform("perspective(350px) rotateX(0deg) rotateY(0deg)");
   };
 
   return (
@@ -26,19 +30,19 @@ const AnimatedCard = ({ image }) => {
       onMouseMove={handleMouseMove}
       onMouseOut={handleMouseOut}
       sx={{
-        position: 'absolute', // 부모 요소에 맞추기 위해 절대 위치 사용
+        position: "absolute", // 부모 요소에 맞추기 위해 절대 위치 사용
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
-        overflow: 'hidden',
-        transform: transform, 
-        transition: 'transform 0.2s ease',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f0f0f0',
-        borderRadius: '8px',
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        transform: transform,
+        transition: "transform 0.2s ease",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f0f0f0",
+        borderRadius: "8px",
       }}
     >
       <Box
@@ -46,9 +50,9 @@ const AnimatedCard = ({ image }) => {
         src={image}
         alt=""
         sx={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover', // 이미지가 컨테이너를 덮도록 설정
+          width: "100%",
+          height: "100%",
+          objectFit: "cover", // 이미지가 컨테이너를 덮도록 설정
         }}
       />
     </Box>
