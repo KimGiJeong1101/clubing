@@ -6,8 +6,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { MuiFileInput } from "mui-file-input";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axios";
@@ -47,13 +46,7 @@ const ClubCreate = () => {
   }, [selectedCategory]);
 
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    reset,
-  } = useForm({
+  const { register, handleSubmit, setValue, reset } = useForm({
     defaultValues: {
       mainCategory: "",
       subCategory: "",
@@ -65,25 +58,49 @@ const ClubCreate = () => {
     mode: "onChange",
   });
 
+  //블롭url을 블롭형태로 변환
+  async function blobUrlToBlob(blobUrl) {
+    const response = await fetch(blobUrl);
+    const blob = await response.blob();
+    return blob;
+  }
+  //블롭형태를 파일형태로 변환
+  function blobToFile(blob, fileName) {
+    const file = new File([blob], fileName, { type: blob.type });
+    return file;
+  }
+
   // 사진 파일 관련 코드
   const [locationImg, setLocationImg] = useState(null);
   const [preview, setPreview] = useState(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
-
+  const [uploadFileName, setUploadFileName] = useState("");
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+    console.log(file);
+    setUploadFileName(file.name);
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
         setLocationImg(file);
-        console.log(cropModalOpen);
         setCropModalOpen(true); // 크롭 모달 열기
-        console.log(cropModalOpen);
       };
       reader.readAsDataURL(file);
     }
-    console.log(cropModalOpen);
+  };
+  const handleDrop = (event) => {
+    event.preventDefault();
+    const file = event.dataTransfer.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+        setLocationImg(file);
+        setCropModalOpen(true); // 크롭 모달 열기
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleCropComplete = (croppedImage) => {
@@ -105,20 +122,45 @@ const ClubCreate = () => {
     setValue("region.neighborhood", homeLocation.dong);
   }, [homeLocation, setValue]);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     console.log(data);
+    const blob = await blobUrlToBlob(preview);
+    const file = blobToFile(blob, uploadFileName);
+    console.log("blob = " + blob);
+    console.log("file = " + file);
 
-    axiosInstance
-      .post("/clubs/create", data)
-      .then((response) => {
-        console.log(response.data);
-        alert("모임 만들기에 성공했습니다");
-        navigate("/clublist");
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("모임 만들기에 실패했습니다");
+    const formData = new FormData();
+
+    // 일반 필드 추가
+    formData.append("mainCategory", data.mainCategory);
+    formData.append("subCategory", data.subCategory);
+    formData.append("title", data.title);
+    formData.append("subTitle", data.subTitle);
+    formData.append("content", data.content);
+    formData.append("maxMember", data.maxMember);
+    formData.append(`region.city`, homeLocation.sido);
+    formData.append(`region.district`, homeLocation.sigoon);
+    formData.append(`region.neighborhood`, homeLocation.dong);
+
+    // 이미지 파일이 있는 경우
+    if (preview) {
+      formData.append("img", file); // 이미지 파일 추가
+    }
+
+    try {
+      const response = await axiosInstance.post("/clubs/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
+
+      console.log(response.data);
+      alert("모임 만들기에 성공했습니다");
+      navigate("/clublist");
+    } catch (err) {
+      console.error(err);
+      alert("모임 만들기에 실패했습니다");
+    }
   };
 
   return (
@@ -168,7 +210,7 @@ const ClubCreate = () => {
               sx={{ width: "100%", mb: 2 }}
               onClick={handleOpenModal}
               value={selectedCategory}
-              {...register("mainCategory", { required: " 필수입력 요소." })}
+              {...register("mainCategory")}
             />
           </Grid>
           <Grid item xs={3} sx={{ padding: "0px" }}>
@@ -183,7 +225,7 @@ const ClubCreate = () => {
               sx={{ width: "100%", mb: 2 }}
               onClick={handleOpenModal}
               value={selectedSubCategory}
-              {...register("subCategory", { required: " 필수입력 요소." })}
+              {...register("subCategory")}
             />
           </Grid>
           {/* 파일 입력 및 미리보기 */}
@@ -193,7 +235,7 @@ const ClubCreate = () => {
               type="file"
               accept="image/png, image/gif, image/jpeg"
               onChange={handleFileChange}
-              style={{display: 'none'}}
+              style={{ display: "none" }}
             />
             <label htmlFor="img">
               <Button
@@ -204,8 +246,27 @@ const ClubCreate = () => {
                 여기를 클릭해 모임 대표사진을 설정해보세요
               </Button>
             </label>
+            {!preview && (
+              <Box
+                mt={2}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={handleDrop}
+                sx={{
+                  width: "100%",
+                  height: "478.5px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "2px dashed gray",
+                }}
+              >
+                <Typography variant="h6" color="textSecondary">
+                  이미지 미리보기가 없습니다. 이미지를 업로드하세요.
+                </Typography>
+              </Box>
+            )}
             {preview && (
-              <Box mt={2} sx={{ width: "100%", height: "200px" }}>
+              <Box mt={2} sx={{ width: "100%", height: "478.5px" }}>
                 <img
                   src={preview}
                   alt="미리보기"

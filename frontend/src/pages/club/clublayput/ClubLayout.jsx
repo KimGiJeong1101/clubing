@@ -16,7 +16,7 @@ function ClubLayout() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const getClub = useSelector((state) => state.getClub);
-  const user = useSelector((state) => state.user.userData);
+  const user = useSelector((state) => state.user.userData.user);
 
   const [isFavorite, setIsFavorite] = useState(false);
   const [joinHandler, setJoinHandler] = useState(false);
@@ -48,6 +48,9 @@ function ClubLayout() {
 
   useEffect(() => {
     if (getClub.clubs && user.email) {
+      console.log('user.email');
+      console.log(user.email);
+      console.log('user.email');
       setJoinHandler(!getClub.clubs.members.includes(user.email));
     }
   }, [getClub, user.email]);
