@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
@@ -28,6 +27,7 @@ const Gallery = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
+
 
   const [open, setOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -73,6 +73,7 @@ const Gallery = () => {
       setSnackbarOpen(true);
     },
     onError: (error) => {
+      setRegisterOpen(false);
       setSnackbarMessage(error.response?.data?.error || '등록 중 에러가 발생했습니다.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -256,7 +257,7 @@ const Gallery = () => {
   return (
     <div style={{ minWidth: '400px', overflowX: 'hidden', position: 'relative' }}>
       {error && <div>데이터 로드 에러: {error.message}</div>} {/* 에러가 있을 경우 에러 메시지 출력 */}
-      
+
       <ImageList
         sx={{
           width: '100%',
@@ -337,10 +338,10 @@ const Gallery = () => {
         <AddToPhotosIcon />
       </Button>
 
-      <Button 
+      <Button
         sx={{
           position: 'fixed',
-          top: 160, 
+          top: 160,
           right: 16,
           zIndex: 1000,
           backgroundColor: 'white.main',
@@ -351,7 +352,7 @@ const Gallery = () => {
         }}
         onClick={handleSelectModeToggle}
       >
-        <CheckCircleSharpIcon/>
+        <CheckCircleSharpIcon />
       </Button>
 
       {selectMode && (

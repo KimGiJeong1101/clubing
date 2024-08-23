@@ -12,12 +12,24 @@ const sessionAuth = async (req, res, next) => {
         return res.status(400).send("없는 유저입니다.");
       }
       req.user = user;
-      // 존마탱으로 어떤 정보를 입맛에 맞게 가져올 수 있는지 공부해보자요
+    
+      const payload = {
+      userId: user._id.toHexString(),
+      // 몽고db objectid는 지멋대로 생성하기 때문에 이것을 스트링화 하는 것
+      }
+      // token을 생성
+      const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
+      // 유효기간 1시간
+
+      req.session.touch();
+      req.session.accessToken = accessToken;
+
       next();
     } catch (error) {
       return res.status(406).send("유효하지 않은 토큰입니다.");
     }
   } else {
+    console.log('세션이 유효하지 않습니다.');
     return res.status(401).send("세션이 유효하지 않습니다.");
   }
 };
