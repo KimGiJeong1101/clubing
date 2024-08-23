@@ -14,6 +14,7 @@ import { Box, Typography, Avatar, Divider, IconButton, Modal, Popover, MenuItem 
 import { myPage } from '../../store/actions/userActions';
 import axiosInstance from "../../utils/axios";
 
+
 const MyPage = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.user.userData);
@@ -24,7 +25,8 @@ const MyPage = () => {
 
   const [profileImage, setProfileImage] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null); // Popover 상태 관리
-  console.log('나다', user?.profilePic?.originalImage);
+
+  console.log('오리진 이미지', user?.profilePic?.originalImage);
   useEffect(() => {
     dispatch(myPage()); // 사용자 데이터 새로고침
   }, [dispatch]);
