@@ -27,7 +27,7 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {}, isEditMode = fals
   const fileInputRef = useRef(null); // 파일 입력 필드에 대한 ref
 
 
-  const userEmail = useSelector(state => state.user?.userData?.email || null);
+  const userEmail = useSelector(state => state.user?.userData?.user.email || null);
 
 
 
@@ -284,3 +284,4 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {}, isEditMode = fals
 };
 
 export default GalleryCreate;
+
