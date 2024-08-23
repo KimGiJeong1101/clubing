@@ -2,9 +2,9 @@
 import React, { useState } from 'react';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
-import AnimatedCard from '../../../components/common/AnimatedCard';
+import AnimatedCard from '../../../components/commonEffect/AnimatedCard';
 import GalleryModal from './GalleryModal';
-import { Button, Box, Checkbox } from '@mui/material';
+import { Button, Box, Checkbox, Snackbar, Alert } from '@mui/material';
 import AddToPhotosIcon from '@mui/icons-material/AddToPhotos';
 import CheckCircleSharpIcon from '@mui/icons-material/CheckCircleSharp';
 import GalleryCreate from './GalleryCreate';
@@ -15,35 +15,14 @@ import axios from 'axios';
 import AlertModal from './AlertModal';
 import Modal from '@mui/material/Modal';
 import { useLocation } from 'react-router-dom';
-
-// 이미지 등록 API 요청 함수
-export const registerImages = (clubNumber, newImages) => {
-  return axios.post(`http://localhost:4000/clubs/${clubNumber}/gallery/images`, newImages);
-};
-
-// 이미지 목록을 서버에서 가져오는 함수 (조회 로직)
-export const fetchImages = async (clubNumber) => {
-  const { data } = await axios.get(`http://localhost:4000/clubs/${clubNumber}/gallery/images`);
-  return data;
-};
-
-// 선택한 이미지들을 삭제하는 함수 (삭제 로직)
-export const deleteImages = async (clubNumber, imageIds) => {
-  await axios.delete(`http://localhost:4000/clubs/${clubNumber}/gallery/images`, {
-    data: { imageIds }
-  });
-};
-
-// 모든 이미지를 삭제하는 함수 (전체 삭제 로직)
-export const deleteAllImages = async (clubNumber) => {
-  await axios.delete(`http://localhost:4000/clubs/${clubNumber}/gallery/images/all`);
-};
-
-// 이미지를 수정하는 함수 (수정 로직)
-export const editImage = async (clubNumber, { id, formData }) => {
-  await axios.put(`http://localhost:4000/clubs/${clubNumber}/gallery/images/${id}`, formData);
-};
-
+import { useSelector } from 'react-redux'; // 유저 정보 가져오기 위해 추가
+import {
+  registerImages,
+  fetchImages,
+  deleteImages,
+  deleteAllImages,
+  editImage,
+} from '../../../api/ClubGalleryApi';
 
 const Gallery = () => {
   const location = useLocation();
@@ -62,7 +41,17 @@ const Gallery = () => {
   const [editOpen, setEditOpen] = useState(false);
   const [editGallery, setEditGallery] = useState(null);
   const [alertOpen, setAlertOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar 상태 관리
+  const [snackbarMessage, setSnackbarMessage] = useState(''); // Snackbar 메시지 관리
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // Snackbar 상태 관리
   const queryClient = useQueryClient();
+
+  const userEmail = useSelector(state => state.user?.userData?.user?.email); // 유저 이메일 가져오기
+
+  // Snackbar 닫기 함수
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
 
   // 이미지 데이터를 가져오는 useQuery 훅 (조회 로직)
   const { data: images = [], error, isLoading, isFetching } = useQuery({
@@ -79,26 +68,50 @@ const Gallery = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['images', clubNumber]);
       setRegisterOpen(false);
+      setSnackbarMessage('이미지가 성공적으로 등록되었습니다.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.error || '등록 중 에러가 발생했습니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     },
   });
 
   // 선택된 이미지를 삭제하는 useMutation 훅 (삭제 로직)
   const deleteMutation = useMutation({
-    mutationFn: (imageIds) => deleteImages(clubNumber, imageIds),
+    mutationFn: (imageIds) => deleteImages(clubNumber, { imageIds, writer: userEmail }), // writer 정보 추가
     onSuccess: () => {
       queryClient.invalidateQueries(['images', clubNumber]);
       setSelectedImageIds([]);
       setSelectMode(false);
+      setSnackbarMessage('성공적으로 삭제되었습니다.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.error || '삭제 중 에러가 발생했습니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     },
   });
 
   // 모든 이미지를 삭제하는 useMutation 훅 (전체 삭제 로직)
   const deleteAllMutation = useMutation({
-    mutationFn: () => deleteAllImages(clubNumber),
+    mutationFn: () => deleteAllImages(clubNumber, { writer: userEmail }), // writer 정보 추가
     onSuccess: () => {
       queryClient.invalidateQueries(['images', clubNumber]);
       setSelectMode(false);
       setConfirmDeleteOpen(false);
+      setSnackbarMessage('모든 이미지가 성공적으로 삭제되었습니다.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.error || '전체 삭제 중 에러가 발생했습니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     },
   });
 
@@ -108,14 +121,21 @@ const Gallery = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['images', clubNumber]);
       setEditOpen(false);
+      setSnackbarMessage('이미지가 성공적으로 수정되었습니다.');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    },
+    onError: (error) => {
+      setSnackbarMessage(error.response?.data?.error || '수정 중 에러가 발생했습니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
     },
   });
 
-
-// 모달을 열고 이미지를 표시하는 핸들러
-const handleOpen = async (id, index) => {
-  try {
-      const response = await axios.get(`http://localhost:4000/clubs/${clubNumber}/gallery/images/${id}`); // gallery가 맞음
+  // 모달을 열고 이미지를 표시하는 핸들러
+  const handleOpen = async (id, index) => {
+    try {
+      const response = await axios.get(`http://localhost:4000/clubs/gallery/${clubNumber}/images/${id}`);
       const gallery = response.data;
 
       setSelectedIndex(index);
@@ -123,11 +143,10 @@ const handleOpen = async (id, index) => {
       setSelectedTitle(gallery.title);
       setSelectedContent(gallery.content);
       setOpen(true);
-  } catch (error) {
+    } catch (error) {
       console.error("Failed to fetch gallery details", error);
-  }
-};
-
+    }
+  };
 
   // 모달을 닫는 핸들러
   const handleClose = () => {
@@ -468,6 +487,13 @@ const handleOpen = async (id, index) => {
       >
         <CircularProgress color="inherit" />
       </Backdrop>
+
+      {/* Snackbar Component */}
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

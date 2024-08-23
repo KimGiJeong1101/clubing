@@ -9,24 +9,29 @@ import {
 } from "../actions/userActions.js";
 import { toast } from "react-toastify";
 
-const initialState = {
-  userData: {
-    user: {},
-  },
-  isAuth: false, //true면 로그인되어 있는
-  isLoading: false, // 데이터를 가져오는 중이면 true
-  error: "",
-  token: {
-    value: "", // JWT 값
-    iat: null, // 발급 시간
-    exp: null, // 만료 시간
-  },
-  snackbar: {
-    open: false,
-    message: "",
-    severity: "info", // 'success', 'error', 'warning', 'info'
-  },
-};
+
+const initialState ={
+    userData: {
+        id: '',
+        email: '',
+        name: '',
+        nickName: '',
+        profilePic: {
+            originalImage:  '',
+            thumbnailImage:'',
+            introduction: '',
+        },
+        roles: '', // 역할 필드 추가
+    },
+    isAuth: false, //true면 로그인되어 있는
+    isLoading: false, // 데이터를 가져오는 중이면 true
+    error: "",
+    snackbar: {
+        open: false,
+        message: '',
+        severity: 'info', // 'success', 'error', 'warning', 'info'
+    }
+}
 
 const userReducer = createSlice({
   name: "user",
