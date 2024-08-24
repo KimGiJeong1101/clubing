@@ -110,4 +110,3 @@ startServer();
 
 // 'profile' 폴더를 정적 파일 경로로 설정
 app.use('/profile', express.static(path.join(__dirname, 'profile')));
-
