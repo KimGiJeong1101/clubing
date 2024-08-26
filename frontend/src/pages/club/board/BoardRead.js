@@ -4,57 +4,73 @@ import { Container, Typography, Button, Box, Dialog, DialogTitle, DialogContent,
 import CKEditor5Editor from '../../../components/club/ClubBoardRead';
 import UpdatePost from '../../../components/club/ClubBoardUpdateEditor';
 import { usePost } from '../../../hooks/usePost';
+import { useSelector } from 'react-redux';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Read = ({ postId, onClose }) => {
+  const queryClient = useQueryClient();
   const { data: post, isLoading, error } = usePost(postId);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
+  const [isAuthor, setIsAuthor] = useState(false);
 
-   // 상태 업데이트를 명확히 하기 위해 useEffect 사용
-   useEffect(() => {
+  const author = useSelector(state => state.user?.userData?.user?.email || null);
+
+  useEffect(() => {
     if (post) {
       setTitle(post.title);
       setCategory(post.category);
       setContent(post.content);
       setImage(post.image || '');
+      setIsAuthor(post.author === author);
     } else {
-      // 상태 초기화
       setTitle('');
       setCategory('');
       setContent('');
       setImage('');
+      setIsAuthor(false);
     }
-  }, [post]);
+  }, [post, author]);
 
-  
-  const handleDelete = async () => {
-    try {
-      await axios.delete(`http://localhost:4000/clubs/boards/posts/${postId}`);
-      alert('Post deleted successfully');
-      onClose(); // Close Read component after delete
-    } catch (error) {
+  // 게시물 삭제를 위한 Mutation 훅
+  const deleteMutation = useMutation({
+    mutationFn: () => axios.delete(`http://localhost:4000/clubs/boards/posts/${postId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['posts']); // 게시물 목록 쿼리 키로 무효화
+      onClose(); // 삭제 후 컴포넌트 닫기
+    },
+    onError: (error) => {
       console.error('Error deleting post:', error);
-    }
-  };
-  
+    },
+  });
 
-  const handleSave = async () => {
-    try {
-      await axios.put(`http://localhost:4000/clubs/boards/posts/${postId}`, {
-        title,
-        category,
-        content,
-        image
-      });
-      alert('Post updated successfully');
+  // 게시물 수정을 위한 Mutation 훅
+  const updateMutation = useMutation({
+    mutationFn: () => axios.put(`http://localhost:4000/clubs/boards/posts/${postId}`, {
+      title,
+      category,
+      content,
+      image
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['posts']); // 게시물 목록 쿼리 키로 무효화
       setOpenEditModal(false);
-      onClose(); // Close Read component after save
-    } catch (error) {
+      onClose(); // 수정 후 컴포넌트 닫기
+    },
+    onError: (error) => {
       console.error('Error updating post:', error);
-    }
+    },
+  });
+
+  const handleDelete = () => {
+    deleteMutation.mutate();
+  };
+
+  const handleSave = () => {
+    updateMutation.mutate();
   };
 
   const handleOpenEditModal = () => {
@@ -75,7 +91,6 @@ const Read = ({ postId, onClose }) => {
   if (error) return <p>Error fetching post: {error.message}</p>;
   if (!post) return <p>No post found</p>;
 
-  
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -95,14 +110,16 @@ const Read = ({ postId, onClose }) => {
               readOnly={true}
             />
           </div>
-          <Box mt={2}>
-            <Button variant="contained" color="primary" onClick={handleOpenEditModal} style={{ marginRight: '8px' }}>
-              수정
-            </Button>
-            <Button variant="contained" color="secondary" onClick={handleDelete}>
-              삭제
-            </Button>
-          </Box>
+          {isAuthor && (
+            <Box mt={2}>
+              <Button variant="contained" color="primary" onClick={handleOpenEditModal} style={{ marginRight: '8px' }}>
+                수정
+              </Button>
+              <Button variant="contained" color="secondary" onClick={handleDelete}>
+                삭제
+              </Button>
+            </Box>
+          )}
         </>
       )}
       <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="md">

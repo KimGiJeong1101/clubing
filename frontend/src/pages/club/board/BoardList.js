@@ -1,12 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { Container, Typography, List, ListItem, ListItemText, Box } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import Read from './BoardRead';
 import ReadVote from './BoardReadVote';
 import { useLocation } from 'react-router-dom';
 
+// API에서 게시물을 가져오는 함수
+const fetchPosts = async (clubNumber) => {
+  const response = await axios.get(`http://localhost:4000/clubs/boards/all?clubNumber=${clubNumber}`);
+  return response.data;
+};
+
 const ListPosts = () => {
-  const [items, setItems] = useState([]);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItemCategory, setSelectedItemCategory] = useState('');
 
@@ -14,30 +20,25 @@ const ListPosts = () => {
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      try {
-          const response = await axios.get(`http://localhost:4000/clubs/boards/all?clubNumber=${clubNumber}`);
-          setItems(response.data);
-      } catch (error) {
-          console.error('Error fetching data:', error);
-      }
-  };
-
-    fetchAllData();
-  }, []);
+  // react-query의 useQuery 훅을 사용하여 데이터 가져오기
+  const { data: items, isLoading, error } = useQuery({
+    queryKey: ['posts', clubNumber], // 쿼리 키를 객체 형태로 제공
+    queryFn: () => fetchPosts(clubNumber),
+    keepPreviousData: true, // 새 데이터 가져오는 동안 이전 데이터 유지
+  });
 
   const handleSelect = (id, category) => {
     if (selectedItemId === id) {
-      // 현재 클릭한 게시물이 이미 열려있다면, 닫음
       setSelectedItemId(null);
       setSelectedItemCategory('');
     } else {
-      // 새로운 게시물을 클릭하면 열음
       setSelectedItemId(id);
       setSelectedItemCategory(category);
     }
   };
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error fetching data: {error.message}</p>;
 
   return (
     <Container>
