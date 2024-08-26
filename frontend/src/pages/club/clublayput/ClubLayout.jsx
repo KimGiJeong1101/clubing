@@ -48,6 +48,9 @@ function ClubLayout() {
 
   useEffect(() => {
     if (getClub.clubs && user.email) {
+      console.log('user.email');
+      console.log(user.email);
+      console.log('user.email');
       setJoinHandler(!getClub.clubs.members.includes(user.email));
     }
   }, [getClub, user.email]);

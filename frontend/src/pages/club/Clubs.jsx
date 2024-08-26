@@ -4,22 +4,8 @@ import {
   Container,
   Grid,
   Paper,
-  Tab,
-  Tabs,
   Typography,
 } from "@mui/material";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import BrushIcon from "@mui/icons-material/Brush";
-import ScubaDivingIcon from "@mui/icons-material/ScubaDiving";
-import FastfoodIcon from "@mui/icons-material/Fastfood";
-import StarIcon from "@mui/icons-material/Star";
-import FlightIcon from "@mui/icons-material/Flight";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import Diversity3Icon from "@mui/icons-material/Diversity3";
-import CelebrationIcon from "@mui/icons-material/Celebration";
-import SavingsIcon from "@mui/icons-material/Savings";
-import CastForEducationIcon from "@mui/icons-material/CastForEducation";
-import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import Avatar from "@mui/material/Avatar";
@@ -29,6 +15,7 @@ import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import axiosInstance from './../../utils/axios';
 
 const Clubs = () => {
   const getClubList = async () => {
@@ -62,6 +49,41 @@ const Clubs = () => {
   };
 
   const navigate = useNavigate();
+  ///////////////////////////////////
+  // let isLoading2 = false; // 플래그 변수로 로딩 상태를 추적
+
+  // const handleScroll = async () => {
+  //   if (
+  //     window.innerHeight + window.scrollY >=
+  //     document.documentElement.scrollHeight - 50
+  //   ) {
+  //     if (!isLoading2) {
+  //       isLoading2 = true; // 요청이 진행 중임을 표시
+  //       window.removeEventListener("scroll", handleScroll);
+
+  //       try {
+  //         console.log("스크롤이 맨밑에 닿았어요!");
+
+  //         // axios 요청을 여기서 처리
+  //         const response = await axiosInstance.get("/clubs/scroll");
+          
+  //         // 응답 데이터 처리
+  //         console.log(response.data);
+  //       } catch (error) {
+  //         console.error("데이터 요청 중 오류 발생:", error);
+  //       } finally {
+  //         window.addEventListener('scroll', handleScroll);
+  //         isLoading2 = false; // 요청 완료 후 플래그 리셋
+  //       }
+  //     }
+  //   }
+  // };
+
+  // // 스크롤 이벤트 리스너 추가
+  // window.addEventListener("scroll", handleScroll);
+///////////////////////////////////
+  // 스크롤 이벤트 리스너 제거 (필요에 따라 사용)
+  // window.removeEventListener('scroll', handleScroll);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -101,64 +123,63 @@ const Clubs = () => {
               md={4}
               key={club._id}
               sx={{
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.03)',
+                transition: "transform 0.3s ease",
+                "&:hover": {
+                  transform: "scale(1.03)",
                 },
               }}
             >
               <Paper
                 elevation={3}
                 sx={{
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'box-shadow 0.3s ease',
-                  backgroundColor: 'white',
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  cursor: "pointer",
+                  transition: "box-shadow 0.3s ease",
+                  backgroundColor: "white",
                 }}
                 onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
               >
                 <Box
                   sx={{
-                    width: '100%',
-                    height: '300px',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative',
-                    backgroundColor: '#f0f0f0',
+                    width: "100%",
+                    height: "300px",
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                    backgroundColor: "#f0f0f0",
                   }}
                 >
                   <img
-                    src={list[index].src}
+                    src={`http://localhost:4000/` + club.img}
                     alt={club.title}
                     style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: '12px 12px 0 0',
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "12px 12px 0 0",
                     }}
                   />
                   {/* 메인 카테고리 */}
                   <Box
                     sx={{
-                      position: 'absolute',
+                      position: "absolute",
                       top: 5,
                       left: 5,
-                      backgroundColor: '#ffffff',
-                      padding: '8px',
-                      borderRadius: '12px',
-                      opacity:'0.8'
-                     
+                      backgroundColor: "#ffffff",
+                      padding: "8px",
+                      borderRadius: "12px",
+                      opacity: "0.8",
                     }}
                   >
                     <Typography
                       variant="caption"
-                      sx={{ color: '#3f51b5', fontWeight: 'bold' }}
+                      sx={{ color: "#3f51b5", fontWeight: "bold" }}
                     >
                       {club.mainCategory}
                     </Typography>
@@ -168,24 +189,23 @@ const Clubs = () => {
                 {/* 클럽 */}
                 <Box
                   sx={{
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '230px',
-                    
+                    padding: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "230px",
                   }}
                 >
                   {/* 클럽 제목 */}
                   <Typography
                     variant="h5"
                     sx={{
-                      fontWeight: '700',
-                      fontSize: '20px',
-                      color: '#383535',
-                      marginBottom: '8px',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
+                      fontWeight: "700",
+                      fontSize: "20px",
+                      color: "#383535",
+                      marginBottom: "8px",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {club.title}
@@ -194,13 +214,13 @@ const Clubs = () => {
                   <Typography
                     variant="h6"
                     sx={{
-                      fontWeight: '500',
-                      fontSize: '18px',
-                      color: '#777777',
-                      marginBottom: '8px',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
+                      fontWeight: "500",
+                      fontSize: "18px",
+                      color: "#777777",
+                      marginBottom: "8px",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {club.subTitle}
@@ -208,30 +228,32 @@ const Clubs = () => {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#9F9E9D',
-                      marginBottom: '8px',
+                      color: "#9F9E9D",
+                      marginBottom: "8px",
                     }}
                   >
                     {club.region.district}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <CommentRoundedIcon sx={{ color: '#BF5B16', fontSize: '18px' }} />
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <CommentRoundedIcon
+                      sx={{ color: "#BF5B16", fontSize: "18px" }}
+                    />
                     <Typography
                       variant="body2"
-                      sx={{ color: '#BF5B16', marginLeft: '5px' }}
+                      sx={{ color: "#BF5B16", marginLeft: "5px" }}
                     >
                       {list[index].chat}
                     </Typography>
                   </Box>
-                  
+
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginTop: 'auto',
-                      borderTop: '1px solid #e0e0e0',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
+                      display: "flex",
+                      alignItems: "center",
+                      marginTop: "auto",
+                      borderTop: "1px solid #e0e0e0",
+                      paddingTop: "8px",
+                      paddingBottom: "8px",
                     }}
                   >
                     <AvatarGroup max={4}>
@@ -246,15 +268,15 @@ const Clubs = () => {
                     </AvatarGroup>
                     <Box
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        marginLeft: '8px',
-                        fontSize: '14px',
-                        color: '#666666',
+                        display: "flex",
+                        alignItems: "center",
+                        marginLeft: "8px",
+                        fontSize: "14px",
+                        color: "#666666",
                       }}
                     >
-                      <PeopleRoundedIcon sx={{ fontSize: '18px' }} />
-                      <span style={{ marginLeft: '5px' }}>
+                      <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
+                      <span style={{ marginLeft: "5px" }}>
                         {club.members.length}/{club.maxMember}
                       </span>
                     </Box>

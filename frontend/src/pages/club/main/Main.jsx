@@ -179,7 +179,7 @@ const Main = () => {
     window.location.reload();
   };
   //미팅 지우기.end
-
+  
   //이미지를 위해서
   const [club2] = useState(club);
   const navigate = useNavigate();
@@ -258,7 +258,7 @@ const Main = () => {
           } else {
             alert("참석 성공");
           }
-          navigate("/mypage/wish");
+          navigate("/mypage");
         })
         .catch((err) => {
           console.error(err);
@@ -674,7 +674,7 @@ const Main = () => {
             sx={{
               borderRadius: "10px",
               width: "100%",
-              height: "230px",
+              height: "478.5px",
               overflow: "hidden", // 박스 영역을 넘어서는 이미지 잘리기
               display: "flex",
               alignItems: "center",
@@ -683,7 +683,7 @@ const Main = () => {
             }}
           >
             <img
-              src="http://images.munto.kr/production-club/1722584963093-photo-wmt23-875855-0?s=640x640" // 이미지 경로
+              src={`http://localhost:4000/`+readClub.img} // 이미지 경로
               alt="Example"
               style={{
                 width: "100%",

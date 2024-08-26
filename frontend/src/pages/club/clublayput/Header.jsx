@@ -33,7 +33,9 @@ function Header() {
 
   const handleDelete = async () => {
     try {
-      await axiosInstance.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
+      await axiosInstance.delete(
+        `http://localhost:4000/clubs/delete/${clubNumber}`
+      );
       // 삭제 후 원하는 페이지로 이동
       navigate("/clublist");
       alert("삭제 완료");
@@ -83,7 +85,6 @@ function Header() {
   const id = open ? "simple-popover" : undefined;
 
   return (
-    
     <Box
       sx={{
         position: "fixed",
@@ -158,10 +159,7 @@ function Header() {
           }}
         >
           {user.email === getClub.clubs.admin && (
-            <Box
-              onClick={handleDelete}
-              sx={{ padding: "10px" }}
-            >
+            <Box onClick={handleDelete} sx={{ padding: "10px" }}>
               클럽 삭제하기
             </Box>
           )}
@@ -175,21 +173,14 @@ function Header() {
               >
                 클럽 탈퇴하기
               </Box>
+<<<<<<< HEAD
             )} */}
-            <Box
-              onClick={() => {
-              }}
-              sx={{ padding: "10px" }}
-            >
-              모임 url 공유하기
-            </Box>
-            <Box
-              onClick={() => {
-              }}
-              sx={{ padding: "10px" }}
-            >
-              모임 신고하기
-            </Box>
+          <Box onClick={() => {}} sx={{ padding: "10px" }}>
+            모임 url 공유하기
+          </Box>
+          <Box onClick={() => {}} sx={{ padding: "10px" }}>
+            모임 신고하기
+          </Box>
         </Popover>
       </Container>
     </Box>
