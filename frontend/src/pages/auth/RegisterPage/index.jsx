@@ -121,6 +121,7 @@ const RegisterPage = () => {
       profilePic: {
         originalImage: 'https://via.placeholder.com/600x400?text=no+user+image',
         thumbnailImage: 'https://via.placeholder.com/600x400?text=no+user+image',
+        introduction: ''
       }
     }
    

@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import {ListItemText, ListItem, List, TextField, Box} from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 
 const InterestSearch = ({ setInterestSido, setInterestSigoon, setInterestDong }) => {
   const [interestResults, setInterestResults] = useState([]);
   const { formState: { errors }, register, setValue, watch } = useForm();
+
+ // Redux에서 user 데이터를 가져옵니다
+ const { user } = useSelector((state) => state.user?.userData || {});
+
+ // workplace 데이터를 가져옵니다
+ const  interestLocation = user?. interestLocation || { city: '', district: '', neighborhood: '' };
+
+  // 초기 렌더링 시, workplace 데이터를 검색 필드에 반영합니다
+  useEffect(() => {
+   if ( interestLocation.neighborhood) {
+     setValue('interestSearchTerm',  interestLocation.neighborhood);
+   }
+ }, [ interestLocation.neighborhood, setValue]);
+
 
   const interestSearchTerm = watch('interestSearchTerm');
   const port = process.env.REACT_APP_ADDRESS_API;

@@ -17,13 +17,15 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 // 응답 인터셉터
+let isRedirecting = false; // 리다이렉트 중복 방지 플래그
+
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.code === 'ECONNABORTED') {
       alert('요청이 시간 초과되었습니다. 다시 시도해주세요.');
     } else if (error.response?.status === 401 || error.response?.data === "jwt expired") {
-      // 포기는 안 할텐데 잠시 동안 이렇게 할게용
+      isRedirecting = true; // 리다이렉트가 진행 중임을 표시
       alert('로그인을 다시 해주세요');
       window.location.href = '/login';
     } else {
