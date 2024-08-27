@@ -93,17 +93,17 @@ const Read = ({ postId, onClose }) => {
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
+      {/* <Typography variant="h4" component="h1" gutterBottom>
         게시글 내용
-      </Typography>
+      </Typography> */}
       {post && (
         <>
-          <Typography variant="h5" component="h2" gutterBottom>
+          {/* <Typography variant="h5" component="h2" gutterBottom>
             {post.title}
           </Typography>
           <Typography variant="subtitle1" gutterBottom>
             Category: {post.category}
-          </Typography>
+          </Typography> */}
           <div className="fetched-content">
             <CKEditor5Editor
               content={post.content}

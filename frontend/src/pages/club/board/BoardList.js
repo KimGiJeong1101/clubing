@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
-import { Container, Typography, List, ListItem, ListItemText, Box } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemText, Box, Button } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Read from './BoardRead';
 import ReadVote from './BoardReadVote';
 import { useLocation } from 'react-router-dom';
+
+const categoryStyles = {
+  display: 'inline',
+  bgcolor: '#fff',
+  color: 'grey.800',
+  border: '1px solid',
+  borderColor: 'grey.300',
+  borderRadius: 2
+};
 
 // API에서 게시물을 가져오는 함수
 const fetchPosts = async (clubNumber) => {
@@ -15,16 +24,16 @@ const fetchPosts = async (clubNumber) => {
 const ListPosts = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItemCategory, setSelectedItemCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('전체'); // 카테고리 상태 추가
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
-  // react-query의 useQuery 훅을 사용하여 데이터 가져오기
   const { data: items, isLoading, error } = useQuery({
-    queryKey: ['posts', clubNumber], // 쿼리 키를 객체 형태로 제공
+    queryKey: ['posts', clubNumber],
     queryFn: () => fetchPosts(clubNumber),
-    keepPreviousData: true, // 새 데이터 가져오는 동안 이전 데이터 유지
+    keepPreviousData: true,
   });
 
   const handleSelect = (id, category) => {
@@ -37,19 +46,73 @@ const ListPosts = () => {
     }
   };
 
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>Error fetching data: {error.message}</p>;
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category);
+  };
+
+  if (isLoading) return <p>로딩 중...</p>;
+  if (error) return <p>데이터를 가져오는 중 오류 발생: {error.message}</p>;
+
+  // 선택된 카테고리에 따라 필터링
+  const filteredItems = items.filter(item => 
+    selectedCategory === '전체' || item.category === selectedCategory
+  );
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
-        게시물 및 투표 목록
-      </Typography>
-      <Typography variant="h6" component="h2">
-        이 위치에 카테고리 선택하는 거 출력
-      </Typography>
+      <Box sx={{ '& button': { m: 1 } }}>
+        <Button 
+          variant={selectedCategory === '전체' ? 'contained' : 'outlined'} 
+          size="small" 
+          onClick={() => handleCategoryClick('전체')}
+        >
+          전체
+        </Button>
+        <Button 
+          variant={selectedCategory === '공지사항(전체알림)' ? 'contained' : 'outlined'} 
+          size="small" 
+          onClick={() => handleCategoryClick('공지사항(전체알림)')}
+        >
+          공지
+        </Button>
+        <Button 
+          variant={selectedCategory === '자유글' ? 'contained' : 'outlined'} 
+          size="small" 
+          onClick={() => handleCategoryClick('자유글')}
+        >
+          자유
+        </Button>
+        <Button 
+          variant={selectedCategory === '관심사공유' ? 'contained' : 'outlined'} 
+          size="small" 
+          onClick={() => handleCategoryClick('관심사공유')}
+        >
+          관심사
+        </Button>
+        <Button 
+          variant={selectedCategory === '모임후기' ? 'contained' : 'outlined'} 
+          size="small" 
+          onClick={() => handleCategoryClick('모임후기')}
+        >
+          모임후기
+        </Button>
+        <Button 
+          variant={selectedCategory === '가입인사' ? 'contained' : 'outlined'} 
+          size="small" 
+          onClick={() => handleCategoryClick('가입인사')}
+        >
+          가입인사
+        </Button>
+        <Button 
+          variant={selectedCategory === '투표' ? 'contained' : 'outlined'} 
+          size="small" 
+          onClick={() => handleCategoryClick('투표')}
+        >
+          투표
+        </Button>
+      </Box>
       <List>
-        {items.map((item) => (
+        {filteredItems.map((item) => (
           <React.Fragment key={item._id}>
             <ListItem
               button
@@ -57,12 +120,12 @@ const ListPosts = () => {
             >
               <ListItemText
                 primary={item.title}
-                secondary={`Category: ${item.category || '투표'} ${item.endTime ? `End Time: ${new Date(item.endTime).toLocaleString()}` : ''}`}
+                secondary={`${item.category || ' 투표 '} ${item.endTime ? `종료시간: ${new Date(item.endTime).toLocaleString()}` : ''}`}
               />
             </ListItem>
             {selectedItemId === item._id && (
               <Box sx={{ padding: 2 }}>
-                {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} />}
+                {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} onDelete={() => setSelectedItemId(null)} />}
                 {selectedItemCategory === '게시물' && <Read postId={selectedItemId} onClose={() => handleSelect(null, '')} />}
               </Box>
             )}

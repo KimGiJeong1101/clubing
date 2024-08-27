@@ -1,22 +1,29 @@
-// VoteCreationForm.js
 import React, { useState, useEffect } from 'react';
-import { TextField, MenuItem, FormControl, InputLabel, Select, Checkbox, FormControlLabel, Button, FormGroup, Box } from '@mui/material';
-import axios from 'axios';
+import { TextField, MenuItem, FormControl, InputLabel, Select, Checkbox, FormControlLabel, Button, FormGroup, Box, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close'; // X 아이콘을 위한 import
 
-const VoteCreationForm = ({options,setOptions,allowMultiple,setAllowMultiple,anonymous,setAnonymous,endTime,setEndTime,title, setTitle,category, setCategory}) => {
-  const categories = ['자유글', '관심사공유', '모임후기', '가입인사','공지사항(전체알림)','투표']; // 카테고리 옵션
+const VoteCreationForm = ({ options, setOptions, allowMultiple, setAllowMultiple, anonymous, setAnonymous, endTime, setEndTime, title, setTitle, category, setCategory }) => {
+  const categories = ['자유글', '관심사공유', '모임후기', '가입인사', '공지사항(전체알림)', '투표']; // 카테고리 옵션
+
+  // 항목 추가 버튼 클릭 시 옵션 배열에 빈 문자열 추가
   const addOption = () => {
     setOptions([...options, '']);
   };
 
+  // 특정 인덱스의 옵션 값 변경
   const handleOptionChange = (index, value) => {
     const newOptions = [...options];
     newOptions[index] = value;
     setOptions(newOptions);
   };
 
- // 오늘 날짜와 시간을 'yyyy-MM-ddTHH:mm' 형식으로 변환하는 함수
- const getTodayDateTime = () => {
+  // 특정 인덱스의 옵션 항목 삭제
+  const removeOption = (index) => {
+    setOptions(options.filter((_, i) => i !== index));
+  };
+
+  // 오늘 날짜와 시간을 'yyyy-MM-ddTHH:mm' 형식으로 변환
+  const getTodayDateTime = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -26,8 +33,8 @@ const VoteCreationForm = ({options,setOptions,allowMultiple,setAllowMultiple,ano
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-   // 오늘 날짜와 시간으로부터 하루 뒤를 'yyyy-MM-ddTHH:mm' 형식으로 변환하는 함수
-   const getTomorrowDateTime = () => {
+  // 오늘 날짜와 시간으로부터 하루 뒤를 'yyyy-MM-ddTHH:mm' 형식으로 변환
+  const getTomorrowDateTime = () => {
     const now = new Date();
     now.setDate(now.getDate() + 1); // 하루 추가
     const year = now.getFullYear();
@@ -67,20 +74,27 @@ const VoteCreationForm = ({options,setOptions,allowMultiple,setAllowMultiple,ano
           ))}
         </Select>
       </FormControl>
+      
+      {/* 옵션 항목을 위한 TextField 컴포넌트와 삭제 버튼 */}
       {options.map((option, index) => (
-        <TextField
-          key={index}
-          label={`투표 항목 ${index + 1}`}
-          variant="outlined"
-          fullWidth
-          margin="normal"
-          value={option}
-          onChange={(e) => handleOptionChange(index, e.target.value)}
-        />
+        <Box key={index} sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
+          <TextField
+            label={`투표 항목 ${index + 1}`}
+            variant="outlined"
+            fullWidth
+            margin="normal"
+            value={option}
+            onChange={(e) => handleOptionChange(index, e.target.value)}
+          />
+          <IconButton onClick={() => removeOption(index)} sx={{ marginLeft: 1 }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
       ))}
+      
       <Button variant="contained" color="primary" onClick={addOption}>항목 추가</Button>
       <FormGroup>
-        <FormControlLabel
+        {/* <FormControlLabel
           control={
             <Checkbox
               checked={allowMultiple}
@@ -88,7 +102,7 @@ const VoteCreationForm = ({options,setOptions,allowMultiple,setAllowMultiple,ano
             />
           }
           label="복수 선택 허용"
-        />
+        /> */}
         <FormControlLabel
           control={
             <Checkbox
@@ -99,6 +113,7 @@ const VoteCreationForm = ({options,setOptions,allowMultiple,setAllowMultiple,ano
           label="익명 투표"
         />
       </FormGroup>
+      
       <TextField
         label="투표 종료 시간"
         type="datetime-local"

@@ -39,13 +39,21 @@ const Board = () => {
   };
 
   const handleSave = async () => {
-    if (!title || !category || !editorData) {
-      alert('제목, 카테고리, 내용 모두 입력해주세요.');
+    if (!title) {
+      alert('제목을 입력해주세요.');
+      return;
+    }
+    if (!category) {
+      alert('카테고리를 입력해주세요.');
+      return;
+    }
+    if (!editorData) {
+      alert('내용을 입력해주세요.');
       return;
     }
     try {
       await axiosInstance.post('http://localhost:4000/clubs/boards/posts', { 
-        clubNumber , 
+        clubNumber, 
         create_at: getCurrentDate(), 
         author, 
         title, 
@@ -55,22 +63,35 @@ const Board = () => {
       handleClose();
     } catch (error) {
       if (error.response) {
-        alert(error.response.data.error); // 서버에서 반환한 에러 메시지를 알림으로 표시
+        alert(error.response.data.error);
       } else {
         alert('서버와의 연결에 문제가 발생했습니다.');
       }
       console.error('Error saving content:', error.message);
     }
   };
+  
 
   const handleVoteSave = async () => {
-    if (!title || !category || options.length === 0 || !endTime) {
-      alert('제목, 카테고리, 옵션, 종료 시간 모두 입력해주세요.');
+    if (!title) {
+      alert('제목을 입력해주세요.');
+      return;
+    }
+    if (!category) {
+      alert('카테고리를 입력해주세요.');
+      return;
+    }
+    if (options.some(option => !option.trim())) { // 옵션이 비어 있는지 확인
+      alert('모든 항목을 입력해주세요.');
+      return;
+    }
+    if (!endTime) {
+      alert('종료 시간을 입력해주세요.');
       return;
     }
     try {
       await axiosInstance.post('http://localhost:4000/clubs/boards/votes', { 
-        clubNumber , 
+        clubNumber, 
         create_at: getCurrentDate(), 
         author, 
         title, 
