@@ -51,9 +51,6 @@ app.use((req, res, next) => {
 // 정적 파일 제공을 위해 uploads 폴더를 공개
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// 정적파일 제공 (클럽용) - 구 추가 - 
-app.use('/clubs', express.static(path.join(__dirname, 'clubs')));
-
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)
 const boardsRouter = require("./src/routes/boards");
@@ -110,3 +107,4 @@ startServer();
 
 // 'profile' 폴더를 정적 파일 경로로 설정
 app.use('/profile', express.static(path.join(__dirname, 'profile')));
+

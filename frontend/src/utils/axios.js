@@ -27,6 +27,7 @@ axiosInstance.interceptors.response.use(
     } else if (error.response?.status === 401 || error.response?.data === "jwt expired") {
       isRedirecting = true; // 리다이렉트가 진행 중임을 표시
       alert('로그인을 다시 해주세요');
+      window.location.reload(); // 페이지 새로고침
       window.location.href = '/login';
     } else {
       console.error('오류 발생:', error.message);
