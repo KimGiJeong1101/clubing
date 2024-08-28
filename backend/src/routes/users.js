@@ -20,6 +20,11 @@ router.get('/auth', sessionAuth, async (req, res, next) => {
         if (!user) {
             return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
         }
+
+        if (!user.isActive) {
+            return res.status(400).json({ message: '탈퇴한 회원입니다.' });
+        }
+        
         return res.json({ 
             user
          }); // 사용자 정보 반환
@@ -69,6 +74,10 @@ router.post('/login', async (req, res, next) => {
         if (!user) {
             return res.status(400).json({ error: '이메일이 확인되지 않습니다.' });
         }
+
+        if (!user.isActive) {
+            return res.status(400).json({ message: '탈퇴한 회원입니다.' });
+          }
         // 비밀번로가 올바른 것인지 체크
         const isMatch = await user.comparePassword(req.body.password);
         if (!isMatch) {
@@ -145,22 +154,50 @@ router.get('/myPage', sessionAuth, async (req, res, next) => {
 })
 
 // 마이페이지에서 수정
-router.put('/myPage', sessionAuth, async (req, res, next) => {
+router.put('/myPage/update', sessionAuth, async (req, res, next) => {
     try {
+        // 현재 로그인된 사용자 정보 가져오기
         const user = req.user;
         if (!user) {
             return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
         }
-        // 요청된 업데이트 내용
-        const updateData = req.body;
-        // 사용자 정보를 업데이트
-        const updatedUser = await User.findByIdAndUpdate(user._id, updateData, { new: true });
 
+        const updateData = req.body;
+
+        // 비밀번호를 업데이트할 때는 user.save()를 사용해야 합니다.
+        // 사용자의 기존 정보를 로드한 후, 새로운 정보를 적용하고 저장합니다.
+        const updatedUser = await User.findById(user._id);
+        Object.assign(updatedUser, updateData);
+        await updatedUser.save();
+
+        // 업데이트된 사용자 정보 반환
         return res.json(updatedUser);
     } catch (error) {
+        // 에러가 발생했을 경우 처리
         next(error);
     }
-})
+});
+//////////////////// 회원 탈퇴
+// 회원 탈퇴 API
+router.put('/myPage/delete', sessionAuth, async (req, res, next) => {
+    try {
+      const userId = req.user._id; // 현재 로그인한 사용자의 ID
+      const user = await User.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      }
+  
+      // isActive 필드를 false로 설정하여 탈퇴 처리
+      user.isActive = false;
+      await user.save();
+  
+      res.status(200).json({ message: '탈퇴가 완료되었습니다.' });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
 
 ////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정
 
@@ -349,6 +386,25 @@ router.post('/change-password', async (req, res) => {
     } catch (error) {
         console.error('서버 오류:', error);
         return res.status(500).json({ ok: false, msg: '서버 오류가 발생했습니다.' });
+    }
+});
+
+router.put('/introduction', sessionAuth, async (req, res, next) => {
+    try {
+        const { introduction } = req.body;
+        const user = req.user;
+        if (!user) {
+            return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+        }
+        
+        user.profilePic.introduction = introduction;
+
+        await user.save();
+
+        return res.json({ ok: true, msg: '성공적으로 변경되었습니다.' });
+
+    } catch (error) {
+        next(error);
     }
 });
 

@@ -14,7 +14,7 @@ import MarketingPopup from '../../auth/RegisterPage/consent/Marketing';
 import axiosInstance from '../../../utils/axios'
 import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, FormControlLabel,
           FormControl, InputLabel, Select, MenuItem, FormHelperText, DialogActions,
-          Chip, Checkbox, Paper, Link, Snackbar, Modal, Grid, Alert
+          Chip, Checkbox, Paper, Link
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import color from '../../../color'; // 색상를 정의한 파일
@@ -82,42 +82,37 @@ const MyUpdate = () => {
         day
       },
       gender,
+      homeLocation: {
+        city: sido,
+        district: sigoon,
+        neighborhood: dong,
+      },
+      workplace: {
+        city: w_sido,
+        district: w_sigoon,
+        neighborhood: w_dong,
+      },
+      interestLocation: {
+        city: i_sido,
+        district: i_sigoon,
+        neighborhood: i_dong,
+      },
       category: categoryObject, // 카테고리 추가
       job:selectedJobs,// 직종 추가
       phone,
       marketingAccepted: marketing,
     }
-    // 지역 데이터가 포함되면 추가
-    if (showLocationFields) {
-      body.homeLocation = {
-        city: homeLocation.sido,
-        district: homeLocation.sigoon,
-        neighborhood: homeLocation.dong,
-      };
-      body.workplace = {
-        city: workplace.w_sido,
-        district: workplace.w_sigoon,
-        neighborhood: workplace.w_dong,
-      };
-      body.interestLocation = {
-        city: interestLocation.i_sido,
-        district: interestLocation.i_sigoon,
-        neighborhood: interestLocation.i_dong,
-      };
-    }
-
-  // 바디 객체를 콘솔에 출력
-  console.log('전송할 데이터:', body);
+   
   
-    dispatch(updateUser(body))
-      .then(() => {
-        // 회원가입 성공 후 리다이렉트 처리
-        navigate('/mypage'); // 성공 페이지로 리다이렉트
-      })
-      .catch((error) => {
-        console.error('정보수정 실패:', error);
-        // 에러 처리 로직
-      });
+    try {
+      const response = await axiosInstance.put('/users/myPage/update', body);
+      // 성공적으로 업데이트된 경우
+      alert('수정되었습니다.')
+      navigate('/mypage'); // 성공 페이지로 리다이렉트
+    } catch (error) {
+      console.error('정보 수정 실패:', error);
+      // 에러 처리 로직
+    }
   };
   
   //api
@@ -163,49 +158,30 @@ const MyUpdate = () => {
     }
   };
 
-//비밀번호 원할때만 수정가능하게
-const [isPasswordChangeVisible, setIsPasswordChangeVisible] = useState(false);
+  // 비밀번호 유효성 검사 규칙
+  const userPassword = {
+    // required: "필수 필드입니다.",
+    // minLength: {
+    //   value: 8,
+    //   message: "최소 8자입니다."
+    // },validate: value => {
+    //   // 비밀번호 유효성 검사 정규 표현식
+    //    const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
+    //    if (!regex.test(value)) {
+    //      return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
+    //    }
+    //    return true; // 유효성 검사 통과
+    // }
+  };
 
-const [showPassword, setShowPassword] = useState(false);
-const [showPasswordCheck, setShowPasswordCheck] = useState(false);
-
-const handleTogglePasswordChange = () => {
-  setIsPasswordChangeVisible(!isPasswordChangeVisible);
-};
-
-const handleClickShowPassword = () => 
-  setShowPassword(!showPassword
-
-  );
-const handleClickShowPasswordCheck = () => 
-  setShowPasswordCheck(!showPasswordCheck
-
-  );
-
- // 비밀번호 유효성 검사 규칙
- const userPassword = {
-  required: "필수 필드입니다.",
-  minLength: {
-    value: 8,
-    message: "최소 8자입니다."
-  },validate: value => {
-    // 비밀번호 유효성 검사 정규 표현식
-     const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
-     if (!regex.test(value)) {
-       return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
-     }
-     return true; // 유효성 검사 통과
-  }
-};
-
-const userPasswordCheck = {
-  required: 0,
-  minLength: {
-    value: 8,
-    message: "최소 8자입니다."
-  },
-  validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
-};
+  const userPasswordCheck = {
+    // required: 0,
+    // minLength: {
+    //   value: 8,
+    //   message: "최소 8자입니다."
+    // },
+    // validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
+  };
 
   // 연도, 월, 일을 위한 옵션 생성
   const generateOptions = (start, end) => {
@@ -215,6 +191,12 @@ const userPasswordCheck = {
     }
     return options;
   };
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordCheck, setShowPasswordCheck] = useState(false);
+
+  const handleClickShowPassword = () => setShowPassword(!showPassword);
+  const handleClickShowPasswordCheck = () => setShowPasswordCheck(!showPasswordCheck);
 
 
 // 생년월일 범주
@@ -241,8 +223,6 @@ const userPasswordCheck = {
     setValue('interestLocation.i_dong', interestLocation.i_dong);
   }, [interestLocation, setValue]);
 
-// 지역 변경 버튼
-  const [showLocationFields, setShowLocationFields] = useState(false);
 
 //카테고리
   const [isCategoryPopupOpen, setIsCategoryPopupOpen] = useState(false);
@@ -263,7 +243,7 @@ const userPasswordCheck = {
         }));
       });
   
-      //console.log("Formatted Categories:", formattedCategories); // 변환된 데이터 확인
+      console.log("Formatted Categories:", formattedCategories); // 변환된 데이터 확인
       setSelectedCategories(formattedCategories); // 상태 업데이트
     }
   }, [user]);
@@ -293,9 +273,9 @@ function groupCategories(categories) {
 
  // 카테고리 상태가 변경될 때 폼 데이터와 동기화
  useEffect(() => {
-  //console.log("Selected Categories updated:", selectedCategories);
+  console.log("Selected Categories updated:", selectedCategories);
   const grouped = groupCategories(selectedCategories);
- // console.log("Grouped Categories:", grouped);
+  console.log("Grouped Categories:", grouped);
   //console.log("카테고리 확인", grouped);
 
   // grouped 데이터를 categoryData 형식으로 변환
@@ -318,7 +298,7 @@ useEffect(() => {
   // 카테고리 선택 핸들러
  // 통합된 핸들러
  const handleSelection = (newSelections) => {
-  //console.log("New Selections:", newSelections);
+  console.log("New Selections:", newSelections);
   if (isCategoryPopupOpen) {
     setSelectedCategories(newSelections); // 카테고리 선택 시 업데이트
   } else if (isJobPopupOpen) {
@@ -404,55 +384,8 @@ const consentPopupClose = (type) => {
   setIsPopupOpen(prev => ({ ...prev, [type]: false }));
 };
 
-// 정보 수정 / 탈퇴 버튼
-const [view, setView] = useState(''); // 클릭된 버튼의 상태를 저장하는 변수
-
-// 탈퇴 처리 함수
-const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태
-const [isDeleting, setIsDeleting] = useState(false); // 탈퇴 중 상태
-const [openSnackbar, setOpenSnackbar] = useState(false); // 스낵바 열림 상태
-const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시지
-
-  // 회원 탈퇴 버튼 클릭 시 호출
-  const handleDeleteAccount = () => {
-    setIsModalOpen(true); // 모달 열기
-  };
-
-  // 모달에서 '탈퇴하기' 버튼 클릭 시 호출
-  const handleConfirmDelete = async () => {
-    setIsDeleting(true); // 탈퇴 요청 상태로 변경
-    try {
-      const response = await axiosInstance.put('/users/myPage/delete');
-      console.log('회원 탈퇴 요청이 전송되었습니다.', response.data);
-      setSnackbarMessage('회원 탈퇴가 완료되었습니다.'); // 스낵바 메시지 설정
-      setOpenSnackbar(true); // 스낵바 열기
-
-      // 로그아웃 요청을 통해 세션 종료
-      await axiosInstance.post('/users/logout'); // POST 메소드로 변경
-      // 로그인 페이지로 이동
-      navigate('/login'); // useNavigate 훅을 사용하여 페이지 이동
-    } catch (error) {
-      console.error('회원 탈퇴 요청에 실패했습니다.', error);
-      setSnackbarMessage('회원 탈퇴에 실패했습니다.'); // 스낵바 메시지 설정
-      setOpenSnackbar(true); // 스낵바 열기
-    } finally {
-      setIsDeleting(false); // 탈퇴 완료 상태로 변경
-      setIsModalOpen(false); // 모달 닫기
-    }
-  };
-
-  // 모달에서 '취소' 버튼 클릭 시 호출
-  const handleCloseModal = () => {
-    setIsModalOpen(false); // 모달 닫기
-  };
-
-  // 스낵바 닫기
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
   return (
-    
+
     <Box 
       sx={{ 
           display: 'flex', 
@@ -460,46 +393,26 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
           justifyContent: 'center',
           maxWidth: 600, 
           mx: 'auto' }}>
-    {/* 상태 버튼  */}
-    <Box sx={{ display: 'flex', flexDirection: 'column', }}>
-      <Button
-        variant={view === 'update' ? 'contained' : 'outlined'}
-        onClick={() => setView(view === 'update' ? '' : 'update')} // 클릭 시 상태 변경
-        sx={{ 
-          backgroundColor: view === 'update' ? '#e0e0e0' : 'transparent', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
-          color: view === 'update' ? '#30231C' : '#30231C', // 글씨 색상 설정
-          '&:hover': {
-            backgroundColor: view === 'update' ? '#d0d0d0' : 'transparent' // 호버 상태의 배경색 설정
-          },
-          textAlign: 'left', // 글씨 왼쪽 정렬
-          paddingLeft: '16px', // 글씨와 버튼 왼쪽의 간격 조정 (옵션)
-          width: '100%', // 버튼 전체 너비 사용 (옵션)
-          display: 'flex',
-          justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
-          alignItems: 'center' // 버튼 내 텍스트 세로 중앙 정렬
-        }}
-      >
+    <Box 
+      sx={{ 
+        p: 3, 
+        bgcolor: 'white', 
+        borderRadius: 2, 
+        boxShadow: 3 ,
+        backgroundColor: color.whiteSmoke, 
+        }}>
+      <Typography variant="h4" component="h1" align="center">
         정보 수정
-      </Button>
-
- {/* 정보 수정 */}
- {view === 'update' && (
+      </Typography>
         <form className="mt-6" onSubmit={handleSubmit(onSubmit)}>
         <Box mb={2} sx={{ display: 'flex', flexDirection: 'column' }}>    
           {/* 이메일 레이블과 값이 나란히 위치하도록 하는 부모 Box */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="body2" component="label" htmlFor="email" 
-            sx={{ 
-              mt: 2,
-              fontWeight: 'bold', 
-              color: 'text.secondary', 
-              minWidth: 100 
-              }}>
+            <Typography variant="body2" component="label" htmlFor="email" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
               이메일
             </Typography>
             <Typography
               sx={{
-                mt: 2,
                 flex: 1,
                 padding: 1,
                 bgcolor: 'grey.200',
@@ -511,33 +424,8 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
             </Typography>
           </Box>
         </Box>
-
-<Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
-  {/* 비밀번호 변경 버튼 */}
-  <Button
-    variant={isPasswordChangeVisible ? 'contained' : 'outlined'}
-    onClick={handleTogglePasswordChange}
-    sx={{
-      backgroundColor: isPasswordChangeVisible ? '#e0e0e0' : 'transparent',
-      color: '#30231C',
-      '&:hover': {
-        backgroundColor: isPasswordChangeVisible ? '#d0d0d0' : 'transparent'
-      },
-      textAlign: 'left',
-      paddingLeft: '16px',
-      width: '100%',
-      display: 'flex',
-      justifyContent: 'flex-start',
-      alignItems: 'center'
-    }}
-  >
-    비밀번호 변경
-  </Button>
-
- {/* 비밀번호 입력 필드 (조건부 렌더링) */}
- {isPasswordChangeVisible && (
-        <>
-  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt:2 }}>
+{/* 비밀번호 */}
+  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
       <Typography variant="body2" component="label" htmlFor="password" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
         비밀번호
       </Typography>
@@ -564,7 +452,7 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
           }}
         />
     </Box>
-{/* 비밀번호 확인 */}
+
     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
       <Typography variant="body2" component="label" htmlFor="passwordCheck" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
         번호 확인
@@ -592,9 +480,6 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
           }}
         />
     </Box>
-    </>
-      )}
-</Box> 
 {/*이름 */}          
     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Typography variant="body2" component="label" htmlFor="name" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
@@ -808,28 +693,6 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
         />
     </Box>
 {/*집주소 */}
-<Button
-  variant="contained"
-  onClick={() => setShowLocationFields(prev => !prev)}
-  sx={{
-    mb: 2,
-    backgroundColor: isPasswordChangeVisible ? '#e0e0e0' : 'transparent',
-    color: '#30231C',
-    '&:hover': {
-      backgroundColor: isPasswordChangeVisible ? '#d0d0d0' : 'transparent'
-    },
-    textAlign: 'left',
-    paddingLeft: '16px',
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center'
-  }}
->
-  {showLocationFields ? '지역 변경' : '지역 변경'}
-</Button>
-{showLocationFields && (
-  <>
 <Box mb={2}>
   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
   <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
@@ -841,7 +704,16 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
         setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))} />
   </Box>
 {/*직장 */}
+<Box sx={{ display: 'flex', alignItems: 'center' }}>
+{/* <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
+ 현재 직장 주소
+</Typography>
+<Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
+{workplaceLocation.sido} {workplaceLocation.sigoon} {workplaceLocation.dong}
+</Typography> */}
+</Box>
 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+  
   <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
       직장 주소
     </Typography>
@@ -856,14 +728,13 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
   <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
    관심지역
     </Typography>
+
       <InterestSearch 
         setInterestSido={(sido) => setInterestLocation(prev => ({ ...prev, i_sido: sido }))} 
         setInterestSigoon={(sigoon) => setInterestLocation(prev => ({ ...prev, i_sigoon: sigoon }))} 
         setInterestDong={(dong) => setInterestLocation(prev => ({ ...prev, i_dong: dong }))} />
   </Box>
-</Box>
-</>   
-)}  
+</Box>     
 {/*직종 */}
 <Box>
       {/* 직종 선택 버튼 */}
@@ -969,6 +840,8 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
         </Box>
       </Box>
     </Box>
+{/*약관 동의 */}
+{/* 동의 항목 */}
 <Box mt={4}>
 {/* 마케팅 동의 */}
 <Box mb={2}>
@@ -1019,110 +892,7 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
             </Button>
           </Box>
         </form>
-    )}
-  </Box>
-   {/* 회원 탈퇴 버튼 */}
-      <Button
-        variant={view === 'delete' ? 'contained' : 'outlined'}
-        onClick={() => setView(view === 'delete' ? '' : 'delete')} // 클릭 시 상태 변경
-        sx={{ 
-          backgroundColor: view === 'delete' ? '#e0e0e0' : 'transparent', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
-          color: view === 'delete' ? '#30231C' : '#30231C', // 글씨 색상 설정
-          '&:hover': {
-            backgroundColor: view === 'delete' ? '#d0d0d0' : 'transparent' // 호버 상태의 배경색 설정
-          },
-          textAlign: 'left', // 글씨 왼쪽 정렬
-          paddingLeft: '16px', // 글씨와 버튼 왼쪽의 간격 조정 (옵션)
-          width: '100%', // 버튼 전체 너비 사용 (옵션)
-          display: 'flex',
-          justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
-          alignItems: 'center' // 버튼 내 텍스트 세로 중앙 정렬
-        }}
-      >
-        회원 탈퇴
-      </Button>
-
-      {/* 회원 탈퇴 폼 (추가할 부분) */}
-  {view === 'delete' && (
-          <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
-            <Typography variant="h6" component="h2" align="center">
-              회원 탈퇴
-            </Typography>
-            {/* 회원 탈퇴 폼을 작성하세요 */}
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="body1" align="center" mb={2}>
-                회원 탈퇴를 진행하시겠습니까?
-              </Typography>
-              {/* 회원 탈퇴 버튼 */}
-              <Button
-                variant="contained"
-                color="error"
-                onClick={handleDeleteAccount}
-                sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px' }}
-              >
-                탈퇴하기
-              </Button>
-            </Box>
-          </Box>
-        )}
-
-        {/* 회원 탈퇴 다시 묻는 모달 */}
-      <Modal
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        aria-labelledby="modal-title"
-        aria-describedby="modal-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography id="modal-title" variant="h6" component="h2" align="center">
-            정말로 회원 탈퇴를 하시겠습니까?
-          </Typography>
-          <Grid container spacing={2} sx={{ mt: 2 }}>
-            <Grid item xs={6}>
-              <Button
-                variant="outlined"
-                fullWidth
-                onClick={handleCloseModal}
-              >
-                취소
-              </Button>
-            </Grid>
-            <Grid item xs={6}>
-              <Button
-                variant="contained"
-                color="error"
-                fullWidth
-                onClick={handleConfirmDelete}
-              >
-                탈퇴하기
-              </Button>
-            </Grid>
-          </Grid>
-        </Box>
-      </Modal>
-
-      {/* 스낵바 */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000} // 6초 후 자동으로 닫히는 시간
-        onClose={handleCloseSnackbar}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('실패') ? 'error' : 'success'}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      </Box>
       </Box>
   );
 };

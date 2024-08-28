@@ -23,9 +23,9 @@ const initialState = {
       },
       gender: "", // 성별
       profilePic: {
-        originalImage: "", // 원본 프로필 이미지 URL
-        thumbnailImage: "", // 썸네일 프로필 이미지 URL
-        introduction: "", // 프로필 소개글
+        originalImage: " ", // 원본 프로필 이미지 URL
+        thumbnailImage: " ", // 썸네일 프로필 이미지 URL
+        introduction: " ", // 프로필 소개글
       },
       homeLocation: {
         city: "", // 거주지 도시 이름
@@ -54,6 +54,7 @@ const initialState = {
       marketingAccepted: false, // 마케팅 정보 수신 동의 여부
       wish: [], // 찜한 모임
       history: [], // 최근 본 모임
+      isActive: false, // 탈퇴 회원 관리
     },
   },
   isAuth: false, //true면 로그인되어 있는
@@ -121,23 +122,6 @@ const userSlice = createSlice({
       toast.error(action.payload || '로그인 실패');
     })
 
-    // 토큰        
-    .addCase(authUser.pending, (state) => {
-      state.isLoading = true;
-    })
-    .addCase(authUser.fulfilled, (state, action) => {
-      state.isLoading = false;
-      state.userData = action.payload;
-      state.isAuth = true;
-    })
-    .addCase(authUser.rejected, (state, action) => {
-      state.isLoading = false;
-      state.error = action.payload || '인증 실패';
-      state.userData = initialState.userData;
-      state.isAuth = false;
-      console.error("인증실패", action.error)
-    })
-
     // 로그아웃
     .addCase(logoutUser.pending, (state) => {
       state.isLoading = true;
@@ -172,7 +156,7 @@ const userSlice = createSlice({
     })
     .addCase(updateUser.fulfilled, (state, action) => {
       state.isLoading = false;
-      state.userData = action.payload;
+      state.userData.user = action.payload;
       state.snackbar = {
           open: true,
           message: '정보가 성공적으로 업데이트되었습니다.',
@@ -194,3 +178,5 @@ const userSlice = createSlice({
 export const { closeSnackbar, setUserData } = userSlice.actions;
 export default userSlice.reducer;
 // 여기서는 createSlice로 생성된 reducer를 export 합니다.
+// 여기서는 createSlice로 생성된 reducer를 export 합니다.
+export { myPage }; // myPage 액션을 export

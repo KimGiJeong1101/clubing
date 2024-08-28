@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import {ListItemText, ListItem, List, TextField, Box} from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 
 const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => {
   const [results, setResults] = useState([]);
   const { formState: { errors }, register, setValue, watch } = useForm();
 
+  // Redux에서 user 데이터를 가져옵니다
+  const { user } = useSelector((state) => state.user?.userData || {});
+
+  // workplace 데이터를 가져옵니다
+  const homeLocation = user?.homeLocation || { city: '', district: '', neighborhood: '' };
+
+   // 초기 렌더링 시, workplace 데이터를 검색 필드에 반영합니다
+   useEffect(() => {
+    if (homeLocation.neighborhood) {
+      setValue('searchTerm', homeLocation.neighborhood);
+    }
+  }, [homeLocation.neighborhood, setValue]);
+
   const searchTerm = watch('searchTerm'); // watch로 searchTerm의 값을 실시간으로 가져옵니다.
   const port = process.env.REACT_APP_ADDRESS_API;
 
   useEffect(() => {
-    console.log(port);
-    console.log(searchTerm);
     if (searchTerm) {
       fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${searchTerm}`)
         .then(response => response.json())

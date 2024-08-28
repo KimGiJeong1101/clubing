@@ -78,9 +78,9 @@ export const myPage = createAsyncThunk(
 // 마이 페이지 정보 수정
 export const updateUser = createAsyncThunk(
   'user/updateUser',
-  async (userData, thunkAPI) => {
+  async (body, thunkAPI) => {
     try {
-      const response = await axiosInstance.put('/users/myPage', userData);
+      const response = await axiosInstance.put('/users/myPage/update', body);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);

@@ -3,11 +3,11 @@ const Club = require("../models/Club");
 const Meeting = require("../models/Meeting");
 const sessionAuth = require("../middleware/sessionAuth");
 const router = express.Router();
-const multer = require('multer');
-const sharp = require('sharp');
-const path = require('path'); // path 모듈을 불러옵니다.
-const fs = require('fs');
-const Gallery = require('../models/ClubGallery');
+const multer = require("multer");
+const sharp = require("sharp");
+const path = require("path"); // path 모듈을 불러옵니다.
+const fs = require("fs");
+const { v4: uuidv4 } = require("uuid"); // uuid v4 방식 사용
 
 //리스트 보여주기
 router.get("/", async (req, res, next) => {
@@ -20,27 +20,67 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-//클럽 만들기(POST)
-router.post("/create", sessionAuth, async (req, res, next) => {
+router.get("/scroll", async (req, res, next) => {
   try {
-    //region 서울시 동작구 노량진동 이런거 띄어쓰기 단위로 잘라서 객체화 !!
-    req.body.admin = req.user.email; // 방장 적용
-    req.body.adminNickName = req.user.nickName; //방장 닉네임 추가
-    let a = [];
-    a.push(req.user.email);
-    req.body.members = a;
-    //서브카테고리 나누기
-    let subCategory = req.body.subCategory.split(",");
-    req.body.subCategory = subCategory;
-    //서브카테고리 나누기.end
-
-    const club = new Club(req.body);
-    await club.save();
-    return res.sendStatus(200);
+    console.log("여긴");
+    const clubs = await Club.find().sort({ _id: 1 }); // 오름차순 솔팅
+    res.status(200).json(clubs);
   } catch (error) {
     next(error);
   }
 });
+
+router.use('/clubs', express.static(path.join(__dirname, 'clubs')));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = "clubs/";
+
+    // 폴더가 존재하지 않으면 생성
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = uuidv4() + "-" + Date.now(); // UUID와 현재 시간 조합
+    const fileExtension = path.extname(file.originalname); // 원본 파일 확장자 가져오기
+    cb(null, `${file.fieldname}-${uniqueSuffix}${fileExtension}`); // 필드명-UUID-시간.확장자
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// 파일 업로드 엔드포인트
+router.post(
+  "/create",
+  sessionAuth,
+  upload.single("img"),
+  async (req, res, next) => {
+    try {
+      console.log(`req.file`);
+      console.log(req.file);
+      console.log(`req.file`);
+      req.body.img = req.file.destination + req.file.filename;
+      req.body.admin = req.user.email;
+      req.body.adminNickName = req.user.nickName;
+      req.body.members = [req.user.email];
+
+      if (req.body.subCategory) {
+        req.body.subCategory = req.body.subCategory.split(",");
+      }
+
+      // 클럽 생성
+      const club = new Club(req.body);
+      await club.save();
+
+      res.status(200).json({ message: "클럽 생성 완료" });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 //클럽 보여주기(GET)
 router.get("/read/:id", async (req, res, next) => {
@@ -147,10 +187,4 @@ router.get("/category/:category", async (req, res, next) => {
   }
 });
 
-/**===========================================================gallery============================================================= */
-// 날짜별 폴더 생성 함수 (갤러리용)
-
-
-
-/**===========================================================gallery============================================================= */
 module.exports = router;
