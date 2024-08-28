@@ -8,6 +8,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const axiosInstance = axios.create({
   baseURL: isProduction ? "" : "http://localhost:4000",
   withCredentials: true, // 모든 요청에 쿠키와 자격 증명을 포함
+  //설정은 필요하며, 이 설정이 없으면 서버가 쿠키에 담긴 JWT를 읽을 수 없어서 인증에 문제가 생길 수 있습니다.
   timeout: 3000 // 타임아웃을 3초로 설정
 });
 
@@ -28,7 +29,7 @@ axiosInstance.interceptors.response.use(
       isRedirecting = true; // 리다이렉트가 진행 중임을 표시
       alert('로그인을 다시 해주세요');
       window.location.reload(); // 페이지 새로고침
-      window.location.href = '/login';
+      //window.location.href = '/login';
     } else {
       console.error('오류 발생:', error.message);
     }

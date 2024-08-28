@@ -1,10 +1,12 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+const clientBaseURL = 'http://localhost:3000';
+
 const sessionAuth = async (req, res, next) => {
   if (!req.session || !req.session.accessToken) {
     console.log('세션이 유효하지 않습니다.');
-    return res.redirect('/login'); // 로그인 페이지로 리다이렉트
+    //return res.redirect(`${clientBaseURL}/login`);// 로그인 페이지로 리다이렉트
   }
 
   try {

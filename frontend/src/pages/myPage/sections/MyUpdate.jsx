@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUser } from '../../../store/actions/userActions'
+import { updateUser, logoutUser } from '../../../store/actions/userActions'
 import HomeSearch from '../../auth/RegisterPage/address/HomeSearch';
 import WorkplaceSearch from '../../auth/RegisterPage/address/WorkplaceSearch';
 import InterestSearch from '../../auth/RegisterPage/address/InterestSearch';
@@ -19,6 +19,7 @@ import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, 
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import color from '../../../color'; // 색상를 정의한 파일
 import '../../../assets/styles/LoginCss.css'
+import axios from "axios";
 
 const MyUpdate = () => {
   const user = useSelector((state) => state.user?.userData?.user || {});
@@ -422,19 +423,19 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
   const handleConfirmDelete = async () => {
     setIsDeleting(true); // 탈퇴 요청 상태로 변경
     try {
+      // 회원 탈퇴 요청
       const response = await axiosInstance.put('/users/myPage/delete');
       console.log('회원 탈퇴 요청이 전송되었습니다.', response.data);
-      setSnackbarMessage('회원 탈퇴가 완료되었습니다.'); // 스낵바 메시지 설정
-      setOpenSnackbar(true); // 스낵바 열기
-
-      // 로그아웃 요청을 통해 세션 종료
-      await axiosInstance.post('/users/logout'); // POST 메소드로 변경
-      // 로그인 페이지로 이동
-      navigate('/login'); // useNavigate 훅을 사용하여 페이지 이동
+  
+      // 로그아웃 요청
+      await axiosInstance.post('/users/logout');
+      dispatch(logoutUser()); // 상태 초기화
+      setSnackbarMessage('회원 탈퇴가 완료되었습니다.');
+      setOpenSnackbar(true);
     } catch (error) {
-      console.error('회원 탈퇴 요청에 실패했습니다.', error);
-      setSnackbarMessage('회원 탈퇴에 실패했습니다.'); // 스낵바 메시지 설정
-      setOpenSnackbar(true); // 스낵바 열기
+      console.error('로그아웃 중 오류 발생:', error);
+      setSnackbarMessage('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setOpenSnackbar(true);
     } finally {
       setIsDeleting(false); // 탈퇴 완료 상태로 변경
       setIsModalOpen(false); // 모달 닫기

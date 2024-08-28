@@ -110,18 +110,24 @@ router.post('/login', async (req, res, next) => {
 router.post('/logout', sessionAuth, async (req, res, next) => {
     try {
         // 서버 측에서 세션 삭제
-        req.session.destroy(err => {
-            if (err) {
-                // 세션 삭제 중 오류 발생 시
-                return res.status(500).send("로그아웃 중 오류가 발생했습니다.");
-            }
-            // 클라이언트 측에서 쿠키 삭제
+        if (req.session) {
+            req.session.destroy(err => {
+                if (err) {
+                    // 세션 삭제 중 오류 발생 시
+                    return res.status(500).send("로그아웃 중 오류가 발생했습니다.");
+                }
+                // 클라이언트 측에서 쿠키 삭제
+                res.clearCookie("connect.sid");
+                // 로그아웃 성공 응답
+                return res.sendStatus(200);
+            });
+        } else {
+            // 세션이 없더라도 쿠키 삭제
             res.clearCookie("connect.sid");
             // 로그아웃 성공 응답
-            res.sendStatus(200);
-        });
+            return res.sendStatus(200);
+        }
     } catch (error) {
-        // 다른 오류 처리
         next(error);
     }
 });
