@@ -29,7 +29,7 @@ function ClubLayout() {
       axiosInstance
         .post(`http://localhost:4000/clubs/addMember/${clubNumber}`)
         .then((response) => {
-          console.log(response.data);
+          // console.log(response.data);
           alert("모임 가입성공");
           navigate(`/mypage/wish`);
         })
@@ -48,9 +48,9 @@ function ClubLayout() {
 
   useEffect(() => {
     if (getClub.clubs && user.email) {
-      console.log('user.email');
-      console.log(user.email);
-      console.log('user.email');
+      // console.log('user.email');
+      // console.log(user.email);
+      // console.log('user.email');
       setJoinHandler(!getClub.clubs.members.includes(user.email));
     }
   }, [getClub, user.email]);

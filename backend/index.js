@@ -108,3 +108,10 @@ startServer();
 // 'profile' 폴더를 정적 파일 경로로 설정
 app.use('/profile', express.static(path.join(__dirname, 'profile')));
 
+
+////////////////////////////////////////////////////////////board////////////////////////////////////////////////////
+// 파일 업로드를 위한 디렉토리 설정
+const uploadDir = path.join(__dirname, 'upload');  //d 추가
+// 업로드된 파일 제공을 위한 정적 파일 미들웨어
+app.use('/upload', express.static(uploadDir)); //d 추가
+
