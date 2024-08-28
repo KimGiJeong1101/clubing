@@ -471,7 +471,6 @@ const Gallery = () => {
           {editGallery && (
             <GalleryCreate
               onRegisterComplete={handleEditComplete}
-              isEditMode={true}
               initialData={{
                 title: editGallery.title,
                 content: editGallery.content,
