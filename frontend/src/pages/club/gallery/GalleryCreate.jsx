@@ -118,33 +118,42 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
       }
     }
   };
-  
+
   const handleSaveAll = async () => {
     const editorInstance = editorRef.current.getInstance();
     console.log('selectedImages : ', selectedImages);
 
-    // 모든 이미지를 순회하며 처리
-    const updatedImages = await Promise.all(
-      selectedImages.map(async (img, idx) => {
-        // 현재 편집 중인 이미지는 Data URL로 변환하여 저장
-        if (idx === currentImageIndex) {
+    // 모든 이미지를 한 번씩 "클릭"한 것처럼 처리
+    for (let i = 0; i < selectedImages.length; i++) {
+      const image = selectedImages[i];
+      if (image?.url) {
+        try {
+          // 각 이미지를 에디터에 로드
+          await editorInstance.loadImageFromURL(image.url, 'selectedImage');
+          editorInstance.clearUndoStack(); // Undo 스택 초기화
+          editorInstance.ui.activeMenuEvent(); // UI 메뉴 활성화
+
+          // Data URL로 변환하여 해당 이미지를 업데이트
           const dataURL = editorInstance.toDataURL();
-          return { ...img, url: dataURL };
+          setSelectedImages((prev) =>
+            prev.map((img, idx) => (idx === i ? { ...img, url: dataURL } : img))
+          );
+        } catch (error) {
+          console.error('Error processing image:', error);
+          setSnackbarMessage('이미지 처리 중 에러 발생');
+          setSnackbarSeverity('error');
+          setSnackbarOpen(true);
         }
-        // 편집되지 않은 이미지는 그대로 반환
-        return img;
-      })
-    );
+      }
+    }
 
-    // 업데이트된 이미지 리스트로 상태 갱신
-    setSelectedImages(updatedImages);
-
+    // 위의 로직으로 모든 이미지가 "클릭"된 것처럼 처리되었으므로
+    // 이제 저장 로직 실행
     const formData = new FormData();
     let hasNewFiles = false;
 
     // 모든 이미지를 FormData에 추가
-    for (const image of updatedImages) {
-      // 새로 추가된 이미지인 경우 Blob으로 변환 후 추가
+    for (const image of selectedImages) {
       if (image.url && !image.url.startsWith("http")) {
         hasNewFiles = true;
         try {
@@ -155,7 +164,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           return;
         }
       } else {
-        // 기존 이미지 URL인 경우 그대로 추가
         formData.append("existingImages", image.url);
       }
     }
@@ -167,7 +175,7 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
 
     // 만약 새 파일이 없다면 순서만 바뀐 이미지를 전송
     if (!hasNewFiles) {
-      const sortedImagesData = JSON.stringify(updatedImages);
+      const sortedImagesData = JSON.stringify(selectedImages);
       formData.append("sortedImages", sortedImagesData);
       console.log("sortedImages:", sortedImagesData);
     }
@@ -180,6 +188,7 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
     // 서버로 요청 전송
     onRegisterComplete(formData);
   };
+
 
   // 드래그 앤 드롭을 통해 이미지 순서를 변경하는 함수
   const onDragEnd = (result) => {
