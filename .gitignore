@@ -25,3 +25,8 @@ Thumbs.db
 # package-lock.json
 backend/package-lock.json
 frontend/package-lock.json
+
+# uploads and profile
+backend/profile/
+backend/uploads/
+backend/upload/

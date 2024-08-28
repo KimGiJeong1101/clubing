@@ -9,7 +9,7 @@ function ClubRoutes() {
   return (
     <Routes>
       <Route path="main/*" element={<MainRoutes />} />
-      <Route path="boards/*" element={<BoardRoutes />} />
+      <Route path="board/*" element={<BoardRoutes />} />
       <Route path="gallery/*" element={<GalleryRoutes />} />
       <Route path="meeting/*" element={<MeetingRoutes />} />
     </Routes>
