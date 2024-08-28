@@ -1,11 +1,4 @@
-import {
-  Box,
-  Button,
-  Container,
-  Grid,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Container, Grid, TextField, Typography } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +7,7 @@ import HomeSearchClub from "./main/HomeSearchClub";
 import CategoryModal from "./meeting/CategoryModal";
 import CategoryModalSub from "./meeting/CategoryModalSub";
 import ImageCropper from "./ImageCropper.jsx"; // 크롭 컴포넌트 import
+import { useSelector } from 'react-redux';
 
 const ClubCreate = () => {
   // 큰 카테고리 관련 코드
@@ -64,20 +58,24 @@ const ClubCreate = () => {
     const blob = await response.blob();
     return blob;
   }
+
   //블롭형태를 파일형태로 변환
   function blobToFile(blob, fileName) {
     const file = new File([blob], fileName, { type: blob.type });
     return file;
   }
 
+  //블롭URL -> 블롭 -> 파일 이렇게 2단변형을 이루는 중
+
   // 사진 파일 관련 코드
   const [locationImg, setLocationImg] = useState(null);
   const [preview, setPreview] = useState(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [uploadFileName, setUploadFileName] = useState("");
+  
+  //파일이 체인지 되었을 때 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    console.log(file);
     setUploadFileName(file.name);
     if (file) {
       const reader = new FileReader();
@@ -89,6 +87,9 @@ const ClubCreate = () => {
       reader.readAsDataURL(file);
     }
   };
+  //파일이 체인지 되었을 때.end
+
+  //파일이 드래그앤 드롭 되었을 때 
   const handleDrop = (event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
@@ -102,6 +103,8 @@ const ClubCreate = () => {
       reader.readAsDataURL(file);
     }
   };
+  //파일이 드래그앤 드롭 되었을 때.end
+
 
   const handleCropComplete = (croppedImage) => {
     setPreview(croppedImage); // 크롭된 이미지 미리보기 설정
@@ -123,11 +126,8 @@ const ClubCreate = () => {
   }, [homeLocation, setValue]);
 
   const onSubmit = async (data) => {
-    console.log(data);
     const blob = await blobUrlToBlob(preview);
     const file = blobToFile(blob, uploadFileName);
-    console.log("blob = " + blob);
-    console.log("file = " + file);
 
     const formData = new FormData();
 
@@ -141,7 +141,6 @@ const ClubCreate = () => {
     formData.append(`region.city`, homeLocation.sido);
     formData.append(`region.district`, homeLocation.sigoon);
     formData.append(`region.neighborhood`, homeLocation.dong);
-
     // 이미지 파일이 있는 경우
     if (preview) {
       formData.append("img", file); // 이미지 파일 추가
@@ -154,7 +153,6 @@ const ClubCreate = () => {
         },
       });
 
-      console.log(response.data);
       alert("모임 만들기에 성공했습니다");
       navigate("/clublist");
     } catch (err) {
@@ -179,70 +177,30 @@ const ClubCreate = () => {
       <Container maxWidth="md" sx={{ marginTop: "20px" }}>
         <Grid container spacing={1} sx={{ alignItems: "center" }}>
           <Grid item xs={3} sx={{ padding: "0px" }}>
-            <Typography sx={{ fontWeight: "600", padding: "0px" }}>
-              지역
-            </Typography>
+            <Typography sx={{ fontWeight: "600", padding: "0px" }}>지역</Typography>
           </Grid>
           <Grid item xs={9}>
-            <HomeSearchClub
-              setSelectedSido={(sido) =>
-                setHomeLocation((prev) => ({ ...prev, sido }))
-              }
-              setSelectedSigoon={(sigoon) =>
-                setHomeLocation((prev) => ({ ...prev, sigoon }))
-              }
-              setSelectedDong={(dong) =>
-                setHomeLocation((prev) => ({ ...prev, dong }))
-              }
-            />
+            <HomeSearchClub setSelectedSido={(sido) => setHomeLocation((prev) => ({ ...prev, sido }))} setSelectedSigoon={(sigoon) => setHomeLocation((prev) => ({ ...prev, sigoon }))} setSelectedDong={(dong) => setHomeLocation((prev) => ({ ...prev, dong }))} />
           </Grid>
           {/* 나머지 폼 필드 */}
           <Grid item xs={3} sx={{ padding: "0px" }}>
-            <Typography sx={{ fontWeight: "600", padding: "0px" }}>
-              큰 관심사
-            </Typography>
+            <Typography sx={{ fontWeight: "600", padding: "0px" }}>큰 관심사</Typography>
           </Grid>
           <Grid item xs={9}>
-            <TextField
-              id="mainCategory"
-              label="ex ) 큰 관심사 : 운동,여행,사교 등등"
-              placeholder="눌럿을 때 모달띄워서 큰관심 선택 후 작은관심선택 후 자동기입까지"
-              sx={{ width: "100%", mb: 2 }}
-              onClick={handleOpenModal}
-              value={selectedCategory}
-              {...register("mainCategory")}
-            />
+            <TextField id="mainCategory" label="ex ) 큰 관심사 : 운동,여행,사교 등등" placeholder="눌럿을 때 모달띄워서 큰관심 선택 후 작은관심선택 후 자동기입까지" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedCategory} {...register("mainCategory")} />
           </Grid>
           <Grid item xs={3} sx={{ padding: "0px" }}>
-            <Typography sx={{ fontWeight: "600", padding: "0px" }}>
-              상세 관심사
-            </Typography>
+            <Typography sx={{ fontWeight: "600", padding: "0px" }}>상세 관심사</Typography>
           </Grid>
           <Grid item xs={9}>
-            <TextField
-              id="subCategory"
-              label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)"
-              sx={{ width: "100%", mb: 2 }}
-              onClick={handleOpenModal}
-              value={selectedSubCategory}
-              {...register("subCategory")}
-            />
+            <TextField id="subCategory" label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedSubCategory} {...register("subCategory")} />
           </Grid>
           {/* 파일 입력 및 미리보기 */}
+         
           <Grid item xs={12}>
-            <input
-              id="img"
-              type="file"
-              accept="image/png, image/gif, image/jpeg"
-              onChange={handleFileChange}
-              style={{ display: "none" }}
-            />
+            <input id="img" type="file" accept="image/png, image/gif, image/jpeg" onChange={handleFileChange} style={{ display: "none" }} />
             <label htmlFor="img">
-              <Button
-                variant="outlined"
-                component="span"
-                sx={{ width: "100%" }}
-              >
+              <Button variant="outlined" component="span" sx={{ width: "100%" }}>
                 여기를 클릭해 모임 대표사진을 설정해보세요
               </Button>
             </label>
@@ -267,53 +225,25 @@ const ClubCreate = () => {
             )}
             {preview && (
               <Box mt={2} sx={{ width: "100%", height: "478.5px" }}>
-                <img
-                  src={preview}
-                  alt="미리보기"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
+                <img src={preview} alt="미리보기" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </Box>
             )}
           </Grid>
-
+             {/* 파일 입력 및 미리보기.end */}
           <Grid item xs={12}>
-            <TextField
-              id="title"
-              label="모임 이름"
-              sx={{ width: "100%", mb: 2 }}
-              {...register("title", { required: " 필수입력 요소." })}
-            />
+            <TextField id="title" label="모임 이름" sx={{ width: "100%", mb: 2 }} {...register("title", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              id="subTitle"
-              label="모임에 대한 간략한 설명을 넣어보세요"
-              sx={{ width: "100%", mb: 2 }}
-              {...register("subTitle", { required: " 필수입력 요소." })}
-            />
+            <TextField id="subTitle" label="모임에 대한 간략한 설명을 넣어보세요" sx={{ width: "100%", mb: 2 }} {...register("subTitle", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={12}>
-            <TextField
-              id="content"
-              label="내용 입력"
-              multiline
-              rows={10}
-              variant="outlined"
-              sx={{ width: "100%", mb: 2 }}
-              {...register("content", { required: " 필수입력 요소." })}
-            />
+            <TextField id="content" label="내용 입력" multiline rows={10} variant="outlined" sx={{ width: "100%", mb: 2 }} {...register("content", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={2}>
             <Typography sx={{ fontWeight: "600" }}>정원 (10~300명)</Typography>
           </Grid>
           <Grid item xs={3}>
-            <TextField
-              id="maxMember"
-              label="숫자만 입력"
-              inputProps={{ type: "number", min: 10, max: 300 }}
-              sx={{ width: "100%" }}
-              {...register("maxMember", { required: " 필수입력 요소." })}
-            />
+            <TextField id="maxMember" label="숫자만 입력" inputProps={{ type: "number", min: 10, max: 300 }} sx={{ width: "100%" }} {...register("maxMember", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={12} sx={{ marginTop: "20px" }}>
             <Button variant="outlined" sx={{ width: "100%" }} type="submit">
@@ -321,24 +251,9 @@ const ClubCreate = () => {
             </Button>
           </Grid>
         </Grid>
-        <CategoryModal
-          open={openCategoryModal}
-          onClose={handleCloseModal}
-          onCategorySelect={handleCategorySelect}
-        />
-        <CategoryModalSub
-          open={openSubCategoryModal}
-          onClose={handleCloseSubModal}
-          onSubCategorySelect={handleSubCategorySelect}
-          mainCategory={selectedCategory}
-        />
-        {cropModalOpen && (
-          <ImageCropper
-            src={preview}
-            onCropComplete={handleCropComplete}
-            onClose={() => setCropModalOpen(false)}
-          />
-        )}
+        <CategoryModal open={openCategoryModal} onClose={handleCloseModal} onCategorySelect={handleCategorySelect} />
+        <CategoryModalSub open={openSubCategoryModal} onClose={handleCloseSubModal} onSubCategorySelect={handleSubCategorySelect} mainCategory={selectedCategory} />
+        {cropModalOpen && <ImageCropper src={preview} onCropComplete={handleCropComplete} onClose={() => setCropModalOpen(false)} />}
       </Container>
     </Box>
   );

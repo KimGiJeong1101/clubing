@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axiosInstance from "../../utils/axios";
 
 // AsyncThunk 정의
 const fetchClubList = createAsyncThunk("clubList/fetchClubList", async () => {
@@ -13,25 +14,27 @@ const fetchGetClub = createAsyncThunk("clubList/fetchGetClub", async (id) => {
   return data;
 });
 
-const fetchMeetingList = createAsyncThunk(
-  "meetingList/fetchMeetingList",
-  async (clubNumber) => {
-    const response = await fetch(`http://localhost:4000/meetings/${clubNumber}`);
-    const data = await response.json();
-    return data;
-  }
-);
+const fetchGetClubMember = createAsyncThunk("clubs/fetchGetClubMember", async (clubMembers) => {
+  const response = await axiosInstance.post(`http://localhost:4000/clubs/membersInfo`, clubMembers);
+  console.log(response);
+  const data = await response.data;
+  return data;
+});
+
+const fetchMeetingList = createAsyncThunk("meetingList/fetchMeetingList", async (clubNumber) => {
+  const response = await fetch(`http://localhost:4000/meetings/${clubNumber}`);
+  const data = await response.json();
+  return data;
+});
 
 const fetchCategoryClubList = createAsyncThunk("CategoryClubList/fetchCategoryClubList", async (Category) => {
   const response = await fetch(`http://localhost:4000/clubs/category/${Category}`);
   const data = await response.json();
-  console.log('data')
-  console.log(data)
-  console.log('data')
   return data;
 });
 
 // Slice 정의
+//클럽 리스트 가져오기
 const clubList = createSlice({
   name: "clubList",
   initialState: { clubs: [], status: "idle", error: null },
@@ -52,6 +55,7 @@ const clubList = createSlice({
   },
 });
 
+//클럽 하나 정보 가져오기
 const getClub = createSlice({
   name: "getClub",
   initialState: { clubs: {}, status: "idle", error: null },
@@ -72,7 +76,28 @@ const getClub = createSlice({
   },
 });
 
-// Slice 정의
+//클럽에 관련된 멤버들 정보 가져오기
+const getClubMember = createSlice({
+  name: "getClubMember",
+  initialState: { getClubMembers: {}, status: "idle", error: null },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchGetClubMember.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchGetClubMember.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.getClubMembers = action.payload;
+      })
+      .addCase(fetchGetClubMember.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+  },
+});
+
+// 정모 리스트 가져오기
 const meetingList = createSlice({
   name: "meetingList",
   initialState: { meetings: [], status: "idle", error: null },
@@ -93,6 +118,7 @@ const meetingList = createSlice({
   },
 });
 
+//카테고리 리스트 가져오기
 const categoryClubList = createSlice({
   name: "categoryClubList",
   initialState: { clubs: [], status: "idle", error: null },
@@ -118,4 +144,5 @@ export const clubListReducer = clubList.reducer;
 export const categoryClubListReducer = categoryClubList.reducer;
 export const meetingListReducer = meetingList.reducer;
 export const getClubReducer = getClub.reducer;
-export { fetchClubList, fetchGetClub, fetchMeetingList ,fetchCategoryClubList};
+export const getClubMemberReducer = getClubMember.reducer;
+export { fetchClubList, fetchGetClub, fetchMeetingList, fetchCategoryClubList, fetchGetClubMember };

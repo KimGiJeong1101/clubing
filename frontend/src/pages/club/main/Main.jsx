@@ -1,19 +1,4 @@
-import {
-  Avatar,
-  AvatarGroup,
-  Box,
-  Button,
-  Checkbox,
-  Container,
-  Fab,
-  Grid,
-  Menu,
-  MenuItem,
-  Modal,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Avatar, AvatarGroup, Box, Checkbox, Container, Fab, Grid, Menu, MenuItem, Modal, Paper, TextField, Typography } from "@mui/material";
 import { MuiFileInput } from "mui-file-input";
 import BrushIcon from "@mui/icons-material/Brush";
 import ScubaDivingIcon from "@mui/icons-material/ScubaDiving";
@@ -45,14 +30,21 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs from "dayjs";
 import "dayjs/locale/ko"; // 한국어 로케일 import
 import axiosInstance from "./../../../utils/axios";
-import {
-  fetchCategoryClubList,
-  fetchMeetingList,
-} from "../../../store/reducers/clubReducer.js";
+import { fetchCategoryClubList, fetchGetClubMember, fetchMeetingList } from "../../../store/reducers/clubReducer.js";
+import CustomButton from "../../../components/club/CustomButton.jsx";
 dayjs.locale("ko");
 
 const Main = () => {
+  //리덕스 함수 부르기 위해서
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  //멤버들 숨겼다가 나왔다가
+  const [isExpanded, setIsExpanded] = useState(false);
+  const toggleExpand = () => {
+    setIsExpanded((prev) => !prev);
+  };
+
   //Clubmember=3 이란 거 가져오기 위해서!
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -66,7 +58,6 @@ const Main = () => {
   const checkedChange = (event) => {
     setChecked(event.target.checked);
   };
-
   const [secondModal, setSecondModal] = useState(false);
   const secondModalClose = () => {
     setSecondModal(false);
@@ -88,8 +79,9 @@ const Main = () => {
       .post("http://localhost:4000/meetings/create", data)
       .then((response) => {
         alert("모임 만들기에 성공하쎴음");
-        navigate(`/clubs/main?clubNumber=${clubNumber}`);
-        window.location.reload();
+        secondModalClose();
+        dispatch(fetchMeetingList(clubNumber));
+        navigate(`/clubs/chat?clubNumber=${clubNumber}`);
       })
       .catch((err) => {
         console.log(err);
@@ -104,7 +96,9 @@ const Main = () => {
     setLocationImg(locationImg);
   };
   //파일.end
+  //채팅 및 보드 구현되면 지움
   const [list, setList] = useState(club);
+  //채팅 및 보드 구현되면 지움.end
 
   //모달창관련 스위치 및 State
   const [open, setOpen] = useState(false);
@@ -124,22 +118,19 @@ const Main = () => {
   };
   //모달창관련.end
 
-  // 클럽 리스트 where redux
+  //카테고리로 같이 연관된 모임 추천해주려고
   const getCategoryClubList = useSelector((state) => state.categoryClub);
   const [clubList, setClubList] = useState([]);
   useEffect(() => {
     let copy = [];
     for (let i = 0; i < getCategoryClubList.clubs.length; i++) {
-      if (
-        getCategoryClubList.clubs[i]._id.toString() !==
-        queryParams.get("clubNumber")
-      ) {
+      if (getCategoryClubList.clubs[i]._id.toString() !== queryParams.get("clubNumber")) {
         copy.push(getCategoryClubList.clubs[i]);
       }
     }
     setClubList(copy);
   }, [getCategoryClubList]);
-  // 클럽 리스트 where redux. end
+  //카테고리로 같이 연관된 모임 추천해주려고.end
 
   //로그인 정보 where redux
   const user = useSelector((state) => state.user);
@@ -148,18 +139,9 @@ const Main = () => {
   useEffect(() => {
     dispatch(fetchMeetingList(clubNumber));
     let copy = [];
-    console.log(`meetingList`);
-    console.log(meetingList);
-    console.log(`meetingList`);
-    console.log(`user.userData.user.email`);
-    console.log(user.userData.user.email);
-    console.log(`user.userData.user.email`);
-
     if (meetingList.meetings.length !== 0) {
       for (let i = 0; i < meetingList.meetings.length; i++) {
-        if (
-          meetingList.meetings[i].joinMember.includes(user.userData.user.email)
-        ) {
+        if (meetingList?.meetings[i]?.joinMember?.includes(user.userData.user.email)) {
           //미팅리스트에서의 조인멤버 안에 로긴한 사람 들가있다면
           copy.push(true);
         } else {
@@ -173,25 +155,28 @@ const Main = () => {
 
   //미팅 지우기
   const deleteMeeting = async (meetingNumber) => {
-    const response = await fetch(
-      `http://localhost:4000/meetings/delete/` + meetingNumber
-    );
+    const response = await fetch(`http://localhost:4000/meetings/delete/` + meetingNumber);
     window.location.reload();
   };
   //미팅 지우기.end
-  
+
   //이미지를 위해서
   const [club2] = useState(club);
-  const navigate = useNavigate();
 
+  //클럽 가입된 사람들 이메일로 user의 정보 가져오기.redux
+  const clubMembers = useSelector((state) => state.getClubMember);
+  //클럽 가입된 사람들 이메일로 user의 정보 가져오기.redux.end
+
+  //클럽read할 때 내용들 불러오기 -> react-Query로!
   const getReadClub = async () => {
-    const response = await fetch(
-      `http://localhost:4000/clubs/read2/${clubNumber}`
-    );
+    const response = await fetch(`http://localhost:4000/clubs/read2/${clubNumber}`);
     const data = await response.json();
     dispatch(fetchCategoryClubList(data.mainCategory));
+    dispatch(fetchGetClubMember(data.members));
+
     return data;
   };
+  //클럽read할 때 내용들 불러오기 -> react-Query로!.end
   const {
     data: readClub,
     error,
@@ -202,22 +187,24 @@ const Main = () => {
     queryFn: getReadClub,
   });
 
-  //////
+  //메인에서의 모임수정 및 모임삭제관련 모달
   const [anchorEl, setAnchorEl] = useState(null);
-
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
-
   const handleClose = () => {
     setAnchorEl(null);
   };
+  //메인에서의 모임수정 및 모임삭제관련 모달.end
 
+  //모임수정 시 이동 핸들러
   const handleUpdate = () => {
     navigate(`/clubs/main/update?clubNumber=${clubNumber}`);
     handleClose();
   };
+  //모임수정 시 이동 핸들러.end
 
+  //모임삭제 시 이동 핸들러
   const handleDelete = async () => {
     try {
       await axios.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
@@ -229,6 +216,7 @@ const Main = () => {
     }
     handleClose();
   };
+  //모임삭제 시 이동 핸들러.end
 
   //정모 참석하기 버튼 눌렀을 때 , 콜백함수
   const meetingJoin = (meetingId) => {
@@ -242,11 +230,7 @@ const Main = () => {
           dispatch(fetchMeetingList(clubNumber));
           let copy = [];
           for (let i = 0; i < meetingList.meetings.length; i++) {
-            if (
-              meetingList.meetings[i].joinMember.includes(
-                user.userData.user.email
-              )
-            ) {
+            if (meetingList.meetings[i].joinMember.includes(user.userData.user.email)) {
               copy.push(true);
             } else {
               copy.push(false);
@@ -278,12 +262,7 @@ const Main = () => {
   return (
     <Box sx={{ backgroundColor: "#F4F4F4" }}>
       {/* 모달창 */}
-      <Modal
-        open={open}
-        onClose={handleCloseModal}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
+      <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box
           sx={{
             position: "absolute",
@@ -298,77 +277,28 @@ const Main = () => {
             p: 4,
           }}
         >
-          <Typography
-            id="modal-modal-title"
-            variant="h5"
-            component="h2"
-            sx={{ textAlign: "center" }}
-          >
+          <Typography id="modal-modal-title" variant="h5" component="h2" sx={{ textAlign: "center" }}>
             관심사 선택
           </Typography>
           <hr />
           <Grid container spacing={2}>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="0"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "green" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="0" onClick={FadHandleClick} sx={fadStyle} style={{ color: "green" }}>
                 <BrushIcon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="1"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "blue" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="1" onClick={FadHandleClick} sx={fadStyle} style={{ color: "blue" }}>
                 <ScubaDivingIcon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="2"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "#B2561A" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="2" onClick={FadHandleClick} sx={fadStyle} style={{ color: "#B2561A" }}>
                 <FastfoodIcon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="3"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "yellow" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="3" onClick={FadHandleClick} sx={fadStyle} style={{ color: "yellow" }}>
                 <StarIcon />
               </Fab>
             </Grid>
@@ -388,67 +318,23 @@ const Main = () => {
             </Grid>
           </Grid>
           <Grid container spacing={2}>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="4"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "skyblue" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="4" onClick={FadHandleClick} sx={fadStyle} style={{ color: "skyblue" }}>
                 <FlightIcon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="5"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "brown" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="5" onClick={FadHandleClick} sx={fadStyle} style={{ color: "brown" }}>
                 <MenuBookIcon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="6"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "#D6B095" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="6" onClick={FadHandleClick} sx={fadStyle} style={{ color: "#D6B095" }}>
                 <Diversity3Icon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="7"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "#B855B9" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="7" onClick={FadHandleClick} sx={fadStyle} style={{ color: "#B855B9" }}>
                 <CelebrationIcon />
               </Fab>
             </Grid>
@@ -468,46 +354,18 @@ const Main = () => {
             </Grid>
           </Grid>
           <Grid container spacing={2}>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="8"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "#F47378" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="8" onClick={FadHandleClick} sx={fadStyle} style={{ color: "#F47378" }}>
                 <SavingsIcon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
               <Fab aria-label="9" onClick={FadHandleClick} sx={fadStyle}>
                 <CastForEducationIcon />
               </Fab>
             </Grid>
-            <Grid
-              item
-              xs={3}
-              container
-              justifyContent="center"
-              alignItems="center"
-            >
-              <Fab
-                aria-label="10"
-                onClick={FadHandleClick}
-                sx={fadStyle}
-                style={{ color: "red" }}
-              >
+            <Grid item xs={3} container justifyContent="center" alignItems="center">
+              <Fab aria-label="10" onClick={FadHandleClick} sx={fadStyle} style={{ color: "red" }}>
                 <FavoriteOutlinedIcon />
               </Fab>
             </Grid>
@@ -536,12 +394,7 @@ const Main = () => {
       {/* 2번째 글등록 모달창 */}
       {/* 2번째 글등록 모달창 */}
 
-      <Modal
-        component="form"
-        onSubmit={handleSubmit(onSubmit)}
-        open={secondModal}
-        onClose={secondModalClose}
-      >
+      <Modal component="form" onSubmit={handleSubmit(onSubmit)} open={secondModal} onClose={secondModalClose}>
         <Box
           sx={{
             position: "absolute",
@@ -574,13 +427,7 @@ const Main = () => {
             </Grid>
             <Grid item xs={7} container spacing={1}>
               <Grid item xs={12}>
-                <TextField
-                  id="title"
-                  label="정모 제목"
-                  multiline
-                  sx={{ width: "100%", mb: 2 }}
-                  {...register("title", { required: " 필수입력 요소." })}
-                />
+                <TextField id="title" label="정모 제목" multiline sx={{ width: "100%", mb: 2 }} {...register("title", { required: " 필수입력 요소." })} />
               </Grid>
               <Grid item xs={12}>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -596,24 +443,11 @@ const Main = () => {
                 </LocalizationProvider>
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  id="cost"
-                  label="비용"
-                  multiline
-                  sx={{ width: "100%", mb: 2 }}
-                  {...register("cost", { required: " 필수입력 요소." })}
-                />
+                <TextField id="cost" label="비용" multiline sx={{ width: "100%", mb: 2 }} {...register("cost", { required: " 필수입력 요소." })} />
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                id="where"
-                label="위치"
-                multiline
-                placeholder="모임 장소를 입력하세요"
-                sx={{ width: "100%", mb: 2 }}
-                {...register("where", { required: " 필수입력 요소." })}
-              />
+              <TextField id="where" label="위치" multiline placeholder="모임 장소를 입력하세요" sx={{ width: "100%", mb: 2 }} {...register("where", { required: " 필수입력 요소." })} />
             </Grid>
             <Grid container spacing={1} sx={{ marginLeft: "3px" }}>
               <Grid
@@ -624,28 +458,17 @@ const Main = () => {
                   alignItems: "center",
                 }}
               >
-                <TextField
-                  id="totalCount"
-                  label="인원 수"
-                  placeholder="숫자만 입력하세요"
-                  multiline
-                  sx={{ width: "100%", mb: 2 }}
-                  {...register("totalCount", { required: " 필수입력 요소." })}
-                />
+                <TextField id="totalCount" label="인원 수" placeholder="숫자만 입력하세요" multiline sx={{ width: "100%", mb: 2 }} {...register("totalCount", { required: " 필수입력 요소." })} />
               </Grid>
               <Grid item xs={6}>
                 <Box sx={{ textAlign: "right" }}>
                   <Typography sx={{ fontSize: "20px", paddingTop: "15px" }}>
-                    정모 공지{" "}
-                    <span style={{ color: "gray" }}>(전체 멤버 알림)</span>
+                    정모 공지 <span style={{ color: "gray" }}>(전체 멤버 알림)</span>
                   </Typography>
                 </Box>
               </Grid>
               <Grid item xs={2} sx={{ marginLeft: "0px" }}>
-                <Checkbox
-                  sx={{ "& .MuiSvgIcon-root": { fontSize: 40 } }}
-                  onChange={checkedChange}
-                />
+                <Checkbox sx={{ "& .MuiSvgIcon-root": { fontSize: 40 } }} onChange={checkedChange} />
               </Grid>
             </Grid>
             <Grid
@@ -657,9 +480,9 @@ const Main = () => {
                 textAlign: "center",
               }}
             >
-              <Button type="submit" variant="contained" sx={{ width: "100%" }}>
+              <CustomButton type="submit" variant="contained" sx={{ backgroundColor: "#DBC7B5", width: "100%" }}>
                 등록하기
-              </Button>
+              </CustomButton>
             </Grid>
           </Grid>
         </Box>
@@ -683,7 +506,7 @@ const Main = () => {
             }}
           >
             <img
-              src={`http://localhost:4000/`+readClub.img} // 이미지 경로
+              src={`http://localhost:4000/` + readClub.img} // 이미지 경로
               alt="Example"
               style={{
                 width: "100%",
@@ -710,11 +533,7 @@ const Main = () => {
             >
               <AddIcon />
             </Fab>
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={handleClose}
-            >
+            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
               <MenuItem onClick={handleUpdate}>모임 및 게시글 수정</MenuItem>
               <MenuItem onClick={handleDelete}>모임 삭제</MenuItem>
             </Menu>
@@ -754,8 +573,7 @@ const Main = () => {
           </Grid>
           <Grid container spacing={2}>
             <Grid item xs={12} sx={{ color: "#555555" }}>
-              <b> 1</b>/{readClub.maxMember}명<b> {readClub.meeting.length}</b>{" "}
-              정기모임
+              <b> 1</b>/{readClub.maxMember}명<b> {readClub.meeting.length}</b> 정기모임
               <b> 0</b> 글 갯수
               <b> 5</b> 분 전 대화
             </Grid>
@@ -763,9 +581,7 @@ const Main = () => {
           <hr />
           <Grid container spacing={2}>
             <Grid item xs={12} sx={{ marginTop: "30px" }}>
-              <Typography sx={{ whiteSpace: "pre-wrap" }}>
-                {readClub.content}
-              </Typography>
+              <Typography sx={{ whiteSpace: "pre-wrap" }}>{readClub.content}</Typography>
             </Grid>
           </Grid>
           <Typography
@@ -792,59 +608,48 @@ const Main = () => {
             정기적으로 모임을 가지고 있어요
           </Typography>
           {/* 정기 모임 */}
-          {readClub.meeting.length === 0 &&
-            user.userData.user.email !== readClub.admin && (
-              <Box>아직 정기모임이 없습니다.</Box>
-            )}
-          {readClub.meeting.length === 0 &&
-            user.userData.user.email === readClub.admin && (
-              <Grid container spacing={2}>
-                <Grid item xs={12} sx={{ marginBottom: "30px" }}>
-                  <Paper
-                    elevation={5}
-                    sx={{
-                      padding: "16px",
-                      display: "flex",
-                      borderRadius: "20px",
-                    }}
-                  >
-                    <Grid container spacing={1}>
-                      <Grid
-                        item
-                        xs={12}
-                        sx={{ fontWeight: 600, fontSize: "18px" }}
-                      >
-                        아직 정모가 없어요!
-                      </Grid>
-                      <Grid item xs={12} sx={{ marginBottom: "35px" }}>
-                        정모를 만들어보세요
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Button
-                          variant="contained"
-                          onClick={handleOpen}
-                          sx={{
-                            width: "100%",
-                            fontSize: "18px",
-                            borderRadius: "15px",
-                          }}
-                        >
-                          정모 만들기
-                        </Button>
-                      </Grid>
+          {readClub.meeting.length === 0 && user.userData.user.email !== readClub.admin && <Box>아직 정기모임이 없습니다.</Box>}
+          {readClub.meeting.length === 0 && user.userData.user.email === readClub.admin && (
+            <Grid container spacing={2}>
+              <Grid item xs={12} sx={{ marginBottom: "30px" }}>
+                <Paper
+                  elevation={5}
+                  sx={{
+                    padding: "16px",
+                    display: "flex",
+                    borderRadius: "20px",
+                  }}
+                >
+                  <Grid container spacing={1}>
+                    <Grid item xs={12} sx={{ fontWeight: 600, fontSize: "18px" }}>
+                      아직 정모가 없어요!
                     </Grid>
-                  </Paper>
-                </Grid>
+                    <Grid item xs={12} sx={{ marginBottom: "35px" }}>
+                      정모를 만들어보세요
+                    </Grid>
+                    <Grid item xs={12}>
+                      <CustomButton
+                        variant="contained"
+                        onClick={handleOpen}
+                        sx={{
+                          width: "100%",
+                          fontSize: "18px",
+                          borderRadius: "15px",
+                          backgroundColor: "#DBC7B5",
+                        }}
+                      >
+                        정모 만들기
+                      </CustomButton>
+                    </Grid>
+                  </Grid>
+                </Paper>
               </Grid>
-            )}
+            </Grid>
+          )}
           {readClub.meeting.map((a, i) => {
             return (
               <Grid container spacing={1}>
-                <Grid
-                  item
-                  xs={12}
-                  sx={{ height: "250px", marginBottom: "30px" }}
-                >
+                <Grid item xs={12} sx={{ height: "250px", marginBottom: "30px" }}>
                   <Paper
                     elevation={2}
                     sx={{
@@ -878,32 +683,26 @@ const Main = () => {
                       </Box>
                     </Grid>
                     <Grid item xs={12} sm={12} md={8}>
-                      <Grid
-                        item
-                        xs={12}
-                        sx={{ display: "flex", justifyContent: "flex-end" }}
-                      >
-                        <Button
+                      <Grid item xs={12} sx={{ display: "flex", justifyContent: "flex-end" }}>
+                        <CustomButton
                           onClick={() => {
                             meetingJoin(readClub.meeting[i]._id);
                           }}
-                          variant={
-                            meeetingListBoolean[i] ? "outlined" : "contained"
-                          }
-                          sx={{ borderRadius: "20px" }}
+                          variant={meeetingListBoolean[i] ? "outlined" : "contained"}
+                          sx={{ borderRadius: "20px", backgroundColor: "#DBC7B5" }}
                         >
                           {meeetingListBoolean[i] ? "취소" : "참석하기"}
-                        </Button>
+                        </CustomButton>
                         {user.userData.user.email === readClub.admin && (
-                          <Button
+                          <CustomButton
                             variant="outlined"
                             onClick={() => {
                               deleteMeeting(readClub.meeting[i]._id);
                             }}
-                            sx={{ borderRadius: "20px" }}
+                            sx={{ borderRadius: "20px", border: "#DBC7B5 1px solid" }}
                           >
                             삭제하기
-                          </Button>
+                          </CustomButton>
                         )}
                       </Grid>
                       <Typography
@@ -928,26 +727,11 @@ const Main = () => {
                         }}
                       >
                         <AvatarGroup max={4}>
-                          <Avatar
-                            alt="Remy Sharp"
-                            src="/static/images/avatar/1.jpg"
-                          />
-                          <Avatar
-                            alt="Travis Howard"
-                            src="/static/images/avatar/2.jpg"
-                          />
-                          <Avatar
-                            alt="Cindy Baker"
-                            src="/static/images/avatar/3.jpg"
-                          />
-                          <Avatar
-                            alt="Agnes Walker"
-                            src="/static/images/avatar/4.jpg"
-                          />
-                          <Avatar
-                            alt="Trevor Henderson"
-                            src="/static/images/avatar/5.jpg"
-                          />
+                          <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+                          <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
+                          <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
+                          <Avatar alt="Agnes Walker" src="/static/images/avatar/4.jpg" />
+                          <Avatar alt="Trevor Henderson" src="/static/images/avatar/5.jpg" />
                         </AvatarGroup>
                         <Box
                           sx={{
@@ -958,9 +742,7 @@ const Main = () => {
                         >
                           <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
                           <span style={{ marginLeft: "5px" }}>
-                            {" "}
-                            {readClub.meeting[i].joinMember.length}/
-                            {readClub.meeting[i].totalCount}
+                            {readClub.meeting[i].joinMember.length}/{readClub.meeting[i].totalCount}
                           </span>
                         </Box>
                       </Box>
@@ -970,20 +752,14 @@ const Main = () => {
               </Grid>
             );
           })}
-
           {/* 비슷한 클럽.end */}
-          {readClub.meeting.length !== 0 &&
-            user.userData.user.email === readClub.admin && (
-              <Grid item xs={12}>
-                <Button
-                  variant="contained"
-                  onClick={handleOpen}
-                  sx={{ width: "100%", fontSize: "18px", borderRadius: "15px" }}
-                >
-                  정모 만들기
-                </Button>
-              </Grid>
-            )}
+          {readClub.meeting.length !== 0 && user.userData.user.email === readClub.admin && (
+            <Grid item xs={12}>
+              <CustomButton variant="contained" onClick={handleOpen} sx={{ width: "100%", fontSize: "18px", borderRadius: "15px", backgroundColor: "#DBC7B5" }}>
+                정모 만들기
+              </CustomButton>
+            </Grid>
+          )}
           <Typography
             sx={{
               fontSize: "14px",
@@ -1031,21 +807,57 @@ const Main = () => {
                 </Typography>
               </Grid>
               <Grid item xs={12}>
-                새로운 목표를 같이 달성해보고 싶어요. 서로의 고민이나 생각을
-                나누며 함께 성장해보고 싶어요
+                새로운 목표를 같이 달성해보고 싶어요. 서로의 고민이나 생각을 나누며 함께 성장해보고 싶어요
               </Grid>
             </Grid>
           </Grid>
           <hr></hr>
+          <Box sx={{ fontSize: "18px", fontWeight: "600" }}>모임 멤버 ({readClub.members.length})</Box>
           <Grid
             item
             xs={12}
             sx={{
-              backgroundColor: "#feebea",
-              height: "200px",
+              height: isExpanded ? "auto" : "200px",
+              overflow: "hidden",
               borderRadius: "20px",
+              transition: "height 0.3s ease",
+              position: "relative", // For absolute positioning of the button
             }}
-          ></Grid>
+          >
+            {clubMembers &&
+              clubMembers.getClubMembers.map((member, index) => (
+                <Grid container sx={{ cursor: "pointer", padding: "5px" }} key={index}>
+                  <Grid item xs={1}>
+                    <Avatar sx={{ width: 50, height: 50 }} src={member?.thumbnailImage || ""} />
+                  </Grid>
+                  <Grid item xs={4} sx={{ marginTop: "8px" }}>
+                    <Typography variant="h6">{member.name}</Typography>
+                  </Grid>
+                  {index === 0 && (
+                    <Grid item xs={7} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
+                      <CustomButton variant="contained" sx={{ color: "white", backgroundColor: "#DBC7B5" }}>
+                        1:1 문의하기
+                      </CustomButton>
+                    </Grid>
+                  )}
+                </Grid>
+              ))}
+            {clubMembers?.getClubMembers?.length > 3 && (
+              <CustomButton
+                onClick={toggleExpand}
+                sx={{
+                  position: "absolute",
+                  bottom: "10px",
+                  right: "10px",
+                  backgroundColor: "#DBC7B5",
+                  color: "white",
+                  borderRadius: "10px",
+                }}
+              >
+                {isExpanded ? "멤버 숨기기" : "멤버 전부보기"}
+              </CustomButton>
+            )}
+          </Grid>
           <Typography
             sx={{
               fontSize: "14px",
@@ -1183,13 +995,8 @@ const Main = () => {
                   >
                     {clubList[0].mainCategory} ·
                   </Typography>
-                  <CommentRoundedIcon
-                    sx={{ color: "#BF5B16", fontSize: "18px" }}
-                  />
-                  <Typography
-                    variant="h6"
-                    sx={{ color: "#BF5B16", display: "inline-flex" }}
-                  >
+                  <CommentRoundedIcon sx={{ color: "#BF5B16", fontSize: "18px" }} />
+                  <Typography variant="h6" sx={{ color: "#BF5B16", display: "inline-flex" }}>
                     {" "}
                     {list[0].chat}
                   </Typography>
@@ -1201,26 +1008,11 @@ const Main = () => {
                     }}
                   >
                     <AvatarGroup max={4}>
-                      <Avatar
-                        alt="Remy Sharp"
-                        src="/static/images/avatar/1.jpg"
-                      />
-                      <Avatar
-                        alt="Travis Howard"
-                        src="/static/images/avatar/2.jpg"
-                      />
-                      <Avatar
-                        alt="Cindy Baker"
-                        src="/static/images/avatar/3.jpg"
-                      />
-                      <Avatar
-                        alt="Agnes Walker"
-                        src="/static/images/avatar/4.jpg"
-                      />
-                      <Avatar
-                        alt="Trevor Henderson"
-                        src="/static/images/avatar/5.jpg"
-                      />
+                      <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+                      <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
+                      <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
+                      <Avatar alt="Agnes Walker" src="/static/images/avatar/4.jpg" />
+                      <Avatar alt="Trevor Henderson" src="/static/images/avatar/5.jpg" />
                     </AvatarGroup>
                     <Box
                       sx={{

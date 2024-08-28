@@ -63,6 +63,7 @@ const ImageCropper = ({ src, onCropComplete, onClose }) => {
     height: 478.5,
     aspect: 16 / 9,
   });
+  
   const [image, setImage] = useState(null);
 
   const onLoad = (e) => {
@@ -81,17 +82,7 @@ const ImageCropper = ({ src, onCropComplete, onClose }) => {
       canvas.width = crop.width;
       canvas.height = crop.height;
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(
-        image,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
-        0,
-        0,
-        crop.width,
-        crop.height
-      );
+      ctx.drawImage(image, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, crop.width, crop.height);
       canvas.toBlob((blob) => {
         const croppedImageUrl = URL.createObjectURL(blob);
         onCropComplete(croppedImageUrl); // prop으로 전달된 onCropComplete 함수 호출

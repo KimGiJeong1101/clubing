@@ -30,3 +30,6 @@ frontend/package-lock.json
 backend/profile/
 backend/uploads/
 backend/upload/
+
+# prettierrc relation by koo add!!
+prettierrc
