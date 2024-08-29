@@ -10,6 +10,8 @@ function MainRoutes() {
       <Route path='' element={<Main />} />
       <Route path='create' element={<MainCreate />} />
       <Route path='update' element={<MainUpdate />} />
+      <Route path='update' element={<MainUpdate />} />
+      <Route path='update' element={<MainUpdate />} />
     </Routes>
   );
 }

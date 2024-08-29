@@ -57,6 +57,11 @@ const MainUpdate = () => {
     return data;
   };
   useEffect(() => {
+
+    console.log("Updated homeLocation:", homeLocation);
+    console.log("Updated homeLocation:", homeLocation);
+    console.log("Updated homeLocation:", homeLocation);
+    console.log("Updated homeLocation:", homeLocation);
     console.log("Updated homeLocation:", homeLocation);
   }, [homeLocation]);
 
