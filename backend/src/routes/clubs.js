@@ -13,6 +13,7 @@ const User = require("../models/User");
 //리스트 보여주기
 router.get("/", async (req, res, next) => {
   try {
+    console.log("test중에 있음니다 깃허브");
     const clubs = await Club.find().sort({ _id: 1 }); // 오름차순 솔팅
     const isProduction = process.env.NODE_ENV === "production";
     console.log(`isProduction`);
@@ -58,12 +59,12 @@ const upload = multer({ storage: storage });
 // 파일 업로드 엔드포인트
 router.post("/create", sessionAuth, upload.single("img"), async (req, res, next) => {
   try {
-    const club2 =req.body;
+    const club2 = req.body;
     club2.admin = req.user.email;
     club2.img = req.file.destination + req.file.filename;
     club2.adminNickName = req.user.nickName;
     club2.members = [req.user.email];
-    
+
     if (req.body.subCategory) {
       club2.subCategory = req.body.subCategory.split(",");
     }
