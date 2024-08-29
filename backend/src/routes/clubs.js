@@ -14,10 +14,6 @@ const User = require("../models/User");
 router.get("/", async (req, res, next) => {
   try {
     const clubs = await Club.find().sort({ _id: 1 }); // 오름차순 솔팅
-    const isProduction = process.env.NODE_ENV === "production";
-    console.log(`isProduction`);
-    console.log(isProduction);
-    console.log(`isProduction`);
     res.status(200).json(clubs);
   } catch (error) {
     next(error);
@@ -58,18 +54,17 @@ const upload = multer({ storage: storage });
 // 파일 업로드 엔드포인트
 router.post("/create", sessionAuth, upload.single("img"), async (req, res, next) => {
   try {
-    const club2 =req.body;
-    club2.admin = req.user.email;
-    club2.img = req.file.destination + req.file.filename;
-    club2.adminNickName = req.user.nickName;
-    club2.members = [req.user.email];
-    
+    req.body.img = req.file.destination + req.file.filename;
+    req.body.admin = req.user.email;
+    req.body.adminNickName = req.user.nickName;
+    req.body.members = [req.user.email];
+
     if (req.body.subCategory) {
-      club2.subCategory = req.body.subCategory.split(",");
+      req.body.subCategory = req.body.subCategory.split(",");
     }
 
     // 클럽 생성
-    const club = new Club(club2);
+    const club = new Club(req.body);
     await club.save();
 
     res.status(200).json({ message: "클럽 생성 완료" });
@@ -111,8 +106,14 @@ router.delete("/delete/:id", async (req, res, next) => {
   }
 });
 
-router.post("/update/:clubNumber", sessionAuth, upload.single("img"), async (req, res, next) => {
+router.post("/update/:clubNumber",sessionAuth,upload.single("img"), async (req, res, next) => {
   try {
+    //서브카테고리 나누기
+    //서브카테고리 나누기.end
+    console.log(`req.body`);
+    console.log(req.body);
+    console.log(`req.body`);
+
     req.body.img = req.file.destination + req.file.filename;
 
     const updatedClub = await Club.findByIdAndUpdate(
