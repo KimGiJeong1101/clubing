@@ -13,12 +13,8 @@ const User = require("../models/User");
 //리스트 보여주기
 router.get("/", async (req, res, next) => {
   try {
-    console.log("test중에 있음니다 깃허브");
     const clubs = await Club.find().sort({ _id: 1 }); // 오름차순 솔팅
     const isProduction = process.env.NODE_ENV === "production";
-    console.log(`isProduction`);
-    console.log(isProduction);
-    console.log(`isProduction`);
     res.status(200).json(clubs);
   } catch (error) {
     next(error);

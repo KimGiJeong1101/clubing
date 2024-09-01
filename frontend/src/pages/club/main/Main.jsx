@@ -163,16 +163,18 @@ const Main = () => {
   //이미지를 위해서
   const [club2] = useState(club);
 
-  //클럽 가입된 사람들 이메일로 user의 정보 가져오기.redux
-  const clubMembers = useSelector((state) => state.getClubMember);
-  //클럽 가입된 사람들 이메일로 user의 정보 가져오기.redux.end
-
   //클럽read할 때 내용들 불러오기 -> react-Query로!
   const getReadClub = async () => {
     const response = await fetch(`http://localhost:4000/clubs/read2/${clubNumber}`);
     const data = await response.json();
-    dispatch(fetchCategoryClubList(data.mainCategory));
-    dispatch(fetchGetClubMember(data.members));
+    const response2 = await fetch(`http://localhost:4000/clubs/category/${data.mainCategory}`);
+    const data2 = await response2.json();
+    const response3 = await axiosInstance.post(`http://localhost:4000/clubs/membersInfo`, data.members);
+    const clubMembers2 = await response3.data;
+    data.clubmembers = clubMembers2;
+    console.log(`data`);
+    console.log(data);
+    await dispatch(fetchCategoryClubList(data.mainCategory));
 
     return data;
   };
@@ -183,8 +185,9 @@ const Main = () => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["readClub"],
+    queryKey: ["readClub",clubNumber],
     queryFn: getReadClub,
+    enabled: !!clubNumber,  //
   });
 
   //메인에서의 모임수정 및 모임삭제관련 모달
@@ -824,8 +827,8 @@ const Main = () => {
               position: "relative", // For absolute positioning of the button
             }}
           >
-            {clubMembers &&
-              clubMembers.getClubMembers.map((member, index) => (
+            {readClub.clubmembers &&
+              readClub.clubmembers.map((member, index) => (
                 <Grid container sx={{ cursor: "pointer", padding: "5px" }} key={index}>
                   <Grid item xs={1}>
                     <Avatar sx={{ width: 50, height: 50 }} src={member?.thumbnailImage || ""} />
@@ -842,7 +845,7 @@ const Main = () => {
                   )}
                 </Grid>
               ))}
-            {clubMembers?.getClubMembers?.length > 3 && (
+            {readClub?.clubmembers?.length > 3 && (
               <CustomButton
                 onClick={toggleExpand}
                 sx={{
