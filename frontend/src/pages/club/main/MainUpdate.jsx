@@ -44,9 +44,12 @@ const MainUpdate = () => {
   //주소 수정시
   const [homeLocation, setHomeLocation] = useState({});
 
+  const [noUpdatePreview, setNoUpdatePreview] = useState("");
   const getReadClub = async () => {
-    const response = await fetch(`http://localhost:4000/clubs/read2/${clubNumber}`);
+    const response = await fetch(`http://localhost:4000/clubs/read/${clubNumber}`);
     const data = await response.json();
+    setNoUpdatePreview(data.img);
+    setValue("img", data.img);
     setHomeLocation({
       sido: data.region.city,
       sigoon: data.region.district,
@@ -56,15 +59,6 @@ const MainUpdate = () => {
     setSelectedSubCategory(data.subCategory);
     return data;
   };
-  useEffect(() => {
-
-    console.log("Updated homeLocation:", homeLocation);
-    console.log("Updated homeLocation:", homeLocation);
-    console.log("Updated homeLocation:", homeLocation);
-    console.log("Updated homeLocation:", homeLocation);
-    console.log("Updated homeLocation:", homeLocation);
-  }, [homeLocation]);
-
   const {
     data: readClub,
     error,
@@ -90,7 +84,6 @@ const MainUpdate = () => {
   //블롭URL -> 블롭 -> 파일 이렇게 2단변형을 이루는 중
 
   // 사진 파일 관련 코드
-  const [locationImg, setLocationImg] = useState(null);
   const [preview, setPreview] = useState(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [uploadFileName, setUploadFileName] = useState("");
@@ -103,7 +96,6 @@ const MainUpdate = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
-        setLocationImg(file);
         setCropModalOpen(true); // 크롭 모달 열기
       };
       reader.readAsDataURL(file);
@@ -119,7 +111,6 @@ const MainUpdate = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
-        setLocationImg(file);
         setCropModalOpen(true); // 크롭 모달 열기
       };
       reader.readAsDataURL(file);
@@ -143,9 +134,6 @@ const MainUpdate = () => {
   } = useForm({ defaultValues: readClub, mode: "onChange" });
 
   const onSubmit = async (data) => {
-    const blob = await blobUrlToBlob(preview);
-    const file = blobToFile(blob, uploadFileName);
-
     const formData = new FormData();
 
     // 일반 필드 추가
@@ -161,20 +149,30 @@ const MainUpdate = () => {
 
     // 이미지 파일이 있는 경우
     if (preview) {
+      const blob = await blobUrlToBlob(preview);
+      const file = blobToFile(blob, uploadFileName);
       formData.append("img", file); // 이미지 파일 추가
-    }
-
-    try {
-      const response = await axiosInstance.post(`/clubs/update/${clubNumber}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      alert("모임 수정 성공");
-      navigate(`/clubs/main?clubNumber=${clubNumber}`);
-    } catch (err) {
-      console.error(err);
-      alert("모임 만들기에 실패했습니다");
+      try {
+        const response = await axiosInstance.post(`/clubs/update/${clubNumber}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        alert("모임 수정 성공");
+        navigate(`/clubs/main?clubNumber=${clubNumber}`);
+      } catch (err) {
+        console.error(err);
+        alert("모임 만들기에 실패했습니다");
+      }
+    } else {
+      try {
+        const response = await axiosInstance.post(`/clubs/update2/${clubNumber}`, data);
+        alert("모임 수정 성공");
+        navigate(`/clubs/main?clubNumber=${clubNumber}`);
+      } catch (err) {
+        console.error(err);
+        alert("모임 만들기에 실패했습니다");
+      }
     }
   };
   useEffect(() => {
@@ -234,7 +232,7 @@ const MainUpdate = () => {
             <input id="img" type="file" accept="image/png, image/gif, image/jpeg" onChange={handleFileChange} style={{ display: "none" }} />
             <label htmlFor="img">
               <Button variant="outlined" component="span" sx={{ width: "100%" }}>
-                여기를 클릭해 모임 대표사진을 설정해보세요
+                여기를 클릭해 모임 대표사진을 변경해보세요
               </Button>
             </label>
             {!preview && (
@@ -248,12 +246,9 @@ const MainUpdate = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  border: "2px dashed gray",
                 }}
               >
-                <Typography variant="h6" color="textSecondary">
-                  이미지 미리보기가 없습니다. 이미지를 업로드하세요.
-                </Typography>
+                <img src={`http://localhost:4000/` + noUpdatePreview} alt="미리보기" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </Box>
             )}
             {preview && (

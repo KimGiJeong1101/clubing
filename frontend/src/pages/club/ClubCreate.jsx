@@ -7,7 +7,8 @@ import HomeSearchClub from "./main/HomeSearchClub";
 import CategoryModal from "./meeting/CategoryModal";
 import CategoryModalSub from "./meeting/CategoryModalSub";
 import ImageCropper from "./ImageCropper.jsx"; // 크롭 컴포넌트 import
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
+import CropIcon from "@mui/icons-material/Crop";
 
 const ClubCreate = () => {
   // 큰 카테고리 관련 코드
@@ -25,7 +26,7 @@ const ClubCreate = () => {
 
   // 작은 카테고리 설정 코드
   const [openSubCategoryModal, setOpenSubCategoryModal] = useState(false);
-  const [selectedSubCategory, setSelectedSubCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState([]);
 
   const handleOpenSubModal = () => setOpenSubCategoryModal(true);
   const handleCloseSubModal = () => setOpenSubCategoryModal(false);
@@ -34,10 +35,6 @@ const ClubCreate = () => {
     setSelectedSubCategory(subCategory);
     handleCloseSubModal();
   };
-
-  useEffect(() => {
-    setSelectedSubCategory("");
-  }, [selectedCategory]);
 
   const navigate = useNavigate();
   const { register, handleSubmit, setValue, reset } = useForm({
@@ -68,12 +65,14 @@ const ClubCreate = () => {
   //블롭URL -> 블롭 -> 파일 이렇게 2단변형을 이루는 중
 
   // 사진 파일 관련 코드
-  const [locationImg, setLocationImg] = useState(null);
   const [preview, setPreview] = useState(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [uploadFileName, setUploadFileName] = useState("");
-  
-  //파일이 체인지 되었을 때 
+
+  const cropButtonClick = ()=>{
+    setCropModalOpen(true); // 크롭 모달 열기
+  }
+  //파일이 체인지 되었을 때
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setUploadFileName(file.name);
@@ -81,15 +80,13 @@ const ClubCreate = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
-        setLocationImg(file);
-        setCropModalOpen(true); // 크롭 모달 열기
       };
       reader.readAsDataURL(file);
     }
   };
   //파일이 체인지 되었을 때.end
 
-  //파일이 드래그앤 드롭 되었을 때 
+  //파일이 드래그앤 드롭 되었을 때
   const handleDrop = (event) => {
     event.preventDefault();
     const file = event.dataTransfer.files[0];
@@ -97,14 +94,11 @@ const ClubCreate = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
-        setLocationImg(file);
-        setCropModalOpen(true); // 크롭 모달 열기
       };
       reader.readAsDataURL(file);
     }
   };
   //파일이 드래그앤 드롭 되었을 때.end
-
 
   const handleCropComplete = (croppedImage) => {
     setPreview(croppedImage); // 크롭된 이미지 미리보기 설정
@@ -133,7 +127,7 @@ const ClubCreate = () => {
 
     // 일반 필드 추가
     formData.append("mainCategory", data.mainCategory);
-    formData.append("subCategory", data.subCategory);
+    formData.append("subCategory", selectedSubCategory);
     formData.append("title", data.title);
     formData.append("subTitle", data.subTitle);
     formData.append("content", data.content);
@@ -196,7 +190,7 @@ const ClubCreate = () => {
             <TextField id="subCategory" label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedSubCategory} {...register("subCategory")} />
           </Grid>
           {/* 파일 입력 및 미리보기 */}
-         
+
           <Grid item xs={12}>
             <input id="img" type="file" accept="image/png, image/gif, image/jpeg" onChange={handleFileChange} style={{ display: "none" }} />
             <label htmlFor="img">
@@ -224,12 +218,26 @@ const ClubCreate = () => {
               </Box>
             )}
             {preview && (
-              <Box mt={2} sx={{ width: "100%", height: "478.5px" }}>
+              <Box mt={2} sx={{ width: "100%", height: "478.5px", position: "relative"  }}>
                 <img src={preview} alt="미리보기" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <CropIcon
+                  sx={{
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                    color: "white",
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    borderRadius: "50%",
+                    padding: "4px",
+                    cursor: "pointer",
+                  }}
+                  onClick={cropButtonClick}
+
+                />
               </Box>
             )}
           </Grid>
-             {/* 파일 입력 및 미리보기.end */}
+          {/* 파일 입력 및 미리보기.end */}
           <Grid item xs={12}>
             <TextField id="title" label="모임 이름" sx={{ width: "100%", mb: 2 }} {...register("title", { required: " 필수입력 요소." })} />
           </Grid>
