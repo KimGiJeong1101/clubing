@@ -11,8 +11,7 @@ import CameraAltIcon from '@mui/icons-material/CameraAlt'; // Camera 아이콘
 import DeleteIcon from '@mui/icons-material/Delete'; // 삭제 아이콘
 import BrushIcon from '@mui/icons-material/Brush';
 import { Box, Typography, Avatar, Divider, IconButton, Modal, Popover, MenuItem, Button, TextField } from '@mui/material';
-//import { myPage } from '../../store/reducers/userSlice'; 
-import { myPage } from '../../store/actions/userActions';
+import { myPage }  from '../../store/actions/userActions';
 import axiosInstance from "../../utils/axios";
 
 

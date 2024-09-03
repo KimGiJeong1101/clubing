@@ -24,6 +24,7 @@
     "dayjs": "^1.11.12",
     "frontend": "file:",
     "http-proxy-middleware": "^3.0.0",
+    "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "mui-file-input": "^4.0.6",
     "notistack": "^3.0.1",

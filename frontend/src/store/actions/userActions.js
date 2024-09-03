@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../../utils/axios.js";
+import axiosInstance from "../../utils/axios";
 // Redux Toolkit에서 createAsyncThunk를 가져옴
 
 // 비동기 회원가입 액션 생성

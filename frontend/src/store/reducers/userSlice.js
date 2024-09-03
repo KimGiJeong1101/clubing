@@ -6,8 +6,7 @@ import {
   logoutUser,
   myPage,
   updateUser,
-} from "../actions/userActions.js";
-import { toast } from "react-toastify";
+} from "../actions/userActions";
 import { Snackbar, Alert } from "@mui/material";
 
 const initialState = {
@@ -60,11 +59,6 @@ const initialState = {
   isAuth: false, //true면 로그인되어 있는
   isLoading: false, // 데이터를 가져오는 중이면 true
   error: "",
-  token: {
-    value: "", // JWT 값
-    iat: null, // 발급 시간
-    exp: null, // 만료 시간
-  },
   snackbar: {
     open: false,
     message: "",
@@ -78,10 +72,6 @@ const userSlice = createSlice({
   reducers: {
     closeSnackbar: (state) => {
       state.snackbar.open = false;
-    },
-    setUserData: (state, action) => {
-      state.userData = action.payload;
-      state.isAuth = true;
     },
   },
   extraReducers: (builder) => {
@@ -119,7 +109,29 @@ const userSlice = createSlice({
     .addCase(loginUser.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload || '로그인 실패';
-      toast.error(action.payload || '로그인 실패');
+      state.snackbar = {
+        open: true,
+        message: '로그인 실패',
+        severity: 'error',
+    };
+    })
+
+    // 인증
+    .addCase(authUser.pending, (state) => {
+      state.isLoading = true;
+    })
+    .addCase(authUser.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.userData = action.payload;
+        state.isAuth = true;
+    })
+    .addCase(authUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+        console.log('State before resetting:', state); // 상태 출력
+        state.userData = initialState.userData; // 상태 초기화
+        console.log('State after resetting:', state); // 상태 출력
+        state.isAuth = false; 
     })
 
     // 로그아웃
@@ -134,7 +146,11 @@ const userSlice = createSlice({
     .addCase(logoutUser.rejected, (state, action) => {
       state.isLoading = false;
       state.error = action.payload || '로그아웃 실패';
-      toast.error(action.payload || '로그아웃 실패');
+      state.snackbar = {
+        open: true,
+        message: '로그아웃 실패',
+        severity: 'error',
+    };
     })
     //myPage
     .addCase(myPage.pending, (state) => {
@@ -150,6 +166,7 @@ const userSlice = createSlice({
     state.error = action.payload || '정보 가져오기 실패';
     state.isAuth = false;
     })
+
     //myPage 수정
     .addCase(updateUser.pending, (state) => {
       state.isLoading = true;
@@ -175,8 +192,5 @@ const userSlice = createSlice({
     }
 });
 
-export const { closeSnackbar, setUserData } = userSlice.actions;
+export const { closeSnackbar } = userSlice.actions;
 export default userSlice.reducer;
-// 여기서는 createSlice로 생성된 reducer를 export 합니다.
-// 여기서는 createSlice로 생성된 reducer를 export 합니다.
-export { myPage }; // myPage 액션을 export
