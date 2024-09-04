@@ -19,6 +19,8 @@ const auth = async (req, res, next) => {
         }
 
         req.user = user; // 사용자를 req.user에 추가
+        
+        
         next();
     } catch (error) {
         console.error('토큰 검증 오류:', error);
