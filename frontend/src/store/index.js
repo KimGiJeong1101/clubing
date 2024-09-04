@@ -1,5 +1,5 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import userSlice from "./reducers/userSlice.js";
+import userSlice from "./reducers/userSlice";
 import { categoryClubListReducer, clubListReducer, getClubReducer, meetingListReducer } from "./reducers/clubReducer.js";  // 명시적으로 임포트
 import storage from 'redux-persist/lib/storage'; // 로컬 스토리지
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persistReducer } from "redux-persist";

@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axiosInstance from "../../utils/axios.js";
+import axiosInstance from "../../utils/axios";
 // Redux Toolkit에서 createAsyncThunk를 가져옴
 
 // 비동기 회원가입 액션 생성
@@ -78,9 +78,9 @@ export const myPage = createAsyncThunk(
 // 마이 페이지 정보 수정
 export const updateUser = createAsyncThunk(
   'user/updateUser',
-  async (userData, thunkAPI) => {
+  async (body, thunkAPI) => {
     try {
-      const response = await axiosInstance.put('/users/myPage', userData);
+      const response = await axiosInstance.put('/users/myPage/update', body);
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);

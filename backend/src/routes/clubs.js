@@ -1,7 +1,7 @@
 const express = require("express");
 const Club = require("../models/Club");
 const Meeting = require("../models/Meeting");
-const sessionAuth = require("../middleware/sessionAuth");
+const auth = require("../middleware/auth");
 const router = express.Router();
 const multer = require("multer");
 const sharp = require("sharp");
@@ -55,7 +55,7 @@ const upload = multer({ storage: storage });
 // 파일 업로드 엔드포인트
 router.post(
   "/create",
-  sessionAuth,
+  auth,
   upload.single("img"),
   async (req, res, next) => {
     try {
@@ -137,7 +137,7 @@ router.post("/update/:clubNumber", async (req, res, next) => {
   }
 });
 
-router.post("/addMember/:clubNumber", sessionAuth, async (req, res, next) => {
+router.post("/addMember/:clubNumber", auth, async (req, res, next) => {
   try {
     console.log("addMeber/:clubNumber 도착");
 
@@ -155,7 +155,7 @@ router.post("/addMember/:clubNumber", sessionAuth, async (req, res, next) => {
 
 router.post(
   "/cencellMember/:clubNumber",
-  sessionAuth,
+  auth,
   async (req, res, next) => {
     try {
       console.log(req.body);
