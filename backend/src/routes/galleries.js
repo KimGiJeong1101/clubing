@@ -6,13 +6,14 @@ const sharp = require("sharp");
 const path = require("path");
 const fs = require("fs");
 const Gallery = require("../models/ClubGallery");
+const moment = require("moment-timezone"); // moment-timezone 패키지를 사용하여 시간대 변환
+const User = require("../models/User")
+
+
 // 날짜별 폴더 생성 함수 (갤러리용)
 const createDailyFolder = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  const folderPath = path.join("uploads", `${year}-${month}-${day}`);
+  const today = moment().tz("Asia/Seoul").format("YYYY-MM-DD");
+  const folderPath = path.join("uploads", today);
 
   if (!fs.existsSync(folderPath)) {
     fs.mkdirSync(folderPath, { recursive: true });
@@ -34,8 +35,8 @@ const createDailyFolder = () => {
 
 // 파일 이름이 중복될 경우 "(1)", "(2)" 숫자를 추가해 고유하게 만드는 함수
 const generateUniqueFilename = (directory, filename) => {
-  const ext = path.extname(filename); // 확장자 추출
-  const base = path.basename(filename, ext); // 확장자를 제외한 파일명
+  const ext = path.extname(filename);
+  const base = path.basename(filename, ext);
   let uniqueFilename = filename;
   let counter = 1;
 
@@ -64,6 +65,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage }).array("files", 8);
+
 // 클럽별 갤러리 이미지 등록
 router.post("/:clubNumber/images", upload, async (req, res) => {
   try {
@@ -71,6 +73,10 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
     const files = req.files;
     const { clubNumber } = req.params;
     const { writer, title, content } = req.body;
+
+    const writerNick = await User.findById(req.body.writer);
+    const NickName = writerNick.nickName
+    console.log(NickName)
 
     const club = await Club.findById(clubNumber);
     if (!club) {
@@ -106,11 +112,11 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
       title,
       content,
       origin_images: originImages,
-      thumbnail_images: thumbnailImages, // 썸네일 경로 포함해서 저장
+      thumbnail_images: thumbnailImages,
       likes: 0,
       views: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: moment().tz("Asia/Seoul").toDate(), // 한국 시간으로 저장
+      updatedAt: moment().tz("Asia/Seoul").toDate(), // 한국 시간으로 저장
     });
 
     await gallery.save();
@@ -147,18 +153,13 @@ router.put("/:clubNumber/images/:id", upload, async (req, res) => {
     if (sortedImages) {
       const parsedImages = JSON.parse(sortedImages);
 
-      // 기존 파일명을 그대로 사용하여 경로의 "http://localhost:4000/" 부분을 제거하고 시스템에 맞게 변환
       newOriginImages = parsedImages.map((img) => {
-        // "http://localhost:4000/" 제거
         const relativeUrl = img.url.replace("http://localhost:4000/", "");
-        // 시스템 경로로 변환
         return relativeUrl.replace(/\//g, path.sep);
       });
 
       newThumbnailImages = parsedImages.map((img) => {
-        // "http://localhost:4000/" 제거 및 썸네일 경로로 변경
         const relativeUrl = img.url.replace("http://localhost:4000/", "");
-        // 경로를 thumbnail_img로 변환하고 시스템 경로로 변환, 그리고 썸네일 이름에 thumbnail_ 추가
         return relativeUrl
           .replace("origin_img", "thumbnail_img")
           .replace(/(\/|\\)([^/\\]+)$/, `$1thumbnail_$2`)
@@ -177,10 +178,8 @@ router.put("/:clubNumber/images/:id", upload, async (req, res) => {
           `thumbnail_${file.filename}`
         );
 
-        // 이미지 리사이징 및 저장
         await sharp(file.path).resize(400).toFile(thumbnailFilePath);
 
-        // 새로 추가된 파일을 기존 이미지 리스트에 추가
         newOriginImages.push(originalFilePath);
         newThumbnailImages.push(thumbnailFilePath);
       }
@@ -188,10 +187,10 @@ router.put("/:clubNumber/images/:id", upload, async (req, res) => {
 
     // 갤러리 데이터 업데이트
     gallery.origin_images = newOriginImages;
-    gallery.thumbnail_images = newThumbnailImages; // 썸네일 경로 포함해서 저장
+    gallery.thumbnail_images = newThumbnailImages;
     gallery.title = title;
     gallery.content = content;
-    gallery.updatedAt = new Date();
+    gallery.updatedAt = moment().tz("Asia/Seoul").toDate(); // 한국 시간으로 저장
 
     await gallery.save();
     return res.json({ success: true, gallery });
@@ -207,6 +206,7 @@ router.get("/:clubNumber/images", async (req, res) => {
     const { clubNumber } = req.params;
     const galleries = await Gallery.find({ clubNumber });
 
+
     res.json(
       galleries.map((gallery) => ({
         _id: gallery._id,
@@ -217,6 +217,13 @@ router.get("/:clubNumber/images", async (req, res) => {
         ),
         title: gallery.title,
         content: gallery.content,
+        writer: gallery.writer,
+        createdAt: moment(gallery.createdAt)
+          .tz("Asia/Seoul")
+          .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
+        updatedAt: moment(gallery.updatedAt)
+          .tz("Asia/Seoul")
+          .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
       }))
     );
   } catch (error) {
@@ -233,6 +240,8 @@ router.get("/:clubNumber/images/:id", async (req, res) => {
     if (!gallery) {
       return res.status(404).json({ error: "Gallery not found" });
     }
+    const email = gallery.writer
+    const UserNickName = await User.findOne({ email })
 
     res.json({
       _id: gallery._id,
@@ -243,7 +252,14 @@ router.get("/:clubNumber/images/:id", async (req, res) => {
       content: gallery.content,
       views: gallery.views,
       likes: gallery.likes,
-    });
+      writer: UserNickName.nickName,
+      createdAt: moment(gallery.createdAt)
+        .tz("Asia/Seoul")
+        .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
+      updatedAt: moment(gallery.updatedAt)
+        .tz("Asia/Seoul")
+        .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환  
+    })
   } catch (error) {
     res.status(500).send(error.message);
   }
@@ -311,14 +327,12 @@ router.delete("/:clubNumber/images/all", async (req, res) => {
   const { writer } = req.body;
 
   try {
-    // 클럽 정보 조회
     const club = await Club.findById(clubNumber);
 
     if (!club) {
       return res.status(404).json({ error: "클럽을 찾을 수 없습니다." });
     }
 
-    // 클럽장인지 확인
     if (club.admin !== writer) {
       return res
         .status(403)
@@ -327,7 +341,6 @@ router.delete("/:clubNumber/images/all", async (req, res) => {
 
     const galleries = await Gallery.find({ clubNumber });
 
-    // 이미지 파일 삭제
     galleries.forEach((gallery) => {
       gallery.origin_images.forEach((filePath) => {
         if (fs.existsSync(filePath)) {
@@ -341,7 +354,6 @@ router.delete("/:clubNumber/images/all", async (req, res) => {
       });
     });
 
-    // 갤러리 데이터 삭제
     await Gallery.deleteMany({ clubNumber });
 
     res.json({ success: true, deletedCount: galleries.length });

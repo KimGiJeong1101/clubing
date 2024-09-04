@@ -10,6 +10,12 @@ export const fetchImages = async (clubNumber) => {
     const { data } = await axios.get(`http://localhost:4000/clubs/gallery/${clubNumber}/images`);
     return data;
   };
+
+// 이미지 상세 정보를 가져오는 API 요청 함수
+export const fetchGalleryDetail = async (clubNumber, imageId) => {
+  const { data } = await axios.get(`http://localhost:4000/clubs/gallery/${clubNumber}/images/${imageId}`);
+  return data;
+};
   
   // 선택한 이미지들을 삭제하는 함수 (삭제 로직)
 export const deleteImages = async (clubNumber, { imageIds, writer }) => {

@@ -40,7 +40,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
   // 이미지를 로드하는 함수: 선택된 이미지의 URL을 기반으로 이미지 에디터에 로드
   const loadImage = useCallback(async (index) => {
     const editorInstance = editorRef.current.getInstance(); // TOAST UI Image Editor 인스턴스 가져오기
-    console.log('editorInstance : ' + editorInstance);
     const selectedImage = selectedImages[index]; // 현재 선택된 이미지 가져오기
     if (selectedImage && selectedImage.url) { // 이미지가 존재하는 경우
       try {
@@ -49,9 +48,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
         editorInstance.ui.activeMenuEvent(); // UI 메뉴 활성화
       } catch (error) {
         // 에러 발생 시 스낵바로 에러 메시지 표시
-        setSnackbarMessage('이미지 에디터 로드 에러');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
       }
     }
   }, [selectedImages]);
@@ -87,7 +83,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
   // 이미지 슬롯을 클릭했을 때 해당 이미지를 에디터에 로드하는 함수
   const handleBoxClick = async (index) => {
     const editorInstance = editorRef.current.getInstance();
-    console.log("editorInstance: ", editorInstance);
     if (currentImageIndex !== null && selectedImages[currentImageIndex]?.url) { // 현재 편집 중인 이미지가 존재하는 경우
       try {
         const dataURL = editorInstance.toDataURL(); // 현재 이미지를 Data URL로 변환
@@ -120,8 +115,8 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
   };
 
   const handleSaveAll = async () => {
+    console.log('selectedImages', selectedImages)
     const editorInstance = editorRef.current.getInstance();
-    console.log('selectedImages : ', selectedImages);
 
     // 모든 이미지를 한 번씩 "클릭"한 것처럼 처리
     for (let i = 0; i < selectedImages.length; i++) {
@@ -140,9 +135,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           );
         } catch (error) {
           console.error('Error processing image:', error);
-          setSnackbarMessage('이미지 처리 중 에러 발생');
-          setSnackbarSeverity('error');
-          setSnackbarOpen(true);
         }
       }
     }
@@ -158,13 +150,13 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
         hasNewFiles = true;
         try {
           const blob = await fetch(image.url).then((res) => res.blob());
+          console.log(blob)
           formData.append("files", blob, image.name || "image.jpg");
+          console.log('새로운 이미지 업로드 ')
         } catch (error) {
           console.error("Error converting image to blob.", error);
           return;
         }
-      } else {
-        formData.append("existingImages", image.url);
       }
     }
 
@@ -177,12 +169,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
     if (!hasNewFiles) {
       const sortedImagesData = JSON.stringify(selectedImages);
       formData.append("sortedImages", sortedImagesData);
-      console.log("sortedImages:", sortedImagesData);
-    }
-
-    // FormData 확인 (브라우저 콘솔에 출력)
-    for (let pair of formData.entries()) {
-      console.log(`${pair[0]}:`, pair[1]);
     }
 
     // 서버로 요청 전송
