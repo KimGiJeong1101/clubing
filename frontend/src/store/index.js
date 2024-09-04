@@ -1,7 +1,13 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
+<<<<<<< HEAD
 import userSlice from "./reducers/userSlice.js";
 import { categoryClubListReducer, clubListReducer, getClubMemberReducer, getClubReducer, meetingListReducer } from "./reducers/clubReducer.js"; // 명시적으로 임포트
 import storage from "redux-persist/lib/storage"; // 로컬 스토리지
+=======
+import userSlice from "./reducers/userSlice";
+import { categoryClubListReducer, clubListReducer, getClubReducer, meetingListReducer } from "./reducers/clubReducer.js";  // 명시적으로 임포트
+import storage from 'redux-persist/lib/storage'; // 로컬 스토리지
+>>>>>>> 0fb9ce85bcffcb87915821b2fa9fbb167ba0661d
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persistReducer } from "redux-persist";
 
 const persistConfig = {

@@ -53,15 +53,24 @@ const LoginPage = () => {
         navigate("/clublist");
         reset();
       } else {
-        // 여기에서 에러를 처리합니다.
-        if (response.payload.error === "이메일이 확인되지 않습니다.") {
-          setEmailError("이메일이 확인되지 않습니다.");
-          setPasswordError("");
-        } else if (response.payload.error === "비밀번호가 틀렸습니다.") {
-          setPasswordError("비밀번호가 틀렸습니다.");
-          setEmailError("");
-        }
+          // 여기에서 에러를 처리합니다.
+      if (response.payload.error === '이메일이 확인되지 않습니다.') {
+        setEmailError('이메일이 확인되지 않습니다.');
+        setPasswordError('');
+      } else if (response.payload.error === '비밀번호가 틀렸습니다.') {
+        setPasswordError('비밀번호가 틀렸습니다.');
+        setEmailError('');
+      } else if (response.payload.message === '탈퇴한 회원입니다.') {
+        // 탈퇴한 회원 관련 오류 처리
+        setEmailError('탈퇴한 회원입니다.');
+        setPasswordError('');
+      } else {
+        // 다른 오류 메시지 처리
+        setEmailError('알 수 없는 오류가 발생했습니다.');
+        setPasswordError('');
       }
+    }
+    
       // "Remember Me" 체크박스가 선택되었을 때만 로컬 스토리지에 저장
       if (rememberMe) {
         localStorage.setItem("lastLoginEmail", email);

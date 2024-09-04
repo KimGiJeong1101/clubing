@@ -1,7 +1,7 @@
 const express = require("express");
 const Club = require("../models/Club");
 const Meeting = require("../models/Meeting");
-const sessionAuth = require("../middleware/sessionAuth");
+const auth = require("../middleware/auth");
 const router = express.Router();
 const multer = require("multer");
 const sharp = require("sharp");
@@ -127,7 +127,7 @@ router.post("/update/:clubNumber",sessionAuth,upload.single("img"), async (req, 
   }
 });
 
-router.post("/addMember/:clubNumber", sessionAuth, async (req, res, next) => {
+router.post("/addMember/:clubNumber", auth, async (req, res, next) => {
   try {
     console.log("addMeber/:clubNumber 도착");
     const clubs = await Club.findById({ _id: req.params.clubNumber });
