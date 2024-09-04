@@ -86,12 +86,14 @@ router.post('/login', async (req, res, next) => {
         }
         const payload = {
             userId: user._id.toHexString(),
-            // 몽고db objectid는 지멋대로 생성하기 때문에 이것을 스트링화 하는 것
+            // MongoDB의 ObjectId는 기본적으로 16진수로 된 고유 식별자입니다. 
+            // 이 식별자를 문자열로 변환해야 JWT의 페이로드에 저장할 수 있습니다.
         }
         console.log(payload);
         // token을 생성
         const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' })
-        // 유효기간 15분
+        //유저아이디 + 시크릿키 + 유효기간 15분 이란 뜻
+        // 저 세 가지를 결합하는게 jwt.sign() 이놈
 
          // 리프레시 토큰 생성
          const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
@@ -171,8 +173,8 @@ router.post('/logout', (req, res, next) => {
         });
 
          // 로그 출력
-    console.log('AccessToken 쿠키 삭제:', req.cookies.accessToken); // null이어야 함
-    console.log('RefreshToken 쿠키 삭제:', req.cookies.refreshToken); // null이어야 함
+        console.log('AccessToken 쿠키 삭제:', req.cookies.accessToken); // null이어야 함
+        console.log('RefreshToken 쿠키 삭제:', req.cookies.refreshToken); // null이어야 함
 
         // 로그아웃 성공 응답
         return res.sendStatus(200);
