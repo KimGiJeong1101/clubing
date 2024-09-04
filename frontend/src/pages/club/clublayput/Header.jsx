@@ -163,8 +163,8 @@ function Header() {
               클럽 삭제하기
             </Box>
           )}
-          {/* {user.email !== getClub.clubs.admin &&
-            getClub.clubs.members.includes(user.email) && (
+          {user.email !== getClub.clubs.admin &&
+            getClub?.clubs?.members?.includes(user.email) && (
               <Box
                 onClick={() => {
                   cancellClub();
@@ -173,8 +173,7 @@ function Header() {
               >
                 클럽 탈퇴하기
               </Box>
-<<<<<<< HEAD
-            )} */}
+            )}
           <Box onClick={() => {}} sx={{ padding: "10px" }}>
             모임 url 공유하기
           </Box>

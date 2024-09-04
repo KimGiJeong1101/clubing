@@ -15,6 +15,7 @@ import { authUser } from "./store/actions/userActions";
 import "./App.css";
 import ClubCreate from "./pages/club/ClubCreate";
 import MeetingList from "./pages/club/meeting/MeetingList";
+import Board from "./pages/club/board/Board";
 
 
 function App() {
@@ -42,7 +43,8 @@ function App() {
   return (
     <Routes>
       {/* ClubLayout을 사용하는 경로 */}
-      <Route path="/clubs/*" element={<ClubLayout />}>
+      <Route path="/clubs" element={<ClubLayout />}>
+        <Route path="/clubs/board" element={<Board />} />
         <Route path="*" element={<ClubRoutes />} />
       </Route>
 
@@ -55,6 +57,7 @@ function App() {
         {/* 로그인한 사람만 갈 수 있는 경로 */}
         <Route element={<ProtectedRoutes isAuth={isAuth} />}>
           <Route path="/clubs/create" element={<ClubCreate />} />
+          <Route path="/clubs/board" element={<Board />} />
           <Route path="/mypage/*" element={<MyPageRoutes />} />
         </Route>
 
