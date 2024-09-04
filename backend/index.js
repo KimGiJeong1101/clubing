@@ -5,7 +5,7 @@ const app = express();
 const path = require("path");
 const cookieParser = require('cookie-parser');
 require("dotenv").config();
-const jwt = require('jsonwebtoken'); // JWT 패키지 로드
+const jwt = require("jsonwebtoken"); // JWT 패키지 로드
 
 // 미들웨어 설정
 app.use(
@@ -86,6 +86,9 @@ app.use((req, res, next) => {
 // 정적 파일 제공을 위해 uploads 폴더를 공개
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// 정적파일 제공 (클럽용) - 구 추가 - 
+app.use('/clubs', express.static(path.join(__dirname, 'clubs')));
+
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)
 const boardsRouter = require("./src/routes/boards");
@@ -118,6 +121,7 @@ app.use("/users", usersRouter);
 //라우터 미들웨어(유저로그인)
 const userSignsRouter = require("./src/routes/userSigns");
 app.use("/userSigns", userSignsRouter);
+
 /////////////////////////////////////라우터 구간 .end
 
 // 루트 경로 접근 시 로그
@@ -141,12 +145,10 @@ startServer();
 /////이 이후 하나씩 추가할 거 작성은 주석달아서 추가해놓고 말해주기!
 
 // 'profile' 폴더를 정적 파일 경로로 설정
-app.use('/profile', express.static(path.join(__dirname, 'profile')));
-
+app.use("/profile", express.static(path.join(__dirname, "profile")));
 
 ////////////////////////////////////////////////////////////board////////////////////////////////////////////////////
 // 파일 업로드를 위한 디렉토리 설정
-const uploadDir = path.join(__dirname, 'upload');  //d 추가
+const uploadDir = path.join(__dirname, "upload"); //d 추가
 // 업로드된 파일 제공을 위한 정적 파일 미들웨어
-app.use('/upload', express.static(uploadDir)); //d 추가
-
+app.use("/upload", express.static(uploadDir)); //d 추가
