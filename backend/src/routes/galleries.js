@@ -129,6 +129,8 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
 
 // 클럽별 이미지 수정 라우트
 router.put("/:clubNumber/images/:id", upload, async (req, res) => {
+
+
   try {
     const { clubNumber, id } = req.params;
     const { writer, title, content, sortedImages } = req.body;

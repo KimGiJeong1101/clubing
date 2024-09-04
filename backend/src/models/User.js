@@ -48,7 +48,7 @@ const userSchema = mongoose.Schema({
     },
     introduction: { // 프로필 소개글
       type: String,
-      maxLength: 500, // 최대 500자
+      maxLength: 30, // 최대 500자
     }
   },
   homeLocation: {
@@ -126,7 +126,12 @@ const userSchema = mongoose.Schema({
   history: {//최근 본 모임
     type: Array,
     default: [],
-  }
+  },
+  //회원 탈되시 fale로 두고 가입제한이나 정보 보류? 아니면 30일 뒤에 삭제?
+  isActive: {
+    type: Boolean,
+    default: true, // 기본값은 true, 즉 활성화 상태
+  },
 });
 
 userSchema.pre("save", async function (next) {

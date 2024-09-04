@@ -1,6 +1,6 @@
 const express = require("express");
 const Meeting = require("../models/Meeting");
-const sessionAuth = require("../middleware/sessionAuth");
+const auth = require("../middleware/auth");
 const router = express.Router();
 
 //클럽 만들기(POST)
@@ -18,7 +18,7 @@ router.get('/:clubNumber', async (req, res, next) => {
     }
 })
 
-router.post("/create", sessionAuth, async (req, res, next) => {
+router.post("/create", auth, async (req, res, next) => {
   try {
     // Meeting 인스턴스 생성
     const meeting = new Meeting(req.body);
@@ -110,7 +110,7 @@ router.post("/create", sessionAuth, async (req, res, next) => {
   }
 });
 
-router.post("/join/:meetingId", sessionAuth, async (req, res, next) => {
+router.post("/join/:meetingId", auth, async (req, res, next) => {
   try {
     const meetingId = req.params.meetingId;
     const meeting = await Meeting.findById(meetingId);

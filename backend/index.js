@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
 const path = require("path");
-const session = require("./src/middleware/session"); // 세션 설정 로드
+const cookieParser = require('cookie-parser');
 require("dotenv").config();
 const jwt = require("jsonwebtoken"); // JWT 패키지 로드
 
@@ -19,40 +19,75 @@ app.use(
 app.use(express.json());
 
 // 세션 설정 적용
-app.use(session);
+//app.use(session);
 
-// JWT 검증 및 만료 시간 확인 미들웨어
+// 쿠키 파서 미들웨어
+app.use(cookieParser());
+
 app.use((req, res, next) => {
-  const token = req.session.accessToken; // 세션에서 JWT 가져오기
-  if (token) {
+  const accessToken = req.cookies.accessToken;
+  const refreshToken = req.cookies.refreshToken;
+
+  // 남은 시간 계산 함수
+  function getTimeLeft(exp) {
+    const currentTime = Math.floor(Date.now() / 1000); // 현재 시간 (초 단위)
+    const timeLeft = exp - currentTime;
+
+    if (timeLeft <= 0) {
+      return "만료됨";
+    }
+
+    const hours = Math.floor(timeLeft / 3600); // 남은 시간을 시간 단위로 계산
+    const minutes = Math.floor((timeLeft % 3600) / 60); // 남은 시간에서 시간 부분을 제외하고 분 계산
+    const seconds = timeLeft % 60; // 남은 시간에서 시간, 분 부분을 제외하고 초 계산
+
+    return `${hours}시간 ${minutes}분 ${seconds}초 남음`;
+  }
+
+  // 액세스 토큰 만료 시간 체크
+  if (accessToken) {
     try {
-      const decodedToken = jwt.decode(token);
-      if (decodedToken && decodedToken.exp) {
-        const exp = decodedToken.exp;
-        //console.log('토큰 만료 시간:', new Date(exp * 1000).toLocaleString()); // exp는 초 단위이므로 밀리초로 변환
-        const currentTime = Math.floor(Date.now() / 1000); // 현재 시간 (초 단위)
-        if (exp < currentTime) {
-          //console.log('토큰이 만료되었습니다.');
-        } else {
-          //console.log('토큰이 유효합니다.');
-        }
+      const decodedAccessToken = jwt.decode(accessToken);
+      if (decodedAccessToken && decodedAccessToken.exp) {
+        const accessTokenExp = decodedAccessToken.exp;
+        const timeLeft = getTimeLeft(accessTokenExp);
+        console.log(`액세스 토큰 ${timeLeft}`);
       } else {
-        //console.log('토큰에 만료 시간이 없습니다.');
+        console.log("액세스 토큰에 만료 시간이 없습니다.");
       }
     } catch (error) {
-      //console.error('토큰 디코딩 오류:', error);
+      console.error("액세스 토큰 디코딩 오류:", error);
     }
   } else {
-    //console.log('토큰이 없습니다.');
+    console.log("액세스 토큰이 없습니다.");
   }
+
+  // 리프레시 토큰 만료 시간 체크
+  if (refreshToken) {
+    try {
+      const decodedRefreshToken = jwt.decode(refreshToken);
+      if (decodedRefreshToken && decodedRefreshToken.exp) {
+        const refreshTokenExp = decodedRefreshToken.exp;
+        const timeLeft = getTimeLeft(refreshTokenExp);
+        console.log(`리프레시 토큰 ${timeLeft}`);
+      } else {
+        console.log("리프레시 토큰에 만료 시간이 없습니다.");
+      }
+    } catch (error) {
+      console.error("리프레시 토큰 디코딩 오류:", error);
+    }
+  } else {
+    console.log("리프레시 토큰이 없습니다.");
+  }
+
   next();
 });
 
 // 정적 파일 제공을 위해 uploads 폴더를 공개
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// 정적파일 제공 (클럽용) - 구 추가 -
-app.use("/clubs", express.static(path.join(__dirname, "clubs")));
+// 정적파일 제공 (클럽용) - 구 추가 - 
+app.use('/clubs', express.static(path.join(__dirname, 'clubs')));
 
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)

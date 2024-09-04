@@ -150,9 +150,7 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
         hasNewFiles = true;
         try {
           const blob = await fetch(image.url).then((res) => res.blob());
-          console.log(blob)
           formData.append("files", blob, image.name || "image.jpg");
-          console.log('새로운 이미지 업로드 ')
         } catch (error) {
           console.error("Error converting image to blob.", error);
           return;
