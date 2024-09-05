@@ -34,6 +34,9 @@ const meetingSchema = mongoose.Schema({
     },
     alertAll: {
         type: Boolean // 설명글
+    },
+    img:{
+        type : String // 사진설정 
     }
 
 })
