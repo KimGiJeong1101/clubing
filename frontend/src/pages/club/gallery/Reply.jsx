@@ -16,7 +16,7 @@ const Reply = ({ postType, postId, writer }) => {
 
     const queryClient = useQueryClient();
 
-    const { data: replies, isLoading } = useQuery({
+    const { data: replies, isLoading, isError, error } = useQuery({
         queryKey: ['replies', postType, postId],
         queryFn: async () => {
             const response = await axios.get(`http://localhost:4000/replies/${postId}`);
@@ -40,13 +40,20 @@ const Reply = ({ postType, postId, writer }) => {
         setComment(e.target.value);
     };
 
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault(); // 엔터로 줄바꿈이 아닌 댓글 전송을 방지
+            handleCommentSubmit(); // 댓글 제출
+        }
+    };
+
     const handleCommentSubmit = () => {
         if (comment.trim() === '') return;
         mutation.mutate({
             postType,
             postId,
             writer,
-            comment,
+            comment, // 줄바꿈 처리를 그대로 보내줌
         });
     };
 
@@ -72,11 +79,25 @@ const Reply = ({ postType, postId, writer }) => {
                     flexGrow: 1,
                     overflowY: 'auto',
                     mb: 1,
+                    position: 'relative',
                 }}
             >
                 {isLoading ? (
-                    <CircularProgress />
-                ) : Array.isArray(replies) ? (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '100%',
+                        }}
+                    >
+                        <CircularProgress />
+                    </Box>
+                ) : isError ? (
+                    <Typography color="error">
+                        {`Error: ${error.message}`}
+                    </Typography>
+                ) : Array.isArray(replies) && replies.length > 0 ? (
                     replies.map((reply, index) => (
                         <Box
                             key={index}
@@ -93,6 +114,7 @@ const Reply = ({ postType, postId, writer }) => {
                                 sx={{
                                     maxWidth: '80%', // 댓글 부분의 최대 너비 설정
                                     wordBreak: 'break-word', // 단어가 넘칠 경우 줄바꿈 처리
+                                    whiteSpace: 'pre-wrap', // 줄바꿈 및 공백 유지
                                 }}
                             >
                                 {`${reply.writer} : ${reply.comment}`}
@@ -126,6 +148,10 @@ const Reply = ({ postType, postId, writer }) => {
                     placeholder="댓글을 입력하세요"
                     value={comment}
                     onChange={handleCommentChange}
+                    onKeyDown={handleKeyDown} // 키다운 이벤트 처리
+                    multiline // 줄바꿈 가능하도록 설정
+                    minRows={1} // 최소 줄 수
+                    maxRows={10} // 최대 줄 수
                     sx={{
                         mb: 1,
                         '& .MuiInputBase-root': {

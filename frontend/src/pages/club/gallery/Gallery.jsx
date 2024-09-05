@@ -499,11 +499,12 @@ const Gallery = () => {
       </Modal>
 
       <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isFetching}
-      >
-        <CircularProgress color="inherit" />
-      </Backdrop>
+          sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={isLoading || isFetching} // isLoading과 isFetching을 모두 확인
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+
 
       {/* Snackbar Component */}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>

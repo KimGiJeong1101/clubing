@@ -7,8 +7,7 @@ const path = require("path");
 const fs = require("fs");
 const Gallery = require("../models/ClubGallery");
 const moment = require("moment-timezone"); // moment-timezone 패키지를 사용하여 시간대 변환
-const User = require("../models/User")
-
+const User = require("../models/User");
 
 // 날짜별 폴더 생성 함수 (갤러리용)
 const createDailyFolder = () => {
@@ -65,7 +64,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage }).array("files", 8);
-
 // 클럽별 갤러리 이미지 등록
 router.post("/:clubNumber/images", upload, async (req, res) => {
   try {
@@ -74,23 +72,26 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
     const { clubNumber } = req.params;
     const { writer, title, content } = req.body;
 
-    const writerNick = await User.findById(req.body.writer);
-    const NickName = writerNick.nickName
-    console.log(NickName)
-
     const club = await Club.findById(clubNumber);
     if (!club) {
       return res.status(404).json({ error: "클럽을 찾을 수 없습니다." });
     }
 
-    if (!club.members.includes(writer)) {
-      return res.status(403).json({ error: "이 클럽의 멤버가 아닙니다." });
+    // 1. 클럽 멤버 여부 및 관리자 권한 확인
+    const isAdmin = club.admin === writer; // 관리자인지 여부 확인
+    const isMember = club.members.includes(writer); // 클럽 멤버인지 여부 확인
+
+    if (!isAdmin && !isMember) {
+      // 클럽 관리자도 아니고 멤버도 아닌 경우
+      return res
+        .status(403)
+        .json({ error: "이 클럽의 멤버가 아니거나 권한이 없습니다." });
     }
 
     let originImages = [];
     let thumbnailImages = [];
 
-    // 이미지 처리
+    // 2. 이미지 처리
     for (const file of files) {
       const originalFilePath = path.join(originPath, file.filename);
       const thumbnailFilePath = path.join(
@@ -105,7 +106,7 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
       thumbnailImages.push(thumbnailFilePath);
     }
 
-    // 갤러리 생성
+    // 3. 갤러리 생성
     const gallery = new Gallery({
       clubNumber,
       writer,
@@ -129,8 +130,6 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
 
 // 클럽별 이미지 수정 라우트
 router.put("/:clubNumber/images/:id", upload, async (req, res) => {
-
-
   try {
     const { clubNumber, id } = req.params;
     const { writer, title, content, sortedImages } = req.body;
@@ -208,7 +207,6 @@ router.get("/:clubNumber/images", async (req, res) => {
     const { clubNumber } = req.params;
     const galleries = await Gallery.find({ clubNumber });
 
-
     res.json(
       galleries.map((gallery) => ({
         _id: gallery._id,
@@ -242,8 +240,8 @@ router.get("/:clubNumber/images/:id", async (req, res) => {
     if (!gallery) {
       return res.status(404).json({ error: "Gallery not found" });
     }
-    const email = gallery.writer
-    const UserNickName = await User.findOne({ email })
+    const email = gallery.writer;
+    const UserNickName = await User.findOne({ email });
 
     res.json({
       _id: gallery._id,
@@ -260,8 +258,8 @@ router.get("/:clubNumber/images/:id", async (req, res) => {
         .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
       updatedAt: moment(gallery.updatedAt)
         .tz("Asia/Seoul")
-        .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환  
-    })
+        .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
+    });
   } catch (error) {
     res.status(500).send(error.message);
   }

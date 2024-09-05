@@ -9,8 +9,7 @@ router.post("/add/:postId", async (req, res) => {
   try {
     const { postId } = req.params; // postId는 URL 파라미터에서 받음
     const { postType, writer, comment } = req.body; // 나머지는 req.body에서 받음
-    console.log(req.body); // req.body를 확인
-    console.log(req.params.postId); // req.params에서 postId를 확인
+
     if (!postId || !postType || !writer || !comment) {
       return res.status(400).json({ error: "모든 필드를 입력해주세요." });
     }
