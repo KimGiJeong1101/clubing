@@ -16,7 +16,6 @@ const fetchGetClub = createAsyncThunk("clubList/fetchGetClub", async (id) => {
 
 const fetchGetClubMember = createAsyncThunk("clubs/fetchGetClubMember", async (clubMembers) => {
   const response = await axiosInstance.post(`http://localhost:4000/clubs/membersInfo`, clubMembers);
-  console.log(response);
   const data = await response.data;
   return data;
 });
