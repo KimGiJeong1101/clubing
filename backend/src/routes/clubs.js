@@ -52,7 +52,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // 파일 업로드 엔드포인트
-router.post("/create", sessionAuth, upload.single("img"), async (req, res, next) => {
+router.post("/create", auth, upload.single("img"), async (req, res, next) => {
   try {
     req.body.img = req.file.destination + req.file.filename;
     req.body.admin = req.user.email;
@@ -106,7 +106,7 @@ router.delete("/delete/:id", async (req, res, next) => {
   }
 });
 
-router.post("/update/:clubNumber",sessionAuth,upload.single("img"), async (req, res, next) => {
+router.post("/update/:clubNumber",auth,upload.single("img"), async (req, res, next) => {
   try {
     //서브카테고리 나누기
     //서브카테고리 나누기.end
@@ -140,7 +140,7 @@ router.post("/addMember/:clubNumber", auth, async (req, res, next) => {
   }
 });
 
-router.post("/cencellMember/:clubNumber", sessionAuth, async (req, res, next) => {
+router.post("/cencellMember/:clubNumber", auth, async (req, res, next) => {
   try {
     const clubs = await Club.findById({ _id: req.params.clubNumber });
     const memberIndex = clubs.members.indexOf(req.user.email);
