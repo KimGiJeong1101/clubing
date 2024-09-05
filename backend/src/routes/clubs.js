@@ -22,7 +22,6 @@ router.get("/", async (req, res, next) => {
 
 router.get("/scroll/:scrollCount", async (req, res, next) => {
   try {
-
     const skip = (req.params.scrollCount - 1) * 3;
     const clubs = await Club.find().sort({ _id: 1 }).skip(skip).limit(3); // 오름차순 솔팅
     res.status(200).json(clubs);
@@ -104,6 +103,7 @@ router.get("/read2/:id", async (req, res, next) => {
       copymember.thumbnailImage = userinfo.profilePic.thumbnailImage;
       memberInfo.push(copymember);
     }
+    
     let copy = { ...clubs._doc, clubmembers: memberInfo };
     res.status(200).json(copy);
   } catch (error) {

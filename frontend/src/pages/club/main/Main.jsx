@@ -92,6 +92,7 @@ const Main = () => {
   const getReadClub = async () => {
     const response = await fetch(`http://localhost:4000/clubs/read2/${clubNumber}`);
     const data = await response.json();
+    
     await dispatch(fetchCategoryClubList(data.mainCategory));
     return data;
   };

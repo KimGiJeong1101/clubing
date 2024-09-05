@@ -37,11 +37,11 @@ const Clubs = () => {
     if (data.length === 3) {
       window.addEventListener("scroll", handleScroll);
     } else if (data.length !== 3) {
-      alert("마지막 데이터임");
     }
   };
   let [scrollCount, setScrollCount] = useState(1);
   let [scrollData, setScrollData] = useState([]);
+
   let handleScroll = () => {
     let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     let scrollHeight = document.documentElement.scrollHeight;
@@ -52,6 +52,7 @@ const Clubs = () => {
       window.removeEventListener("scroll", handleScroll);
     }
   };
+
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
     return () => {
@@ -104,7 +105,7 @@ const Clubs = () => {
               <Paper
                 elevation={3}
                 sx={{
-                  borderRadius: "12px",
+                  borderRadius: "20px",
                   overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
@@ -112,6 +113,7 @@ const Clubs = () => {
                   cursor: "pointer",
                   transition: "box-shadow 0.3s ease",
                   backgroundColor: "white",
+                  boxShadow: "none", // 그림자 제거
                 }}
                 onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
               >
@@ -140,17 +142,34 @@ const Clubs = () => {
                   <Box
                     sx={{
                       position: "absolute",
-                      top: 5,
-                      left: 5,
-                      backgroundColor: "#ffffff",
-                      padding: "8px",
-                      borderRadius: "12px",
-                      opacity: "0.8",
+                      top: 0,
+                      right: 0,
+                      backgroundColor: "#f2f2f2",
+                      width: "130px",
+                      height: "40px",
+                      paddingBottom: "18px",
+                      borderBottom: "15px solid #f2f2f2",
+                      borderLeft: "15px solid #f2f2f2",
+                      borderBottomLeftRadius: "20px",
                     }}
                   >
-                    <Typography variant="caption" sx={{ color: "#3f51b5", fontWeight: "bold" }}>
+                    <Box
+                      sx={{
+                        display: "flex", // 플렉스박스로 설정
+                        marginTop: "5px",
+                        marginRight: "5px",
+                        justifyContent: "center", // 가로 중앙 정렬
+                        alignItems: "center", // 세로 중앙 정렬
+                        width: "130px",
+                        height: "50px",
+                        color: "#3f51b5",
+                        fontWeight: "bold",
+                        borderRadius: "20px",
+                        backgroundColor: "white",
+                      }}
+                    >
                       {club.mainCategory}
-                    </Typography>
+                    </Box>
                   </Box>
                 </Box>
                 <Box
@@ -158,7 +177,7 @@ const Clubs = () => {
                     padding: "16px",
                     display: "flex",
                     flexDirection: "column",
-                    height: "230px",
+                    height: "200px",
                   }}
                 >
                   <Typography
@@ -225,7 +244,7 @@ const Clubs = () => {
                         display: "flex",
                         alignItems: "center",
                         marginLeft: "8px",
-                        fontSize: "14px",
+                        fontSize: "16px",
                         color: "#666666",
                       }}
                     >
@@ -263,8 +282,8 @@ const Clubs = () => {
                     flexDirection: "column",
                     height: "100%",
                     cursor: "pointer",
-                    transition: "box-shadow 0.3s ease",
                     backgroundColor: "white",
+                    boxShadow: "none", // 그림자 제거
                   }}
                   onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
                 >

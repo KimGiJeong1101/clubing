@@ -9,7 +9,7 @@ const settings = {
   dots: true,
   infinite: true,
   speed: 500,
-  slidesToShow: 1, // 화면에 한 번에 보여줄 카드 수
+  slidesToShow: 2, // 화면에 한 번에 보여줄 카드 수
   centerMode: true, // 중앙 정렬 활성화
   centerPadding: "40px", // 조정된 값
   slidesToScroll: 1,

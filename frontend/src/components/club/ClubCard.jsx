@@ -70,12 +70,9 @@ const ClubCard = ({ clubList }) => {
                 <Box
                   sx={{
                     position: "absolute",
-                    top: 5,
-                    left: 5,
                     backgroundColor: "#ffffff",
                     padding: "8px",
                     borderRadius: "12px",
-                    opacity: "0.8",
                   }}
                 >
                   <Typography variant="caption" sx={{ color: "#3f51b5", fontWeight: "bold" }}>
