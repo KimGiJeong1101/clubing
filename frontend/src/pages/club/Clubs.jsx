@@ -1,34 +1,14 @@
-import React, { useState } from "react";
-import {
-  Box,
-  Container,
-  Grid,
-  Paper,
-  Tab,
-  Tabs,
-  Typography,
-} from "@mui/material";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import BrushIcon from "@mui/icons-material/Brush";
-import ScubaDivingIcon from "@mui/icons-material/ScubaDiving";
-import FastfoodIcon from "@mui/icons-material/Fastfood";
-import StarIcon from "@mui/icons-material/Star";
-import FlightIcon from "@mui/icons-material/Flight";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
-import Diversity3Icon from "@mui/icons-material/Diversity3";
-import CelebrationIcon from "@mui/icons-material/Celebration";
-import SavingsIcon from "@mui/icons-material/Savings";
-import CastForEducationIcon from "@mui/icons-material/CastForEducation";
-import FavoriteOutlinedIcon from "@mui/icons-material/FavoriteOutlined";
+import React, { useEffect, useState } from "react";
+import { Box, Container, Grid, Paper, Typography } from "@mui/material";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
-import club from "../../data/Club.js";
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import BubbleAnimation from "../../components/club/BubbleAnimation.js";
 
 const Clubs = () => {
   const getClubList = async () => {
@@ -46,22 +26,40 @@ const Clubs = () => {
     queryKey: ["clubList"],
     queryFn: getClubList,
   });
+  const navigate = useNavigate();
 
-  const [value, setValue] = useState(0);
-  const [list, setList] = useState(club);
+  //무한스크롤 구현
+  const getClubListScroll = async () => {
+    const response = await fetch(`http://localhost:4000/clubs/scroll/${scrollCount}`);
+    const data = await response.json();
 
-  const handleChange = (event, newValue) => {
-    let copy = [];
-    for (let i = 0; i < club.length; i++) {
-      if (club[i].detailTag === value) {
-        copy.push(club[i]);
-        setList(copy);
-      }
+    setScrollData((prevData) => [...prevData, ...data]); // 이전 데이터와 새 데이터를 병합
+    if (data.length === 3) {
+      window.addEventListener("scroll", handleScroll);
+    } else if (data.length !== 3) {
     }
-    setValue(newValue);
+  };
+  let [scrollCount, setScrollCount] = useState(1);
+  let [scrollData, setScrollData] = useState([]);
+
+  let handleScroll = () => {
+    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    let scrollHeight = document.documentElement.scrollHeight;
+    let clientHeight = window.innerHeight;
+    if (scrollTop + clientHeight >= scrollHeight - 10) {
+      setScrollCount(scrollCount++);
+      getClubListScroll();
+      window.removeEventListener("scroll", handleScroll);
+    }
   };
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll); // 클리어 하기위한 함수
+    };
+  }, []);
+  //무한스크롤 구현.end
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -72,8 +70,7 @@ const Clubs = () => {
   }
 
   return (
-    <Box sx={{ width: "100%", backgroundColor: "#F0EDED" }}>
-      {/* 글작성 버튼 */}
+    <Box sx={{ width: "100%", backgroundColor: "#F2F2F2", position: "relative" }}>
       <Fab
         onClick={() => {
           navigate("/clubs/create");
@@ -88,10 +85,8 @@ const Clubs = () => {
       >
         <AddIcon />
       </Fab>
-      <Container
-        maxWidth="lg"
-        sx={{ marginTop: "40px", paddingBottom: "40px" }}
-      >
+      <Box sx={{ width: "100%", height: "400px", backgroundColor: "white" }}></Box>
+      <Container maxWidth="lg" sx={{ marginTop: "40px", paddingBottom: "40px" }}>
         <Grid container spacing={3}>
           {clubList.map((club, index) => (
             <Grid
@@ -101,106 +96,114 @@ const Clubs = () => {
               md={4}
               key={club._id}
               sx={{
-                transition: 'transform 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.03)',
+                transition: "transform 0.3s ease",
+                "&:hover": {
+                  transform: "scale(1.03)",
                 },
               }}
             >
               <Paper
                 elevation={3}
                 sx={{
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100%',
-                  cursor: 'pointer',
-                  transition: 'box-shadow 0.3s ease',
-                  backgroundColor: 'white',
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  cursor: "pointer",
+                  transition: "box-shadow 0.3s ease",
+                  backgroundColor: "white",
+                  boxShadow: "none", // 그림자 제거
                 }}
                 onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
               >
                 <Box
                   sx={{
-                    width: '100%',
-                    height: '300px',
-                    overflow: 'hidden',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    position: 'relative',
-                    backgroundColor: '#f0f0f0',
+                    width: "100%",
+                    height: "300px",
+                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    position: "relative",
+                    backgroundColor: "#f0f0f0",
                   }}
                 >
                   <img
-                    src={list[index].src}
+                    src={`http://localhost:4000/` + club.img}
                     alt={club.title}
                     style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      borderRadius: '12px 12px 0 0',
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      borderRadius: "12px 12px 0 0",
                     }}
                   />
-                  {/* 메인 카테고리 */}
                   <Box
                     sx={{
-                      position: 'absolute',
-                      top: 5,
-                      left: 5,
-                      backgroundColor: '#ffffff',
-                      padding: '8px',
-                      borderRadius: '12px',
-                      opacity:'0.8'
-                     
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                      backgroundColor: "#f2f2f2",
+                      width: "130px",
+                      height: "40px",
+                      paddingBottom: "18px",
+                      borderBottom: "15px solid #f2f2f2",
+                      borderLeft: "15px solid #f2f2f2",
+                      borderBottomLeftRadius: "20px",
                     }}
                   >
-                    <Typography
-                      variant="caption"
-                      sx={{ color: '#3f51b5', fontWeight: 'bold' }}
+                    <Box
+                      sx={{
+                        display: "flex", // 플렉스박스로 설정
+                        marginTop: "5px",
+                        marginRight: "5px",
+                        justifyContent: "center", // 가로 중앙 정렬
+                        alignItems: "center", // 세로 중앙 정렬
+                        width: "130px",
+                        height: "50px",
+                        color: "#3f51b5",
+                        fontWeight: "bold",
+                        borderRadius: "20px",
+                        backgroundColor: "white",
+                      }}
                     >
                       {club.mainCategory}
-                    </Typography>
+                    </Box>
                   </Box>
-                  {/* 메인 카테고리.end */}
                 </Box>
-                {/* 클럽 */}
                 <Box
                   sx={{
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    height: '230px',
-                    
+                    padding: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "200px",
                   }}
                 >
-                  {/* 클럽 제목 */}
                   <Typography
                     variant="h5"
                     sx={{
-                      fontWeight: '700',
-                      fontSize: '20px',
-                      color: '#383535',
-                      marginBottom: '8px',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
+                      fontWeight: "700",
+                      fontSize: "20px",
+                      color: "#383535",
+                      marginBottom: "8px",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {club.title}
                   </Typography>
-                  {/* 클럽 제목.end */}
                   <Typography
                     variant="h6"
                     sx={{
-                      fontWeight: '500',
-                      fontSize: '18px',
-                      color: '#777777',
-                      marginBottom: '8px',
-                      textOverflow: 'ellipsis',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
+                      fontWeight: "500",
+                      fontSize: "18px",
+                      color: "#777777",
+                      marginBottom: "8px",
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {club.subTitle}
@@ -208,53 +211,45 @@ const Clubs = () => {
                   <Typography
                     variant="body2"
                     sx={{
-                      color: '#9F9E9D',
-                      marginBottom: '8px',
+                      color: "#9F9E9D",
+                      marginBottom: "8px",
                     }}
                   >
                     {club.region.district}
                   </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <CommentRoundedIcon sx={{ color: '#BF5B16', fontSize: '18px' }} />
-                    <Typography
-                      variant="body2"
-                      sx={{ color: '#BF5B16', marginLeft: '5px' }}
-                    >
-                      {list[index].chat}
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    <CommentRoundedIcon sx={{ color: "#BF5B16", fontSize: "18px" }} />
+                    <Typography variant="body2" sx={{ color: "#BF5B16", marginLeft: "5px" }}>
+                      5분 전 대화
                     </Typography>
                   </Box>
-                  
+
                   <Box
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      marginTop: 'auto',
-                      borderTop: '1px solid #e0e0e0',
-                      paddingTop: '8px',
-                      paddingBottom: '8px',
+                      display: "flex",
+                      alignItems: "center",
+                      marginTop: "auto",
+                      borderTop: "1px solid #e0e0e0",
+                      paddingTop: "8px",
+                      paddingBottom: "8px",
                     }}
                   >
                     <AvatarGroup max={4}>
                       {club.members.map((member, idx) => (
-                        <Avatar
-                          key={idx}
-                          alt={`Member ${idx + 1}`}
-                          src={member.img}
-                          sx={{ width: 32, height: 32 }}
-                        />
+                        <Avatar key={idx} alt={`Member ${idx + 1}`} src={member.img} sx={{ width: 32, height: 32 }} />
                       ))}
                     </AvatarGroup>
                     <Box
                       sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        marginLeft: '8px',
-                        fontSize: '14px',
-                        color: '#666666',
+                        display: "flex",
+                        alignItems: "center",
+                        marginLeft: "8px",
+                        fontSize: "16px",
+                        color: "#666666",
                       }}
                     >
-                      <PeopleRoundedIcon sx={{ fontSize: '18px' }} />
-                      <span style={{ marginLeft: '5px' }}>
+                      <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
+                      <span style={{ marginLeft: "5px" }}>
                         {club.members.length}/{club.maxMember}
                       </span>
                     </Box>
@@ -263,8 +258,162 @@ const Clubs = () => {
               </Paper>
             </Grid>
           ))}
+          {scrollData &&
+            scrollData.map((club, index) => (
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                key={club._id}
+                sx={{
+                  transition: "transform 0.3s ease",
+                  "&:hover": {
+                    transform: "scale(1.03)",
+                  },
+                }}
+              >
+                <Paper
+                  elevation={3}
+                  sx={{
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                    cursor: "pointer",
+                    backgroundColor: "white",
+                    boxShadow: "none", // 그림자 제거
+                  }}
+                  onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
+                >
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: "300px",
+                      overflow: "hidden",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      position: "relative",
+                      backgroundColor: "#f0f0f0",
+                    }}
+                  >
+                    <img
+                      src={`http://localhost:4000/` + club.img}
+                      alt={club.title}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "12px 12px 0 0",
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 5,
+                        left: 5,
+                        backgroundColor: "#ffffff",
+                        padding: "8px",
+                        borderRadius: "12px",
+                        opacity: "0.8",
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ color: "#3f51b5", fontWeight: "bold" }}>
+                        {club.mainCategory}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box
+                    sx={{
+                      padding: "16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      height: "230px",
+                    }}
+                  >
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        fontWeight: "700",
+                        fontSize: "20px",
+                        color: "#383535",
+                        marginBottom: "8px",
+                        textOverflow: "ellipsis",
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {club.title}
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: "500",
+                        fontSize: "18px",
+                        color: "#777777",
+                        marginBottom: "8px",
+                        textOverflow: "ellipsis",
+                        overflow: "hidden",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {club.subTitle}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "#9F9E9D",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      {club.region.district}
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <CommentRoundedIcon sx={{ color: "#BF5B16", fontSize: "18px" }} />
+                      <Typography variant="body2" sx={{ color: "#BF5B16", marginLeft: "5px" }}>
+                        5분 전 대화
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginTop: "auto",
+                        borderTop: "1px solid #e0e0e0",
+                        paddingTop: "8px",
+                        paddingBottom: "8px",
+                      }}
+                    >
+                      <AvatarGroup max={4}>
+                        {club.members.map((member, idx) => (
+                          <Avatar key={idx} alt={`Member ${idx + 1}`} src={member.img} sx={{ width: 32, height: 32 }} />
+                        ))}
+                      </AvatarGroup>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          marginLeft: "8px",
+                          fontSize: "14px",
+                          color: "#666666",
+                        }}
+                      >
+                        <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
+                        <span style={{ marginLeft: "5px" }}>
+                          {club.members.length}/{club.maxMember}
+                        </span>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Paper>
+              </Grid>
+            ))}
         </Grid>
       </Container>
+      <BubbleAnimation /> {/* BubbleAnimation을 상위 요소로 추가 */}
     </Box>
   );
 };

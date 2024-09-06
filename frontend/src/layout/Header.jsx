@@ -32,7 +32,6 @@ function Header() {
     { to: '', name: '로그아웃', auth: true },
     { to: '/mypage', name: '마이페이지', auth: true },
   ];
-  
 
     const isAuth = useSelector(state => state.user?.isAuth);
     const dispatch = useDispatch();

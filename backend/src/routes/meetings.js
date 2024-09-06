@@ -1,16 +1,38 @@
 const express = require("express");
 const Meeting = require("../models/Meeting");
-const sessionAuth = require("../middleware/sessionAuth");
+const auth = require("../middleware/auth");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path"); // path 모듈을 불러옵니다.
+const fs = require("fs");
+const { v4: uuidv4 } = require("uuid"); // uuid v4 방식 사용
 
-//클럽 만들기(POST)
+router.use("/meetings", express.static(path.join(__dirname, "meetings")));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const dir = "meetings/";
+
+    // 폴더가 존재하지 않으면 생성
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
+    cb(null, dir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = uuidv4() + "-" + Date.now(); // UUID와 현재 시간 조합
+    const fileExtension = path.extname(file.originalname); // 원본 파일 확장자 가져오기
+    cb(null, `${file.fieldname}-${uniqueSuffix}${fileExtension}`); // 필드명-UUID-시간.확장자
+  },
+});
+
+const upload = multer({ storage: storage });
 
 //리스트 보여주기
 router.get('/:clubNumber', async (req, res, next) => {
     try {
-        console.log('meeting list 보여주는 곳');    
         const meetings = await Meeting.find({clubNumber : req.params.clubNumber});
-        console.log(meetings);
 
         res.json(meetings);
     } catch (error) {
@@ -18,15 +40,12 @@ router.get('/:clubNumber', async (req, res, next) => {
     }
 })
 
-router.post("/create", sessionAuth, async (req, res, next) => {
+router.post("/create", auth, upload.single("img"), async (req, res, next) => {
   try {
     // Meeting 인스턴스 생성
     const meeting = new Meeting(req.body);
-    console.log("meeting.dateTime")
-    console.log(meeting.dateTime)
+    meeting.img = req.file.destination + req.file.filename;
     const copy = meeting.dateTime.split(" ");
-    console.log("copy")
-    console.log(copy)
     const time = copy[4].split(':');
     let dayOfWeek = "";
     let month = "";
@@ -99,8 +118,6 @@ router.post("/create", sessionAuth, async (req, res, next) => {
     }
     
     const realDateTime = `${copy[3]}년 ${month} ${copy[2]}일 ${dayOfWeek} ${time[0]}:${time[1]}`;
-    console.log('realDateTime')
-    console.log(realDateTime);
     meeting.dateTime = realDateTime;
     await meeting.save();
     return res.sendStatus(200);
@@ -110,7 +127,7 @@ router.post("/create", sessionAuth, async (req, res, next) => {
   }
 });
 
-router.post("/join/:meetingId", sessionAuth, async (req, res, next) => {
+router.post("/join/:meetingId", auth, async (req, res, next) => {
   try {
     const meetingId = req.params.meetingId;
     const meeting = await Meeting.findById(meetingId);

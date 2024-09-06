@@ -18,7 +18,7 @@ function Header() {
   const getClub = useSelector((state) => state.getClub);
   const navigate = useNavigate();
 
-  const user = useSelector((state) => state.user.userData);
+  const user = useSelector((state) => state.user.userData.user);
   // URL에서 ID 추출
   //Clubmember=3 이란 거 가져오기 위해서!
 
@@ -33,7 +33,9 @@ function Header() {
 
   const handleDelete = async () => {
     try {
-      await axiosInstance.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
+      await axiosInstance.delete(
+        `http://localhost:4000/clubs/delete/${clubNumber}`
+      );
       // 삭제 후 원하는 페이지로 이동
       navigate("/clublist");
       alert("삭제 완료");
@@ -81,9 +83,12 @@ function Header() {
 
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
+  //hyk 추가 언디파인에 대한 에러 값을 설정
+  const clubs = getClub.clubs || {};
+  const adminEmail = clubs.admin || '';
+  const members = Array.isArray(clubs.members) ? clubs.members : [];
 
   return (
-    
     <Box
       sx={{
         position: "fixed",
@@ -157,16 +162,14 @@ function Header() {
             horizontal: "center",
           }}
         >
-          {user.email === getClub.clubs.admin && (
-            <Box
-              onClick={handleDelete}
-              sx={{ padding: "10px" }}
-            >
+          {/* hyk 수정 위에 언디파인 예외처리를 위해 레퍼런스 값 변경 */}
+          {user.email === adminEmail && (
+            <Box onClick={handleDelete} sx={{ padding: "10px" }}>
               클럽 삭제하기
             </Box>
           )}
-          {user.email !== getClub.clubs.admin &&
-            getClub.clubs.members.includes(user.email) && (
+          {user.email !== adminEmail &&
+           members.includes(user.email) && (
               <Box
                 onClick={() => {
                   cancellClub();
@@ -176,20 +179,13 @@ function Header() {
                 클럽 탈퇴하기
               </Box>
             )}
-            <Box
-              onClick={() => {
-              }}
-              sx={{ padding: "10px" }}
-            >
-              모임 url 공유하기
-            </Box>
-            <Box
-              onClick={() => {
-              }}
-              sx={{ padding: "10px" }}
-            >
-              모임 신고하기
-            </Box>
+
+          <Box onClick={() => { }} sx={{ padding: "10px" }}>
+            모임 url 공유하기
+          </Box>
+          <Box onClick={() => { }} sx={{ padding: "10px" }}>
+            모임 신고하기
+          </Box>
         </Popover>
       </Container>
     </Box>

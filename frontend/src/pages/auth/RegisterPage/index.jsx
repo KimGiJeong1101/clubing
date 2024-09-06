@@ -19,8 +19,8 @@ import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, 
           Chip, Checkbox, Paper, Link
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-
+import color from '../../../color'; // 색상를 정의한 파일
+import '../../../assets/styles/LoginCss.css'
 
 const RegisterPage = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
@@ -121,6 +121,7 @@ const RegisterPage = () => {
       profilePic: {
         originalImage: 'https://via.placeholder.com/600x400?text=no+user+image',
         thumbnailImage: 'https://via.placeholder.com/600x400?text=no+user+image',
+        introduction: ''
       }
     }
    
@@ -542,7 +543,7 @@ const consentPopupClose = (type) => {
       sx={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          justifyContent: 'center', 
+          justifyContent: 'center',
           mt: 5, 
           maxWidth: 600, 
           mx: 'auto' }}>
@@ -550,7 +551,7 @@ const consentPopupClose = (type) => {
           sx={{ 
             p: 3,
             mb: 2 ,
-            mt: 2
+            mt: 2,
             }}>          
       <Typography variant="h4" component="h1" align="center">
        로고자리
@@ -561,7 +562,8 @@ const consentPopupClose = (type) => {
         p: 3, 
         bgcolor: 'white', 
         borderRadius: 2, 
-        boxShadow: 3 
+        boxShadow: 3 ,
+        backgroundColor: color.whiteSmoke, 
         }}>
       <Typography variant="h4" component="h1" align="center">
         회원가입
@@ -592,18 +594,27 @@ const consentPopupClose = (type) => {
         />
          <Stack direction="row" spacing={2}>
           {!isEmailChecked && (
-            <Button variant="contained" color="primary" sx={{ height: '50px' }}
+            <Button 
+            variant="contained" 
+            color="primary" 
+            className="buttonMain"
+            sx={{ height: '50px' }}
             onClick={handleCheckDuplicate}>
               중복검사
             </Button>
           )}
               {isEmailChecked && (
         <Stack direction="column" spacing={0}>
-          <Button variant="outlined" color="secondary" sx={{ height: '25px' }}
+          <Button variant="outlined"  
+          className="buttonSub1"
+          sx={{ height: '25px' }}
             onClick={handleReset}>
             메일수정
           </Button>
-          <Button variant="contained" color="success" sx={{ height: '25px' }}
+          <Button 
+          variant="contained"
+          className="buttonSub2"
+          sx={{ height: '25px' }}
             onClick={handleSendAuthEmail}>
             인증하기
           </Button>
@@ -658,6 +669,7 @@ const consentPopupClose = (type) => {
           color={isVerified ? 'grey' : 'primary'}
           onClick={handleVerifyClick}
           disabled={isVerified}
+          className="buttonMain"
           sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정하여 텍스트 필드와 높이를 맞춤
         >
           {isVerified ? '인증확인' : '인증완료'}
@@ -880,6 +892,7 @@ const consentPopupClose = (type) => {
               <Button
                 variant="contained"
                 onClick={() => field.onChange('남성')}
+                className='buttonSub3'
                 sx={{
                   flexGrow: 1,
                   // '남성' ? '선택' : '비선택'
@@ -899,6 +912,7 @@ const consentPopupClose = (type) => {
               <Button
                 variant="contained"
                 onClick={() => field.onChange('여성')}
+                className='buttonSub4'
                 sx={{
                   flexGrow: 1,
                   backgroundColor: watch('gender') === '여성' ? '#ff4081' : '#ff4081', // 선택된 경우와 비선택된 경우 색상 설정

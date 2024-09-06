@@ -3,9 +3,10 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
 const path = require("path");
-const session = require("./src/middleware/session"); // 세션 설정 로드
+const cookieParser = require('cookie-parser');
 require("dotenv").config();
-const winston = require('winston'); // 서버 로그를 확인
+
+const jwt = require("jsonwebtoken"); // JWT 패키지 로드
 
 // 미들웨어 설정
 app.use(
@@ -14,15 +15,85 @@ app.use(
     credentials: true,
     //클라이언트에서 서버로 요청을 보낼 때 쿠키와 인증 헤더를 포함할 수 있게 해주는 설정입니다.
     //이 옵션은 클라이언트와 서버 간의 인증된 세션 유지에 중요한 역할을 합니다.
-  })
+  }),
 );
 app.use(express.json());
 
 // 세션 설정 적용
-app.use(session);
+//app.use(session);
+
+// 쿠키 파서 미들웨어
+app.use(cookieParser());
+
+app.use((req, res, next) => {
+  const accessToken = req.cookies.accessToken;
+  const refreshToken = req.cookies.refreshToken;
+
+  // 남은 시간 계산 함수
+  function getTimeLeft(exp) {
+    const currentTime = Math.floor(Date.now() / 1000); // 현재 시간 (초 단위)
+    const timeLeft = exp - currentTime;
+
+    if (timeLeft <= 0) {
+      return "만료됨";
+    }
+
+    const hours = Math.floor(timeLeft / 3600); // 남은 시간을 시간 단위로 계산
+    const minutes = Math.floor((timeLeft % 3600) / 60); // 남은 시간에서 시간 부분을 제외하고 분 계산
+    const seconds = timeLeft % 60; // 남은 시간에서 시간, 분 부분을 제외하고 초 계산
+
+    return `${hours}시간 ${minutes}분 ${seconds}초 남음`;
+  }
+
+  // 액세스 토큰 만료 시간 체크
+  if (accessToken) {
+    try {
+      const decodedAccessToken = jwt.decode(accessToken);
+      if (decodedAccessToken && decodedAccessToken.exp) {
+        const accessTokenExp = decodedAccessToken.exp;
+        const timeLeft = getTimeLeft(accessTokenExp);
+        console.log(`액세스 토큰 ${timeLeft}`);
+      } else {
+        console.log("액세스 토큰에 만료 시간이 없습니다.");
+      }
+    } catch (error) {
+      console.error("액세스 토큰 디코딩 오류:", error);
+    }
+  } else {
+    console.log("액세스 토큰이 없습니다.");
+  }
+
+  // 리프레시 토큰 만료 시간 체크
+  if (refreshToken) {
+    try {
+      const decodedRefreshToken = jwt.decode(refreshToken);
+      if (decodedRefreshToken && decodedRefreshToken.exp) {
+        const refreshTokenExp = decodedRefreshToken.exp;
+        const timeLeft = getTimeLeft(refreshTokenExp);
+        console.log(`리프레시 토큰 ${timeLeft}`);
+      } else {
+        console.log("리프레시 토큰에 만료 시간이 없습니다.");
+      }
+    } catch (error) {
+      console.error("리프레시 토큰 디코딩 오류:", error);
+    }
+  } else {
+    console.log("리프레시 토큰이 없습니다.");
+  }
+
+  next();
+});
 
 // 정적 파일 제공을 위해 uploads 폴더를 공개
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// 정적파일 제공 (클럽용) - 구 추가 -
+app.use("/clubs", express.static(path.join(__dirname, "clubs")));
+
+// 정적파일 제공 (미팅용) - 구 추가 -
+app.use("/meetings", express.static(path.join(__dirname, "meetings")));
+// 정적파일 제공 (백그라운드 사진용) - 구 추가 -
+app.use("/backgroundPic", express.static(path.join(__dirname, "backgroundPic")));
 
 /////////////////////////////////////라우터 구간
 //라우터 미들웨어(보드)
@@ -56,20 +127,11 @@ app.use("/users", usersRouter);
 //라우터 미들웨어(유저로그인)
 const userSignsRouter = require("./src/routes/userSigns");
 app.use("/userSigns", userSignsRouter);
-/////////////////////////////////////라우터 구간 .end
 
-// 에러처리 미들웨어
-app.use((err, req, res, next) => {
-  logger.error("에러 발생:", err); // winston을 사용하여 에러를 로그 파일에 기록
-  res.status(err.status || 500);
-  // 에러 객체의 상태 코드를 가져와서 응답 상태 코드를 설정합니다. 없으면 기본적으로 500 상태 코드를 사용합니다.
-  res.send(err.message || "서버에서 에러가 발생했습니다.");
-  // 에러 메시지를 클라이언트에게 전송합니다. 에러 메시지가 없으면 기본 메시지를 사용합니다.
-});
+/////////////////////////////////////라우터 구간 .end
 
 // 루트 경로 접근 시 로그
 app.get("/", (req, res) => {
-  logger.info("루트 경로 접근됨"); // winston을 사용하여 루트 접근 로그 기록
   res.send("Hello, World!");
 });
 
@@ -91,15 +153,8 @@ startServer();
 // 'profile' 폴더를 정적 파일 경로로 설정
 app.use("/profile", express.static(path.join(__dirname, "profile")));
 
-// winston 로그 설정
-const logger = winston.createLogger({
-  level: "info",
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.File({ filename: "combined.log" }),
-    new winston.transports.Console(),
-  ],
-});
+////////////////////////////////////////////////////////////board////////////////////////////////////////////////////
+// 파일 업로드를 위한 디렉토리 설정
+const uploadDir = path.join(__dirname, "upload"); //d 추가
+// 업로드된 파일 제공을 위한 정적 파일 미들웨어
+app.use("/upload", express.static(uploadDir)); //d 추가

@@ -45,7 +45,7 @@ function App() {
       <Route path="/clubs/*" element={<ClubLayout />}>
         <Route path="*" element={<ClubRoutes />} />
       </Route>
-    
+
       {/* 기본 Layout을 사용하는 경로 */}
       <Route path="/" element={<Layout />}>
         <Route path="/clublist" element={<Clubs />} />
@@ -54,7 +54,7 @@ function App() {
 
         {/* 로그인한 사람만 갈 수 있는 경로 */}
         <Route element={<ProtectedRoutes isAuth={isAuth} />}>
-          <Route path="/clubs/create" element={<ClubCreate />} /> 
+          <Route path="/clubs/create" element={<ClubCreate />} />
           <Route path="/mypage/*" element={<MyPageRoutes />} />
         </Route>
 

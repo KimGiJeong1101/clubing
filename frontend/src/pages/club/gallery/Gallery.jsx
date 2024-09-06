@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
@@ -29,11 +28,16 @@ const Gallery = () => {
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
+
   const [open, setOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedId, setSelectedId] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
+  const [selectedWriter, setSelectedWriter] = useState('');
   const [selectedTitle, setSelectedTitle] = useState('');
   const [selectedContent, setSelectedContent] = useState('');
+  const [selectedCreatedAt, setSelectedCreatedAt] = useState('');
+  const [selectedUpdatedAt, setSelectedUpdatedAt] = useState('');
   const [registerOpen, setRegisterOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedImageIds, setSelectedImageIds] = useState([]);
@@ -73,6 +77,7 @@ const Gallery = () => {
       setSnackbarOpen(true);
     },
     onError: (error) => {
+      setRegisterOpen(false);
       setSnackbarMessage(error.response?.data?.error || '등록 중 에러가 발생했습니다.');
       setSnackbarSeverity('error');
       setSnackbarOpen(true);
@@ -139,21 +144,30 @@ const Gallery = () => {
       const gallery = response.data;
 
       setSelectedIndex(index);
+      setSelectedId(gallery._id);
       setSelectedImages(gallery.originImages);
+      setSelectedWriter(gallery.writer);
       setSelectedTitle(gallery.title);
       setSelectedContent(gallery.content);
+      setSelectedCreatedAt(gallery.createdAt);
+      setSelectedUpdatedAt(gallery.updatedAt);
       setOpen(true);
     } catch (error) {
       console.error("Failed to fetch gallery details", error);
     }
   };
 
+
   // 모달을 닫는 핸들러
   const handleClose = () => {
     setOpen(false);
     setSelectedImages([]);
+    setSelectedId('');
+    setSelectedWriter('');
     setSelectedTitle('');
     setSelectedContent('');
+    setSelectedCreatedAt('');
+    setSelectedUpdatedAt('');
   };
 
   // 이전 이미지로 이동하는 핸들러
@@ -256,7 +270,7 @@ const Gallery = () => {
   return (
     <div style={{ minWidth: '400px', overflowX: 'hidden', position: 'relative' }}>
       {error && <div>데이터 로드 에러: {error.message}</div>} {/* 에러가 있을 경우 에러 메시지 출력 */}
-      
+
       <ImageList
         sx={{
           width: '100%',
@@ -313,9 +327,13 @@ const Gallery = () => {
       <GalleryModal
         open={open}
         handleClose={handleClose}
+        postId={selectedId}
         images={selectedImages}
+        writer={selectedWriter}
         title={selectedTitle}
         content={selectedContent}
+        createdAt={selectedCreatedAt}
+        updatedAt={selectedUpdatedAt}
         handlePrev={handlePrev}
         handleNext={handleNext}
       />
@@ -337,10 +355,10 @@ const Gallery = () => {
         <AddToPhotosIcon />
       </Button>
 
-      <Button 
+      <Button
         sx={{
           position: 'fixed',
-          top: 160, 
+          top: 160,
           right: 16,
           zIndex: 1000,
           backgroundColor: 'white.main',
@@ -351,7 +369,7 @@ const Gallery = () => {
         }}
         onClick={handleSelectModeToggle}
       >
-        <CheckCircleSharpIcon/>
+        <CheckCircleSharpIcon />
       </Button>
 
       {selectMode && (
@@ -470,7 +488,6 @@ const Gallery = () => {
           {editGallery && (
             <GalleryCreate
               onRegisterComplete={handleEditComplete}
-              isEditMode={true}
               initialData={{
                 title: editGallery.title,
                 content: editGallery.content,
