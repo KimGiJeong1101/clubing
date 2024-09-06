@@ -264,11 +264,11 @@ router.get("/:clubNumber/images/:id", async (req, res) => {
     res.status(500).send(error.message);
   }
 });
-
 // 클럽별 이미지 삭제 라우트
 router.delete("/:clubNumber/images", async (req, res) => {
   const { imageIds, writer } = req.body;
   const { clubNumber } = req.params;
+  console.log("권한 있는사람 : ", writer);
 
   if (!imageIds || !Array.isArray(imageIds) || imageIds.length === 0) {
     return res
@@ -301,14 +301,24 @@ router.delete("/:clubNumber/images", async (req, res) => {
 
     for (const gallery of galleriesToDelete) {
       for (const filePath of gallery.origin_images) {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {
+          console.error(`Error deleting file ${filePath}:`, error.message);
         }
       }
 
       for (const filePath of gallery.thumbnail_images) {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {
+          console.error(`Error deleting thumbnail ${filePath}:`, error.message);
         }
       }
     }
@@ -325,6 +335,7 @@ router.delete("/:clubNumber/images", async (req, res) => {
 router.delete("/:clubNumber/images/all", async (req, res) => {
   const { clubNumber } = req.params;
   const { writer } = req.body;
+  console.log("권한 있는사람 : ", writer);
 
   try {
     const club = await Club.findById(clubNumber);
@@ -341,19 +352,31 @@ router.delete("/:clubNumber/images/all", async (req, res) => {
 
     const galleries = await Gallery.find({ clubNumber });
 
-    galleries.forEach((gallery) => {
-      gallery.origin_images.forEach((filePath) => {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+    for (const gallery of galleries) {
+      for (const filePath of gallery.origin_images) {
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {
+          console.error(`Error deleting file ${filePath}:`, error.message);
         }
-      });
-      gallery.thumbnail_images.forEach((filePath) => {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      });
-    });
+      }
 
+      for (const filePath of gallery.thumbnail_images) {
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {
+          console.error(`Error deleting thumbnail ${filePath}:`, error.message);
+        }
+      }
+    }
+
+    // 모든 갤러리 삭제
     await Gallery.deleteMany({ clubNumber });
 
     res.json({ success: true, deletedCount: galleries.length });
@@ -361,5 +384,6 @@ router.delete("/:clubNumber/images/all", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 module.exports = router;

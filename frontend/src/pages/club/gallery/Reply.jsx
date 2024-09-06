@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Typography, TextField, IconButton, CircularProgress } from '@mui/material';
+import { Typography, TextField, IconButton, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { Box } from '@mui/system';
 import SendIcon from '@mui/icons-material/Send';
 import InputAdornment from '@mui/material/InputAdornment';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import axiosInstance from '../../../utils/axios';
 import moment from 'moment';
 import 'moment/locale/ko'; // 한국어 locale 불러오기
 
@@ -12,14 +12,18 @@ import 'moment/locale/ko'; // 한국어 locale 불러오기
 moment.locale('ko');
 
 const Reply = ({ postType, postId, writer }) => {
+
     const [comment, setComment] = useState('');
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success', 'error'
 
     const queryClient = useQueryClient();
 
     const { data: replies, isLoading, isError, error } = useQuery({
         queryKey: ['replies', postType, postId],
         queryFn: async () => {
-            const response = await axios.get(`http://localhost:4000/replies/${postId}`);
+            const response = await axiosInstance.get(`http://localhost:4000/replies/${postId}`);
             return response.data.replies;  // replies 배열만 반환
         },
         retry: 3,
@@ -28,12 +32,18 @@ const Reply = ({ postType, postId, writer }) => {
     const mutation = useMutation({
         mutationFn: (newComment) => {
             // postId를 URL에 포함시켜 요청 보냄
-            return axios.post(`http://localhost:4000/replies/add/${newComment.postId}`, newComment);
+            return axiosInstance.post(`http://localhost:4000/replies/add/${newComment.postId}`, newComment);
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['replies', postType, postId]);
             setComment('');
+            // 성공 메시지 및 스낵바 표시
+            handleSnackbarOpen('댓글이 성공적으로 등록되었습니다.', 'success');
         },
+        onError: (error) => {
+            // 에러 메시지 및 스낵바 표시
+            handleSnackbarOpen(`댓글 등록 중 에러 발생: ${error.message}`, 'error');
+        }
     });
 
     const handleCommentChange = (e) => {
@@ -53,8 +63,18 @@ const Reply = ({ postType, postId, writer }) => {
             postType,
             postId,
             writer,
-            comment, // 줄바꿈 처리를 그대로 보내줌
+            comment,
         });
+    };
+
+    const handleSnackbarOpen = (message, severity) => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
     };
 
     return (
@@ -117,7 +137,8 @@ const Reply = ({ postType, postId, writer }) => {
                                     whiteSpace: 'pre-wrap', // 줄바꿈 및 공백 유지
                                 }}
                             >
-                                {`${reply.writer} : ${reply.comment}`}
+                                {/* writer 대신 writerNickName 사용 */}
+                                {`${reply.writerNickName || 'Unknown'} : ${reply.comment}`}
                             </Typography>
                             <Typography
                                 variant="caption"
@@ -184,6 +205,17 @@ const Reply = ({ postType, postId, writer }) => {
                     }}
                 />
             </Box>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={4000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 }
