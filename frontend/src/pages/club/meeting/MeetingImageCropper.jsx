@@ -56,14 +56,14 @@ const cropButtonStyles = {
 };
 
 // 이미지 크롭퍼 컴포넌트
-const ImageCropper = ({ src, onCropComplete, onClose }) => {
+const MeetingImageCropper = ({ src, onCropComplete, onClose }) => {
   const [crop, setCrop] = useState({
     unit: "px",
-    width: 852,
-    height: 478.5,
-    aspect: 16 / 9,
+    width: 280,
+    height: 200,
+    aspect: 7 / 5,
   });
-  
+
   const [image, setImage] = useState(null);
 
   const onLoad = (e) => {
@@ -127,4 +127,4 @@ const ImageCropper = ({ src, onCropComplete, onClose }) => {
   );
 };
 
-export default ImageCropper;
+export default MeetingImageCropper;
