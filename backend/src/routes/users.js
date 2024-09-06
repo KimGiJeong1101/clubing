@@ -2,7 +2,8 @@ const express = require('express');
 const User = require('../models/User');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const sessionAuth = require('../middleware/sessionAuth');
+//const sessionAuth = require('../middleware/sessionAuth');
+const auth = require('../middleware/auth');
 const async = require('async');
 const { sendAuthEmail, verifyAuthCode } = require('../service/authController');
 const sharp = require('sharp');
@@ -14,12 +15,17 @@ const fs = require('fs');
 const passport = require('passport');
 
 
-router.get('/auth', sessionAuth, async (req, res, next) => {
+router.get('/auth', auth, async (req, res, next) => {
     try {
         const user = req.user; // 로그인된 사용자 정보
         if (!user) {
             return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
         }
+
+        if (!user.isActive) {
+            return res.status(400).json({ message: '탈퇴한 회원입니다.' });
+        }
+        
         return res.json({ 
             user
          }); // 사용자 정보 반환
@@ -65,10 +71,14 @@ router.post('/login', async (req, res, next) => {
     try {
         // 이메일 확인 
         const user = await User.findOne({email : req.body.email});
-        console.log(user);
+ 
         if (!user) {
             return res.status(400).json({ error: '이메일이 확인되지 않습니다.' });
         }
+
+        if (!user.isActive) {
+            return res.status(400).json({ message: '탈퇴한 회원입니다.' });
+          }
         // 비밀번로가 올바른 것인지 체크
         const isMatch = await user.comparePassword(req.body.password);
         if (!isMatch) {
@@ -80,46 +90,99 @@ router.post('/login', async (req, res, next) => {
         }
         console.log(payload);
         // token을 생성
-        const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
-        // 유효기간 1시간
-		// JWT_SECRET env 파일에 담긴 시크릿 코드
-        console.log(accessToken+'accessTokenaccessToken');
+        const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' })
+        // 유효기간 15분
 
-         // 세션에 JWT 저장
-         req.session.accessToken = accessToken;
-        
-        // 세션 상태 확인 (디버깅용)
-        console.log('Session:', req.session);
+         // 리프레시 토큰 생성
+         const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
-        return res.json({ user, accessToken })
+        // JWT를 쿠키에 저장
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true, // 클라이언트 측에서 접근 불가 중요 췤크!!!!
+            secure: process.env.NODE_ENV === 'production', // HTTPS에서만 쿠키 전송 (프로덕션 환경에서) 미친
+            //maxAge: 5 * 60 * 1000, // 테스트 (5분)
+            maxAge: 15 * 60 * 1000, // 쿠키 만료 시간 설정 (15분)
+            sameSite: 'Strict' //  CSRF 공격을 방지 미친
+        });
+
+         // 리프레시 토큰을 쿠키에 저장
+         res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            //maxAge: 1 * 60 * 1000, // 테스트 (1분)
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+            sameSite: 'Strict'
+        });
+
+        // 응답으로 사용자 정보와 성공 메시지 전송
+        return res.json({ user, message: '로그인 성공' });
     } catch (error) {
         next(error)
     }
 })
 
-//8.22 쿠키랑 세션 삭제
-router.post('/logout', sessionAuth, async (req, res, next) => {
+router.post('/refresh-token', async (req, res, next) => {
     try {
-        // 서버 측에서 세션 삭제
-        req.session.destroy(err => {
-            if (err) {
-                // 세션 삭제 중 오류 발생 시
-                return res.status(500).send("로그아웃 중 오류가 발생했습니다.");
-            }
-            // 클라이언트 측에서 쿠키 삭제
-            res.clearCookie("connect.sid");
-            // 로그아웃 성공 응답
-            res.sendStatus(200);
+        const { refreshToken } = req.cookies;
+
+        if (!refreshToken) {
+            return res.status(401).json({ error: '리프레시 토큰이 없습니다.' });
+        }
+
+        // 리프레시 토큰 검증
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        
+        // 새로운 액세스 토큰 생성
+        const accessToken = jwt.sign({ userId: decoded.userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+        // 새로운 액세스 토큰을 쿠키에 저장
+        res.cookie('accessToken', accessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            //maxAge: 5 * 60 * 1000, // 테스트 (5분)
+            maxAge: 15 * 60 * 1000, // 15분
+            sameSite: 'Strict'
         });
+
+        return res.json({ message: '새로운 액세스 토큰이 발급되었습니다.' });
     } catch (error) {
-        // 다른 오류 처리
+       // 리프레시 토큰이 유효하지 않을 때
+       if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ error: '리프레시 토큰이 유효하지 않습니다.' });
+        }
         next(error);
     }
 });
 
+//8.22 쿠키랑 세션 삭제
+router.post('/logout', (req, res, next) => {
+    try {
+        // 클라이언트 측에서 쿠키 삭제
+        res.clearCookie('accessToken', {
+            httpOnly: true, // 클라이언트 측에서 접근 불가
+            secure: process.env.NODE_ENV === 'production', // HTTPS에서만 쿠키 전송 (프로덕션 환경에서)
+            sameSite: 'Strict' // CSRF 공격 방지
+        });
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true, // 클라이언트 측에서 접근 불가
+            secure: process.env.NODE_ENV === 'production', // HTTPS에서만 쿠키 전송 (프로덕션 환경에서)
+            sameSite: 'Strict' // CSRF 공격 방지
+        });
+
+         // 로그 출력
+    console.log('AccessToken 쿠키 삭제:', req.cookies.accessToken); // null이어야 함
+    console.log('RefreshToken 쿠키 삭제:', req.cookies.refreshToken); // null이어야 함
+
+        // 로그아웃 성공 응답
+        return res.sendStatus(200);
+    } catch (error) {
+        next(error);
+    }
+});
 
 // src/routes/users.js
-router.get('/myPage', sessionAuth, async (req, res, next) => {
+router.get('/myPage', auth, async (req, res, next) => {
     try {
         const user = req.user;
         if (!user) {
@@ -145,22 +208,50 @@ router.get('/myPage', sessionAuth, async (req, res, next) => {
 })
 
 // 마이페이지에서 수정
-router.put('/myPage', sessionAuth, async (req, res, next) => {
+router.put('/myPage/update', auth, async (req, res, next) => {
     try {
+        // 현재 로그인된 사용자 정보 가져오기
         const user = req.user;
         if (!user) {
             return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
         }
-        // 요청된 업데이트 내용
-        const updateData = req.body;
-        // 사용자 정보를 업데이트
-        const updatedUser = await User.findByIdAndUpdate(user._id, updateData, { new: true });
 
+        const updateData = req.body;
+
+        // 비밀번호를 업데이트할 때는 user.save()를 사용해야 합니다.
+        // 사용자의 기존 정보를 로드한 후, 새로운 정보를 적용하고 저장합니다.
+        const updatedUser = await User.findById(user._id);
+        Object.assign(updatedUser, updateData);
+        await updatedUser.save();
+
+        // 업데이트된 사용자 정보 반환
         return res.json(updatedUser);
     } catch (error) {
+        // 에러가 발생했을 경우 처리
         next(error);
     }
-})
+});
+//////////////////// 회원 탈퇴
+// 회원 탈퇴 API
+router.put('/myPage/delete', auth, async (req, res, next) => {
+    try {
+      const userId = req.user._id; // 현재 로그인한 사용자의 ID
+      const user = await User.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+      }
+  
+      // isActive 필드를 false로 설정하여 탈퇴 처리
+      user.isActive = false;
+      await user.save();
+  
+      res.status(200).json({ message: '탈퇴가 완료되었습니다.' });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
 
 ////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정
 
@@ -214,7 +305,7 @@ const upload = multer({ storage: storage });
 
 const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
 
-router.put('/profile/image', sessionAuth, upload.single('image'), async (req, res) => {
+router.put('/profile/image', auth, upload.single('image'), async (req, res) => {
     try {
         const user = req.user;
         if (!user) {
@@ -268,7 +359,7 @@ router.put('/profile/image', sessionAuth, upload.single('image'), async (req, re
 });
   
   // 프로필 이미지 삭제 라우트
-  router.delete('/profile/image_del', sessionAuth, async (req, res) => {
+  router.delete('/profile/image_del', auth, async (req, res) => {
     try {
         const user = req.user;
     
@@ -349,6 +440,25 @@ router.post('/change-password', async (req, res) => {
     } catch (error) {
         console.error('서버 오류:', error);
         return res.status(500).json({ ok: false, msg: '서버 오류가 발생했습니다.' });
+    }
+});
+
+router.put('/introduction', auth, async (req, res, next) => {
+    try {
+        const { introduction } = req.body;
+        const user = req.user;
+        if (!user) {
+            return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+        }
+        
+        user.profilePic.introduction = introduction;
+
+        await user.save();
+
+        return res.json({ ok: true, msg: '성공적으로 변경되었습니다.' });
+
+    } catch (error) {
+        next(error);
     }
 });
 

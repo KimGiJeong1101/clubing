@@ -79,7 +79,7 @@ const JobPopup = ({ jobCategories, onSelect, onClose, selectedJobs }) => {
           </IconButton>
 
           <Typography variant="h6" gutterBottom>
-            직무 선택
+            직무 선택 (최대 3개 선택 가능)
           </Typography>
 
           {/* 에러 메시지 */}

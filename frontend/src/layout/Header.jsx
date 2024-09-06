@@ -79,7 +79,6 @@ function Header() {
     { to: '', name: '로그아웃', auth: true },
     { to: '/mypage', name: '마이페이지', auth: true },
   ];
-  
 
     const isAuth = useSelector(state => state.user?.isAuth);
     const dispatch = useDispatch();
@@ -208,7 +207,7 @@ function Header() {
                   {homeLocation && homeLocation !== ' ' ? (
                     homeLocation
                   ) : (
-                    "로그인 정보가 없습니다."
+                    "미로그인"
                   )}
                 </Typography>
               </Box>
