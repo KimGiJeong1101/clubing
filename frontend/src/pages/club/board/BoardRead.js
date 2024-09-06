@@ -6,6 +6,7 @@ import UpdatePost from '../../../components/club/ClubBoardUpdateEditor';
 import { usePost } from '../../../hooks/usePost';
 import { useSelector } from 'react-redux';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import ChatIcon from '@mui/icons-material/Chat';
 
 const Read = ({ postId, onClose }) => {
   const queryClient = useQueryClient();
@@ -104,6 +105,7 @@ const Read = ({ postId, onClose }) => {
           <Typography variant="subtitle1" gutterBottom>
             Category: {post.category}
           </Typography> */}
+
           <div className="fetched-content">
             <CKEditor5Editor
               content={post.content}
@@ -111,15 +113,26 @@ const Read = ({ postId, onClose }) => {
             />
           </div>
           {isAuthor && (
-            <Box mt={2}>
-              <Button variant="contained" color="primary" onClick={handleOpenEditModal} style={{ marginRight: '8px' }}>
-                수정
-              </Button>
-              <Button variant="contained" color="secondary" onClick={handleDelete}>
-                삭제
-              </Button>
+            <Box
+              mt={2}
+              sx={{
+                display: 'flex',
+
+              }}
+            >
+              <ChatIcon></ChatIcon>
+              <Box>
+                <Button variant="contained" color="primary" onClick={handleOpenEditModal} style={{ marginRight: '8px' }}>
+                  수정
+                </Button>
+                <Button variant="contained" color="secondary" onClick={handleDelete}>
+                  삭제
+                </Button>
+              </Box>
             </Box>
+            
           )}
+
         </>
       )}
       <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="md">

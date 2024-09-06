@@ -154,6 +154,7 @@ function Header() {
                   padding: '5px 10px',
                   color: selected === item.name ? 'black' : 'rgba(0, 0, 0, 0.6)',
                   textDecoration: 'none',
+                  fontFamily: 'KCC-Hanbit',
                   '&:hover': {
                     color: 'black',
                   },
@@ -202,7 +203,7 @@ function Header() {
                 <Typography
                   variant="body2"
                   component="div"
-                  sx={{ color: "gray", fontWeight: 600 }}
+                  sx={{ color: "gray", fontFamily: 'KCC-Hanbit', fontWeight: 600 }}
                 >
                   {homeLocation && homeLocation !== ' ' ? (
                     homeLocation
