@@ -3,10 +3,14 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
 const path = require("path");
+const http = require("http");
+const socketIo = require("socket.io");
 const cookieParser = require('cookie-parser');
 require("dotenv").config();
 
 const jwt = require("jsonwebtoken"); // JWT 패키지 로드
+
+const server = http.createServer(app);
 
 // 미들웨어 설정
 app.use(
@@ -17,6 +21,15 @@ app.use(
     //이 옵션은 클라이언트와 서버 간의 인증된 세션 유지에 중요한 역할을 합니다.
   }),
 );
+
+
+const io = socketIo(server, {
+  cors: {
+    origin: "http://localhost:3000", // React 애플리케이션의 포트
+    methods: ["GET", "POST"],
+  },
+});
+
 app.use(express.json());
 
 // 세션 설정 적용
@@ -101,8 +114,14 @@ const boardsRouter = require("./src/routes/boards");
 app.use("/clubs/boards", boardsRouter);
 
 //라우터 미들웨어(채팅)
-const chatsRouter = require("./src/routes/chats");
-app.use("/clubs/chats", chatsRouter);
+const chatroomsRouter = require("./src/routes/chatroom");
+app.use("/clubs/chatrooms", chatroomsRouter);
+
+//라우터 미들웨어(채팅이미지)
+const chatimageRouter = require("./src/routes/chatimage");
+app.use("/clubs/chatimage", chatimageRouter);
+
+require("./src/routes/message")(io);
 
 //라우터 미들웨어(갤러리)
 const galleriesRouter = require("./src/routes/galleries");
@@ -140,7 +159,7 @@ const startServer = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("몽고디비 연결 완료");
 
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log(`서버 시작 ${process.env.PORT}`);
     });
   } catch (err) {

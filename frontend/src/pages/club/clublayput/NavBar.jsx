@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Box, Container, Grid } from "@mui/material";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation,  useNavigate } from "react-router-dom";
+import { enterChatRoom } from "../../../store/actions/chatActions";
+import { useDispatch, useSelector } from "react-redux";
+
 
 function NavBar() {
 
@@ -8,8 +11,55 @@ function NavBar() {
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
 
   const [selected, setSelected] = useState("홈");
+
+
+  const userId = useSelector(state => state.user?.userData?.user?._id);
+
+
+  console.log("유저아이디 뭐찍힘"+ userId)
+
+
+  const handleClickChat = async () => {
+    try {
+      // userId가 없다면 콘솔에 에러 메시지 출력 후 종료
+      if (!userId) {
+        console.error("User ID is missing.");
+        return;  // 유저 ID가 없으면 채팅방 생성하지 않음
+      }
+  
+      // clubNumber가 없다면 에러를 던짐
+      if (!clubNumber) {
+        throw new Error("클럽 번호가 없습니다.");  // 필수 정보 체크
+      }
+  
+      const participants = [userId]; // 실제 참여자 ID 리스트
+      console.log("Participants array before sending:", participants);
+  
+      // 채팅방 생성
+      const actionResult = await dispatch(enterChatRoom({ clubId: clubNumber, participants }));
+      const chatRoom = actionResult.payload;  // payload가 undefined일 수 있으므로 안전하게 접근
+  
+      // 채팅방 정보가 없다면 에러를 던짐
+      if (!chatRoom || !chatRoom._id) {
+        throw new Error("채팅방 정보를 불러오는 데 실패했습니다.");
+      }
+  
+      // 채팅방으로 이동
+      console.log("Chat room data:", chatRoom);
+      navigate(`/clubs/chat/${chatRoom._id}?clubNumber=${clubNumber}`);
+    } catch (error) {
+      // 에러 메시지 출력
+      console.error("Error entering chat room:", error.message || error);
+    }
+  };
+  
+
+
 
   // 현재 URL을 기준으로 선택된 항목을 결정
   const getSelected = () => {
@@ -30,7 +80,11 @@ function NavBar() {
     { name: "홈", path: `/clubs/main?clubNumber=${clubNumber}` },
     { name: "게시판", path: `/clubs/board?clubNumber=${clubNumber}` },
     { name: "사진첩", path: `/clubs/gallery?clubNumber=${clubNumber}` },
-    { name: "채팅", path: `/clubs/chat?clubNumber=${clubNumber}`}, 
+    {
+      name: "채팅",
+      path: "#", // 링크가 아닌 버튼 역할
+      onClick: handleClickChat,
+    }, 
   ];
 
   return (
