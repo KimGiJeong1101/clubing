@@ -19,7 +19,9 @@ import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, 
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import color from '../../../color'; // 색상를 정의한 파일
 import '../../../assets/styles/LoginCss.css'
-import axios from "axios";
+import CustomButton from '../../../components/club/CustomButton.jsx'
+import CustomButton2 from '../../../components/club/CustomButton2.jsx'
+import CustomCheckbox from '../../../components/club/CustomCheckbox.jsx'
 
 const MyUpdate = () => {
   const user = useSelector((state) => state.user?.userData?.user || {});
@@ -463,25 +465,28 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
           mx: 'auto' }}>
     {/* 상태 버튼  */}
     <Box sx={{ display: 'flex', flexDirection: 'column', }}>
-      <Button
+      <CustomButton
         variant={view === 'update' ? 'contained' : 'outlined'}
         onClick={() => setView(view === 'update' ? '' : 'update')} // 클릭 시 상태 변경
         sx={{ 
-          backgroundColor: view === 'update' ? '#e0e0e0' : 'transparent', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
-          color: view === 'update' ? '#30231C' : '#30231C', // 글씨 색상 설정
+          borderColor: 'transparent', // 무색 테두리
+          color: '#30231C',
+          backgroundColor: view === 'update' ? '#A67153' : '#DBC7B5', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
           '&:hover': {
-            backgroundColor: view === 'update' ? '#d0d0d0' : 'transparent' // 호버 상태의 배경색 설정
+            borderColor: 'transparent', // 무색 테두리
+            backgroundColor: view === 'update' ? '#DBC7B5' : '#A67153' // 호버 상태의 배경색 설정
           },
           textAlign: 'left', // 글씨 왼쪽 정렬
           paddingLeft: '16px', // 글씨와 버튼 왼쪽의 간격 조정 (옵션)
           width: '100%', // 버튼 전체 너비 사용 (옵션)
           display: 'flex',
           justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
-          alignItems: 'center' // 버튼 내 텍스트 세로 중앙 정렬
+          alignItems: 'center', // 버튼 내 텍스트 세로 중앙 정렬
+          marginBottom: '5px' // 버튼 아래에 간격 추가
         }}
       >
         정보 수정
-      </Button>
+      </CustomButton>
 
  {/* 정보 수정 */}
  {view === 'update' && (
@@ -515,14 +520,16 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
 
 <Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
   {/* 비밀번호 변경 버튼 */}
-  <Button
+  <CustomButton
     variant={isPasswordChangeVisible ? 'contained' : 'outlined'}
     onClick={handleTogglePasswordChange}
     sx={{
-      backgroundColor: isPasswordChangeVisible ? '#e0e0e0' : 'transparent',
+      borderColor: 'transparent', // 무색 테두리
+      backgroundColor: isPasswordChangeVisible ? '#A67153' : '#DBC7B5',
       color: '#30231C',
       '&:hover': {
-        backgroundColor: isPasswordChangeVisible ? '#d0d0d0' : 'transparent'
+        borderColor: 'transparent', // 무색 테두리
+        backgroundColor: isPasswordChangeVisible ? '#DBC7B5' : '#A67153'
       },
       textAlign: 'left',
       paddingLeft: '16px',
@@ -533,7 +540,7 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
     }}
   >
     비밀번호 변경
-  </Button>
+  </CustomButton>
 
  {/* 비밀번호 입력 필드 (조건부 렌더링) */}
  {isPasswordChangeVisible && (
@@ -809,15 +816,15 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
         />
     </Box>
 {/*집주소 */}
-<Button
+<CustomButton
   variant="contained"
   onClick={() => setShowLocationFields(prev => !prev)}
   sx={{
     mb: 2,
-    backgroundColor: isPasswordChangeVisible ? '#e0e0e0' : 'transparent',
+    backgroundColor: isPasswordChangeVisible ? '#A67153' : '#DBC7B5',
     color: '#30231C',
     '&:hover': {
-      backgroundColor: isPasswordChangeVisible ? '#d0d0d0' : 'transparent'
+      backgroundColor: isPasswordChangeVisible ? '#DBC7B5' : '#A67153'
     },
     textAlign: 'left',
     paddingLeft: '16px',
@@ -828,7 +835,7 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
   }}
 >
   {showLocationFields ? '지역 변경' : '지역 변경'}
-</Button>
+</CustomButton>
 {showLocationFields && (
   <>
 <Box mb={2}>
@@ -869,13 +876,13 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
 <Box>
       {/* 직종 선택 버튼 */}
       <Box mb={2} display="flex" alignItems="center" gap={2}>
-        <Button
+        <CustomButton2
           variant="contained"
           color="primary"
           onClick={() => handlePopupOpen('job')}
         >
           직종 선택
-        </Button>
+        </CustomButton2>
       </Box>
 
       {isJobPopupOpen && (
@@ -915,13 +922,13 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
 <Box>
       {/* 카테고리 선택 버튼 */}
       <Box mb={2} display="flex" alignItems="center" gap={2}>
-        <Button
+        <CustomButton2
           variant="contained"
           color="primary"
           onClick={() => handlePopupOpen('category')}
         >
           카테고리 선택
-        </Button>
+        </CustomButton2>
         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
           3개 이상 선택해 주세요
         </Typography>
@@ -976,7 +983,7 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
       <Box display="flex" alignItems="center">
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               id="marketing-checkbox"
               checked={checkboxState.marketing}
               onChange={() => handleCheck('marketing')}
@@ -985,10 +992,10 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
           }
           label={
             <Typography variant="body1" component="span">
-              [선택] 마케팅 동의
+            [선택] 마케팅 동의
             </Typography>
           }
-          sx={{ marginRight: 1 }} // 체크박스와 라벨 사이에 간격 추가
+          sx={{ marginLeft: '4px', marginRight: '0' }} // 간격을 줄이기 위해 marginLeft를 조정
         />
         <Button
           variant="text"
@@ -1010,14 +1017,20 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
       )}
 {/*정보수정 버튼 */}
           <Box mt={2}>
-            <Button
+            <CustomButton2
               type="submit"
               variant="contained"
               color="primary"
-              sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px', backgroundColor: 'black', '&:hover': { backgroundColor: 'gray.700' } }}
+              sx={{ 
+                width: '100%', 
+                px: 4, 
+                py: 2, 
+                borderRadius: '8px',
+                marginBottom: '5px'
+              }}
             >
               수정 하기
-            </Button>
+            </CustomButton2>
           </Box>
         </form>
     )}
@@ -1027,17 +1040,20 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
         variant={view === 'delete' ? 'contained' : 'outlined'}
         onClick={() => setView(view === 'delete' ? '' : 'delete')} // 클릭 시 상태 변경
         sx={{ 
-          backgroundColor: view === 'delete' ? '#e0e0e0' : 'transparent', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
-          color: view === 'delete' ? '#30231C' : '#30231C', // 글씨 색상 설정
+          borderColor: 'transparent', // 무색 테두리
+          backgroundColor: view === 'delete' ? '#A67153' : '#DBC7B5', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
+          color: '#30231C',
           '&:hover': {
-            backgroundColor: view === 'delete' ? '#d0d0d0' : 'transparent' // 호버 상태의 배경색 설정
+            borderColor: 'transparent', // 무색 테두리
+            backgroundColor: view === 'delete' ? '#DBC7B5' : '#A67153' , // 호버 상태의 배경색 설정
           },
           textAlign: 'left', // 글씨 왼쪽 정렬
           paddingLeft: '16px', // 글씨와 버튼 왼쪽의 간격 조정 (옵션)
           width: '100%', // 버튼 전체 너비 사용 (옵션)
           display: 'flex',
           justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
-          alignItems: 'center' // 버튼 내 텍스트 세로 중앙 정렬
+          alignItems: 'center', // 버튼 내 텍스트 세로 중앙 정렬
+          marginBottom: '15px'
         }}
       >
         회원 탈퇴
@@ -1046,12 +1062,9 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
       {/* 회원 탈퇴 폼 (추가할 부분) */}
   {view === 'delete' && (
           <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
-            <Typography variant="h6" component="h2" align="center">
-              회원 탈퇴
-            </Typography>
             {/* 회원 탈퇴 폼을 작성하세요 */}
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="body1" align="center" mb={2}>
+            <Box sx={{ mt: 1 , mb: 1}}>
+              <Typography variant="body1" align="center" mb={4}>
                 회원 탈퇴를 진행하시겠습니까?
               </Typography>
               {/* 회원 탈퇴 버튼 */}
@@ -1059,7 +1072,10 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
                 variant="contained"
                 color="error"
                 onClick={handleDeleteAccount}
-                sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px' }}
+                sx={{ width: '100%', 
+                  px: 4, 
+                  py: 2, 
+                  borderRadius: '8px' }}
               >
                 탈퇴하기
               </Button>

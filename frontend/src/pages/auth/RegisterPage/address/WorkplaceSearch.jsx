@@ -89,6 +89,9 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
           setValue('workplaceSearchTerm', e.target.value, { shouldValidate: true }); // 변경된 값을 즉시 검증하도록 설정합니다
         }}
         placeholder='*읍면동 중 하나 입력해주세요 예) 옥천면'
+        sx={{
+          bgcolor: 'white',
+        }}
         error={!!errors.workplaceSearchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
         helperText={errors.workplaceSearchTerm ? errors.workplaceSearchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.
         />

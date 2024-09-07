@@ -13,7 +13,7 @@ import BrushIcon from '@mui/icons-material/Brush';
 import { Box, Typography, Avatar, Divider, IconButton, Modal, Popover, MenuItem, Button, TextField } from '@mui/material';
 import { myPage }  from '../../store/actions/userActions';
 import axiosInstance from "../../utils/axios";
-
+import CustomButton from '../../components/club/CustomButton.jsx'
 
 const MyPage = () => {
   const dispatch = useDispatch();
@@ -247,6 +247,7 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
               zIndex: 1,                // 다른 요소보다 위에 배치
               overflow: 'hidden',       // 내용이 넘어가면 숨김
               maxHeight: '100vh',       // 화면 높이를 넘지 않도록 설정
+              borderRadius: 5,
             }}
           >
           <Box sx={{ 
@@ -530,76 +531,76 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
               flexDirection: 'column',
               alignItems: 'center',
               mt: 2 }}>
-              <Button
+              <CustomButton
                 variant="contained"
                 sx={{
                   mb: 1,
                   fontSize: '1rem',    // 글꼴 크기 조절
                   px: 3,               // 좌우 패딩
                   py: 1.5,             // 상하 패딩
-                  width: '150px',      // 버튼 너비 조절
+                  width: '100%',      // 버튼 너비 조절
                   height: '40px',      // 버튼 높이 조절
                 }}
                 onClick={() => handleSectionClick('club')}
               >
                모임 관리
-              </Button>
-              <Button
+              </CustomButton>
+              <CustomButton
                 variant="contained"
                 sx={{
                   mb: 1,
                   fontSize: '1rem',    // 글꼴 크기 조절
                   px: 3,               // 좌우 패딩
                   py: 1.5,             // 상하 패딩
-                  width: '150px',      // 버튼 너비 조절
+                  width: '100%',      // 버튼 너비 조절
                   height: '40px',      // 버튼 높이 조절
                 }}
                 onClick={() => handleSectionClick('chat')}
               >
                 채팅
-              </Button>
-              <Button
+                </CustomButton>
+                <CustomButton
                 variant="contained"
                 sx={{
                   mb: 1,
                   fontSize: '1rem',    // 글꼴 크기 조절
                   px: 3,               // 좌우 패딩
                   py: 1.5,             // 상하 패딩
-                  width: '150px',      // 버튼 너비 조절
+                  width: '100%',      // 버튼 너비 조절
                   height: '40px',      // 버튼 높이 조절
                 }}
                 onClick={() => handleSectionClick('update')}
               >
                 회원 정보
-              </Button>
-              <Button
+                </CustomButton>
+                <CustomButton
                 variant="contained"
                 sx={{
                   mb: 1,
                   fontSize: '1rem',    // 글꼴 크기 조절
                   px: 3,               // 좌우 패딩
                   py: 1.5,             // 상하 패딩
-                  width: '150px',      // 버튼 너비 조절
+                  width: '100%',      // 버튼 너비 조절
                   height: '40px',      // 버튼 높이 조절
                 }}
                 onClick={() => handleSectionClick('wish')}
               >
                 뭘 더 넣을깡
-              </Button>
-              <Button
+                </CustomButton>
+                <CustomButton
                 variant="contained"
                 sx={{
                   mb: 1,
                   fontSize: '1rem',    // 글꼴 크기 조절
                   px: 3,               // 좌우 패딩
                   py: 1.5,             // 상하 패딩
-                  width: '150px',      // 버튼 너비 조절
+                  width: '100%',      // 버튼 너비 조절
                   height: '40px',      // 버튼 높이 조절
                 }}
                 onClick={() => handleSectionClick('setting')}
               >
                 안내사항
-              </Button>
+                </CustomButton>
             </Box>
           </Box>
         </Box>
