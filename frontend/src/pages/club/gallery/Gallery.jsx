@@ -31,9 +31,13 @@ const Gallery = () => {
 
   const [open, setOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedId, setSelectedId] = useState('');
   const [selectedImages, setSelectedImages] = useState([]);
+  const [selectedWriter, setSelectedWriter] = useState('');
   const [selectedTitle, setSelectedTitle] = useState('');
   const [selectedContent, setSelectedContent] = useState('');
+  const [selectedCreatedAt, setSelectedCreatedAt] = useState('');
+  const [selectedUpdatedAt, setSelectedUpdatedAt] = useState('');
   const [registerOpen, setRegisterOpen] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedImageIds, setSelectedImageIds] = useState([]);
@@ -140,21 +144,30 @@ const Gallery = () => {
       const gallery = response.data;
 
       setSelectedIndex(index);
+      setSelectedId(gallery._id);
       setSelectedImages(gallery.originImages);
+      setSelectedWriter(gallery.writer);
       setSelectedTitle(gallery.title);
       setSelectedContent(gallery.content);
+      setSelectedCreatedAt(gallery.createdAt);
+      setSelectedUpdatedAt(gallery.updatedAt);
       setOpen(true);
     } catch (error) {
       console.error("Failed to fetch gallery details", error);
     }
   };
 
+
   // 모달을 닫는 핸들러
   const handleClose = () => {
     setOpen(false);
     setSelectedImages([]);
+    setSelectedId('');
+    setSelectedWriter('');
     setSelectedTitle('');
     setSelectedContent('');
+    setSelectedCreatedAt('');
+    setSelectedUpdatedAt('');
   };
 
   // 이전 이미지로 이동하는 핸들러
@@ -314,9 +327,13 @@ const Gallery = () => {
       <GalleryModal
         open={open}
         handleClose={handleClose}
+        postId={selectedId}
         images={selectedImages}
+        writer={selectedWriter}
         title={selectedTitle}
         content={selectedContent}
+        createdAt={selectedCreatedAt}
+        updatedAt={selectedUpdatedAt}
         handlePrev={handlePrev}
         handleNext={handleNext}
       />
@@ -471,7 +488,6 @@ const Gallery = () => {
           {editGallery && (
             <GalleryCreate
               onRegisterComplete={handleEditComplete}
-              isEditMode={true}
               initialData={{
                 title: editGallery.title,
                 content: editGallery.content,

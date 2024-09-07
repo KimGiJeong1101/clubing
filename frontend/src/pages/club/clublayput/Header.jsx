@@ -83,7 +83,7 @@ function Header() {
 
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
-//hyk 추가 언디파인에 대한 에러 값을 설정
+  //hyk 추가 언디파인에 대한 에러 값을 설정
   const clubs = getClub.clubs || {};
   const adminEmail = clubs.admin || '';
   const members = Array.isArray(clubs.members) ? clubs.members : [];
@@ -181,11 +181,10 @@ function Header() {
                 클럽 탈퇴하기
               </Box>
             )} 
-
           <Box onClick={() => {}} sx={{ padding: "10px" }}>
             모임 url 공유하기
           </Box>
-          <Box onClick={() => {}} sx={{ padding: "10px" }}>
+          <Box onClick={() => { }} sx={{ padding: "10px" }}>
             모임 신고하기
           </Box>
         </Popover>

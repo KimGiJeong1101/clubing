@@ -17,7 +17,7 @@ const myTheme = {
   'common.border': '1px solid #c1c1c1', // 경계선 설정
 };
 
-const GalleryCreate = ({ onRegisterComplete, initialData = {}, isEditMode = false }) => {
+const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
   const editorRef = useRef(null); // TOAST UI Image Editor 인스턴스에 접근하기 위한 ref 설정
   const [title, setTitle] = useState(initialData.title || ''); // 제목 상태 관리, 초기값이 있으면 사용
   const [content, setContent] = useState(initialData.content || ''); // 내용 상태 관리
@@ -48,9 +48,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {}, isEditMode = fals
         editorInstance.ui.activeMenuEvent(); // UI 메뉴 활성화
       } catch (error) {
         // 에러 발생 시 스낵바로 에러 메시지 표시
-        setSnackbarMessage('이미지 에디터 로드 에러');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
       }
     }
   }, [selectedImages]);
@@ -86,7 +83,6 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {}, isEditMode = fals
   // 이미지 슬롯을 클릭했을 때 해당 이미지를 에디터에 로드하는 함수
   const handleBoxClick = async (index) => {
     const editorInstance = editorRef.current.getInstance();
-    console.log("editorInstance: ", editorInstance);
     if (currentImageIndex !== null && selectedImages[currentImageIndex]?.url) { // 현재 편집 중인 이미지가 존재하는 경우
       try {
         const dataURL = editorInstance.toDataURL(); // 현재 이미지를 Data URL로 변환
@@ -118,47 +114,78 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {}, isEditMode = fals
     }
   };
 
-  // 모든 이미지를 저장하고 등록을 완료하는 함수
   const handleSaveAll = async () => {
+    console.log('selectedImages', selectedImages)
     const editorInstance = editorRef.current.getInstance();
-    if (currentImageIndex !== null && selectedImages[currentImageIndex]?.url) { // 현재 이미지가 존재하는 경우
-      try {
-        const dataURL = editorInstance.toDataURL(); // 현재 이미지를 Data URL로 변환
-        setSelectedImages((prev) =>
-          prev.map((img, idx) => (idx === currentImageIndex ? { ...img, url: dataURL } : img)) // 이미지를 업데이트
-        );
-      } catch (error) {
-        // 에러 발생 시 스낵바로 에러 메시지 표시
-        setSnackbarMessage('Error saving image. Please try again.');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
+
+    // 모든 이미지를 한 번씩 "클릭"한 것처럼 처리
+    for (let i = 0; i < selectedImages.length; i++) {
+      const image = selectedImages[i];
+      if (image?.url) {
+        try {
+          // 각 이미지를 에디터에 로드
+          await editorInstance.loadImageFromURL(image.url, 'selectedImage');
+          editorInstance.clearUndoStack(); // Undo 스택 초기화
+          editorInstance.ui.activeMenuEvent(); // UI 메뉴 활성화
+
+          // Data URL로 변환하여 해당 이미지를 업데이트
+          const dataURL = editorInstance.toDataURL();
+          setSelectedImages((prev) =>
+            prev.map((img, idx) => (idx === i ? { ...img, url: dataURL } : img))
+          );
+        } catch (error) {
+          console.error('Error processing image:', error);
+        }
       }
     }
 
-    const formData = new FormData(); // 새로운 FormData 객체 생성
-    for (const image of selectedImages) { // 선택된 각 이미지를 순회
-      if (image.url && !image.url.startsWith('http')) { // 로컬에서 가져온 이미지인 경우
-        const blob = await (await fetch(image.url)).blob(); // 이미지를 Blob으로 변환
-        formData.append('files', blob, image.name || 'image.jpg'); // Blob을 FormData에 추가
+    // 위의 로직으로 모든 이미지가 "클릭"된 것처럼 처리되었으므로
+    // 이제 저장 로직 실행
+    const formData = new FormData();
+    let hasNewFiles = false;
+
+    // 모든 이미지를 FormData에 추가
+    for (const image of selectedImages) {
+      if (image.url && !image.url.startsWith("http")) {
+        hasNewFiles = true;
+        try {
+          const blob = await fetch(image.url).then((res) => res.blob());
+          formData.append("files", blob, image.name || "image.jpg");
+        } catch (error) {
+          console.error("Error converting image to blob.", error);
+          return;
+        }
       }
     }
-    formData.append('writer', userEmail); // 작성자 이메일을 FormData에 추가
-    formData.append('title', title); // 제목을 FormData에 추가
-    formData.append('content', content); // 내용을 FormData에 추가
-    formData.append('order', JSON.stringify(selectedImages.map((_, index) => index))); // 이미지 순서를 FormData에 추가
 
-    onRegisterComplete(formData); // 등록 완료 콜백 함수 호출
+    // 기타 데이터 추가
+    formData.append("writer", userEmail);
+    formData.append("title", title);
+    formData.append("content", content);
+
+    // 만약 새 파일이 없다면 순서만 바뀐 이미지를 전송
+    if (!hasNewFiles) {
+      const sortedImagesData = JSON.stringify(selectedImages);
+      formData.append("sortedImages", sortedImagesData);
+    }
+
+    // 서버로 요청 전송
+    onRegisterComplete(formData);
   };
+
 
   // 드래그 앤 드롭을 통해 이미지 순서를 변경하는 함수
   const onDragEnd = (result) => {
-    if (!result.destination) return; // 목적지가 없는 경우 함수 종료
-    const items = Array.from(selectedImages); // 선택된 이미지 배열 복사
-    const [reorderedItem] = items.splice(result.source.index, 1); // 드래그한 아이템을 제거
-    items.splice(result.destination.index, 0, reorderedItem); // 드롭 위치에 아이템 삽입
-    setSelectedImages(items); // 변경된 이미지 배열 설정
+    if (!result.destination) return; // 목적지가 없으면 아무 작업도 하지 않음
+
+    const reorderedImages = Array.from(selectedImages); // 배열 복사
+    const [movedImage] = reorderedImages.splice(result.source.index, 1); // 드래그한 항목을 기존 위치에서 제거
+    reorderedImages.splice(result.destination.index, 0, movedImage); // 새로운 위치에 삽입
+
+    setSelectedImages(reorderedImages); // 재배열된 배열로 상태 업데이트
     setCurrentImageIndex(result.destination.index); // 새로운 위치의 이미지를 현재 이미지로 설정
   };
+
 
   // 이미지 슬롯 배열: 선택된 이미지의 수가 8개보다 적을 경우 빈 슬롯을 추가
   const imageBoxes = [...selectedImages];
