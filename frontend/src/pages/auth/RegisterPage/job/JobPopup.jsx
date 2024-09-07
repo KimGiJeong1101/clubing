@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Draggable from 'react-draggable';
 import { Box, Button, Typography, Chip, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import CustomButton from '../../../../components/club/CustomButton'
+import CustomButton2 from '../../../../components/club/CustomButton2'
 
 const JobPopup = ({ jobCategories, onSelect, onClose, selectedJobs }) => {
   // 현재 선택된 직무 상태 관리
@@ -92,35 +94,49 @@ const JobPopup = ({ jobCategories, onSelect, onClose, selectedJobs }) => {
           {/* 직무 리스트 */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {jobCategories.map(job => (
-              <Button
+              <CustomButton
                 key={job}
-                variant={localSelectedJobs.includes(job) ? 'contained' : 'outlined'}
                 color="primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSelect(job); // 직무 문자열을 직접 전달
                 }}
+                sx={{ 
+                  textTransform: 'none',
+                  backgroundColor: localSelectedJobs.includes(job) ? '#A67153' : '#DBC7B5', // 배경색 설정
+                  borderColor: 'transparent', // 무색 테두리
+                  '&:hover': {
+                    backgroundColor: localSelectedJobs.includes(job) ? '#A67153' : '#DBC7B5', // 호버 시 배경색 유지
+                    borderColor: 'transparent', // 무색 테두리
+                  },
+                }}
               >
                 {job}
-              </Button>
+              </CustomButton>
             ))}
           </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-            <Button
+            <CustomButton2
               variant="contained"
               color="primary"
               onClick={handleSubmit}
             >
               확인
-            </Button>
-            <Button
+            </CustomButton2>
+            <CustomButton
               variant="outlined"
               color="secondary"
               onClick={handleClose}
+              sx={{ 
+                borderColor: 'transparent', // 무색 테두리
+                '&:hover': {
+                  borderColor: 'transparent', // 무색 테두리
+                },
+              }}
             >
               닫기
-            </Button>
+            </CustomButton>
           </Box>
         </Box>
       </Draggable>

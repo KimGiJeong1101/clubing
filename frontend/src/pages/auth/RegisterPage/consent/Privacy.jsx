@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Checkbox, FormControlLabel, Box, Typography } from '@mui/material';
+import CustomCheckbox from '../../../../components/club/CustomCheckbox'
 
 const PrivacyPopup = ({ onClose, handleCheck, checked }) => {
   return (
@@ -49,7 +50,7 @@ const PrivacyPopup = ({ onClose, handleCheck, checked }) => {
         </Box>
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               checked={checked.privacy}
               onChange={() => handleCheck('privacy')}
               color="primary"

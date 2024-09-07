@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import CustomButton from '../../../components/club/CustomButton.jsx'
 
 const MySetting = () => {
   // 상태 관리
@@ -23,15 +24,17 @@ const MySetting = () => {
       {/* 버튼들 */}
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
         {/* 공지사항 버튼 */}
-        <Button
+        <CustomButton
           variant={view === 'notice' ? 'contained' : 'outlined'}
           onClick={() => handleButtonClick('notice')}
           sx={{ 
             position: 'relative',
-            backgroundColor: view === 'notice' ? '#e0e0e0' : 'transparent',
+            borderColor: 'transparent', // 무색 테두리
+            backgroundColor: view === 'notice' ? '#A67153' : '#DBC7B5',
             color: '#30231C',
             '&:hover': {
-              backgroundColor: view === 'notice' ? '#d0d0d0' : 'transparent'
+              borderColor: 'transparent', // 무색 테두리
+              backgroundColor: view === 'notice' ? '#DBC7B5' : '#A67153'
             },
             textAlign: 'left',
             paddingLeft: '16px',
@@ -55,10 +58,16 @@ const MySetting = () => {
           }}
         >
           공지사항
-        </Button>
+        </CustomButton>
         {/* 공지사항 내용 */} 
         {view === 'notice' && (
-          <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
+          <Box sx={{ 
+          p: 3, 
+          bgcolor: 'white', 
+          borderRadius: 2, 
+          boxShadow: 3, 
+          marginBottom: '15px'
+          }}>
             <Typography variant="h6" component="h2" align="center">
               공지사항
             </Typography>
@@ -70,15 +79,17 @@ const MySetting = () => {
         )}
 
         {/* 고객센터 버튼 */}
-        <Button
+        <CustomButton
           variant={view === 'support' ? 'contained' : 'outlined'}
           onClick={() => handleButtonClick('support')}
           sx={{ 
             position: 'relative',
-            backgroundColor: view === 'support' ? '#e0e0e0' : 'transparent',
+            backgroundColor: view === 'support' ? '#A67153' : '#DBC7B5',
+            borderColor: 'transparent', // 무색 테두리
             color: '#30231C',
             '&:hover': {
-              backgroundColor: view === 'support' ? '#d0d0d0' : 'transparent'
+              backgroundColor: view === 'support' ? '#DBC7B5' : '#A67153',
+              borderColor: 'transparent', // 무색 테두리
             },
             textAlign: 'left',
             paddingLeft: '16px',
@@ -102,10 +113,16 @@ const MySetting = () => {
           }}
         >
           고객센터
-        </Button>
+        </CustomButton>
         {/* 고객센터 내용 */} 
         {view === 'support' && (
-          <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
+          <Box sx={{ 
+            p: 3, 
+            bgcolor: 'white', 
+            borderRadius: 2, 
+            boxShadow: 3,
+            marginBottom: '15px' 
+          }}>
             <Typography variant="h6" component="h2" align="center">
               고객센터
             </Typography>
@@ -117,15 +134,17 @@ const MySetting = () => {
         )}
 
         {/* 자주 묻는 질문 버튼 */}
-        <Button
+        <CustomButton
           variant={view === 'faq' ? 'contained' : 'outlined'}
           onClick={() => handleButtonClick('faq')}
           sx={{ 
             position: 'relative',
-            backgroundColor: view === 'faq' ? '#e0e0e0' : 'transparent',
+            backgroundColor: view === 'faq' ?  '#A67153' : '#DBC7B5',
+            borderColor: 'transparent', // 무색 테두리
             color: '#30231C',
             '&:hover': {
-              backgroundColor: view === 'faq' ? '#d0d0d0' : 'transparent'
+              borderColor: 'transparent', // 무색 테두리
+              backgroundColor: view === 'faq' ? '#DBC7B5' : '#A67153'
             },
             textAlign: 'left',
             paddingLeft: '16px',
@@ -148,10 +167,16 @@ const MySetting = () => {
           }}
         >
           자주 묻는 질문
-        </Button>
+        </CustomButton>
         {/* 자주 묻는 질문 내용 */}
         {view === 'faq' && (
-          <Box sx={{ p: 3, bgcolor: 'white', borderRadius: 2, boxShadow: 3 }}>
+          <Box sx={{ 
+            p: 3, 
+            bgcolor: 'white', 
+            borderRadius: 2, 
+            boxShadow: 3 ,
+            marginBottom: '15px' 
+            }}>
             <Typography variant="h6" component="h2" align="center">
               자주 묻는 질문
             </Typography>
