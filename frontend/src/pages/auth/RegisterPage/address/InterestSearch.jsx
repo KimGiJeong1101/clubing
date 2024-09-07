@@ -91,6 +91,9 @@ return (
           setValue('interestSearchTerm', e.target.value, { shouldValidate: true }); // 변경된 값을 즉시 검증하도록 설정합니다
         }}
         placeholder='*읍면동 중 하나 입력해주세요 예) 강화읍'
+        sx={{
+          bgcolor: 'white',
+        }}
         error={!!errors.interestSearchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
         helperText={errors.interestSearchTerm ? errors.interestSearchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.
       />

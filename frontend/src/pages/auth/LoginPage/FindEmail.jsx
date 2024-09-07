@@ -2,6 +2,8 @@ import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Typography, Box, InputAdornment } from '@mui/material';
 import Phone from '@mui/icons-material/Phone';
 import axiosInstance from '../../../utils/axios';
+import CustomButton from '../../../components/club/CustomButton'
+import CustomButton2 from '../../../components/club/CustomButton2'
 
 const FindEmailPage = ({ open, onClose }) => {
   const [phoneNumber, setPhoneNumber] = React.useState('');
@@ -98,18 +100,32 @@ const formatPhoneNumber = (value) => {
         onClose={handleClose}
         PaperProps={{
             sx: {
-            width: '400px',
+            width: '450px',
             maxWidth: '100%',
             height: 'auto', // 기본 높이를 auto로 설정
-            maxHeight: '80vh', // 최대 높이를 뷰포트의 80%로 설정
+            maxHeight: '100vh', // 최대 높이를 뷰포트의 80%로 설정
             backgroundColor: 'background.paper',
             boxShadow: 24, // 그림자 추가
             overflowY: 'auto', // 콘텐츠가 넘칠 경우 스크롤 표시
+            borderRadius: 5,
             },
         }}
         >
-      <DialogTitle sx={{ fontWeight: 'bold' }}>아이디 찾기</DialogTitle>
-      <DialogContent>
+      <DialogTitle 
+      sx={{ 
+        fontWeight: 'bold' ,
+        mt: 3,
+        mb: 2,
+        ml: 2
+        }}>
+          아이디 찾기</DialogTitle>
+      <DialogContent
+        sx={{
+          display: 'flex',
+          flexDirection: 'column', // 세로 방향으로 요소 배치
+          alignItems: 'center',    // 가로 방향으로 중앙 정렬
+        }}
+      >
         <TextField
           fullWidth
           label="전화번호"
@@ -118,6 +134,10 @@ const formatPhoneNumber = (value) => {
           value={phoneNumber}
           onChange={handlePhoneNumberChange} // 전화번호 변경 핸들러 추가
           onKeyDown={handleKeyDown}
+          sx={{
+            width: '90%',
+            mb: 3,
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -128,7 +148,7 @@ const formatPhoneNumber = (value) => {
           error={Boolean(error)} // 오류 상태에 따라 텍스트 필드의 오류 스타일 적용
         />
         {emails.length > 0 && (
-          <Box mt={2}>
+          <Box mt={2} mb={2}>
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>조회된 이메일 주소:</Typography>
             <ul style={{ paddingLeft: '16px', margin: 0 }}>
               {emails.map((email, index) => (
@@ -144,12 +164,29 @@ const formatPhoneNumber = (value) => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleFindEmail} color="primary" variant="outlined">
+        <CustomButton2 onClick={handleFindEmail} color="primary" variant="outlined"
+         sx={{
+          borderColor: 'transparent', // 무색 테두리
+          mb: 3,
+          '&:hover': {
+            borderColor: 'transparent', // 무색 테두리
+          },
+        }}
+        >
           조회
-        </Button>
-        <Button onClick={handleClose} color="primary" variant="outlined">
+        </CustomButton2>
+        <CustomButton onClick={handleClose} color="primary" variant="outlined"
+         sx={{
+          borderColor: 'transparent', // 무색 테두리
+          mb: 3,
+          mr: 3,
+          '&:hover': {
+            borderColor: 'transparent', // 무색 테두리
+          },
+        }}
+        >
           닫기
-        </Button>
+        </CustomButton>
       </DialogActions>
     </Dialog>
   );

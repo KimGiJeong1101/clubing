@@ -1,5 +1,6 @@
 import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Checkbox, FormControlLabel, Box, Typography } from '@mui/material';
+import CustomCheckbox from '../../../../components/club/CustomCheckbox'
 
 const TermsPopup = ({ onClose, handleCheck, checked }) => {
   return (
@@ -49,7 +50,7 @@ const TermsPopup = ({ onClose, handleCheck, checked }) => {
         </Box>
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               checked={checked.terms}
               onChange={() => handleCheck('terms')}
               color="primary"
