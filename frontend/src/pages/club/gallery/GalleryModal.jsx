@@ -64,7 +64,7 @@ const GalleryModal = ({ open, handleClose, images, writer, title, content, creat
 
         <Box
           sx={{
-            width: '70%',
+            width: '65%',
             height: '100%',
             display: 'flex',
             alignItems: 'center',
@@ -78,7 +78,7 @@ const GalleryModal = ({ open, handleClose, images, writer, title, content, creat
 
         <Box
           sx={{
-            width: '30%',
+            width: '35%',
             height: '100%',
             p: 1,
             display: 'flex',
@@ -169,7 +169,7 @@ const GalleryModal = ({ open, handleClose, images, writer, title, content, creat
           </Box>
 
           {/* 댓글 컴포넌트: postType과 postId를 넘겨줌 */}
-          <Reply postType={postType} postId={postId} writer={writer} />
+          <Reply postType={postType} postId={postId}/>
         </Box>
 
         <IconButton
