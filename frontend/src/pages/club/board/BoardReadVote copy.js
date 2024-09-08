@@ -17,7 +17,6 @@ import {
   styled
 } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import ChatIcon from '@mui/icons-material/Chat';
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
   display: 'flex',
@@ -110,9 +109,6 @@ const ReadVote = ({ voteId, onDelete }) => {
           item.option === selectedOption ? { ...item, count: item.count + 1 } : item
         );
         setSummary(updatedSummary);
-
-        // Open summary after voting
-        setIsVoteEnded(true);
       } catch (error) {
         console.error('Error updating vote count:', error);
       }
@@ -165,11 +161,12 @@ const ReadVote = ({ voteId, onDelete }) => {
   
   console.log('vote:',vote)
 
+
   return (
     <Container>
-      {/* <Typography variant="h4" component="h1" gutterBottom>
+      <Typography variant="h4" component="h1" gutterBottom>
         투표 내용
-      </Typography> */}
+      </Typography>
       {vote && (
         <>
           <Box sx={{ padding: 2 }}>
@@ -252,21 +249,6 @@ const ReadVote = ({ voteId, onDelete }) => {
               readOnly
             />
           </Box>
-          <Box 
-          sx={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end', // 아이콘을 오른쪽 끝으로 정렬
-            width: '100%' // 전체 너비를 사용하여 아이콘이 오른쪽 끝에 위치하도록 함
-          }}
-        >
-          <ChatIcon 
-            sx={{ 
-              color: '#999999', 
-              fontSize: '30px',
-              marginRight:'15px'
-            }} 
-          />
-        </Box>
         </>
       )}
       <Dialog open={openSummary} onClose={handleSummaryClose} fullWidth maxWidth="md">

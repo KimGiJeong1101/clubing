@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Typography, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Container, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import CKEditor5Editor from '../../../components/club/ClubBoardRead';
 import UpdatePost from '../../../components/club/ClubBoardUpdateEditor';
 import { usePost } from '../../../hooks/usePost';
@@ -36,19 +36,17 @@ const Read = ({ postId, onClose }) => {
     }
   }, [post, author]);
 
-  // 게시물 삭제를 위한 Mutation 훅
   const deleteMutation = useMutation({
     mutationFn: () => axios.delete(`http://localhost:4000/clubs/boards/posts/${postId}`),
     onSuccess: () => {
-      queryClient.invalidateQueries(['posts']); // 게시물 목록 쿼리 키로 무효화
-      onClose(); // 삭제 후 컴포넌트 닫기
+      queryClient.invalidateQueries(['posts']);
+      onClose();
     },
     onError: (error) => {
       console.error('Error deleting post:', error);
     },
   });
 
-  // 게시물 수정을 위한 Mutation 훅
   const updateMutation = useMutation({
     mutationFn: () => axios.put(`http://localhost:4000/clubs/boards/posts/${postId}`, {
       title,
@@ -57,9 +55,9 @@ const Read = ({ postId, onClose }) => {
       image
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['posts']); // 게시물 목록 쿼리 키로 무효화
+      queryClient.invalidateQueries(['posts']);
       setOpenEditModal(false);
-      onClose(); // 수정 후 컴포넌트 닫기
+      onClose();
     },
     onError: (error) => {
       console.error('Error updating post:', error);
@@ -94,18 +92,8 @@ const Read = ({ postId, onClose }) => {
 
   return (
     <Container>
-      {/* <Typography variant="h4" component="h1" gutterBottom>
-        게시글 내용
-      </Typography> */}
       {post && (
         <>
-          {/* <Typography variant="h5" component="h2" gutterBottom>
-            {post.title}
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            Category: {post.category}
-          </Typography> */}
-
           <div className="fetched-content">
             <CKEditor5Editor
               content={post.content}
@@ -117,22 +105,48 @@ const Read = ({ postId, onClose }) => {
               mt={2}
               sx={{
                 display: 'flex',
-
+                alignItems: 'center',
+                justifyContent: 'space-between', // Distribute space between items
+                width: '100%' // Ensure full width
               }}
             >
-              <ChatIcon></ChatIcon>
-              <Box>
-                <Button variant="contained" color="primary" onClick={handleOpenEditModal} style={{ marginRight: '8px' }}>
+              <ChatIcon 
+                sx={{ 
+                  color: '#999999', 
+                  fontSize: '40px',
+                  flexShrink: 0 // Prevent the icon from shrinking
+                }} 
+              />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  variant="contained" 
+                  sx={{
+                    backgroundColor: '#DBC7B5', 
+                    color: '#000', 
+                    '&:hover': {
+                      backgroundColor: '#A67153'
+                    }
+                  }} 
+                  onClick={handleOpenEditModal}
+                >
                   수정
                 </Button>
-                <Button variant="contained" color="secondary" onClick={handleDelete}>
+                <Button 
+                  variant="contained" 
+                  sx={{
+                    backgroundColor: '#6E3C21', 
+                    color: '#fff', 
+                    '&:hover': {
+                      backgroundColor: '#A67153'
+                    }
+                  }} 
+                  onClick={handleDelete}
+                >
                   삭제
                 </Button>
               </Box>
             </Box>
-            
           )}
-
         </>
       )}
       <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="md">

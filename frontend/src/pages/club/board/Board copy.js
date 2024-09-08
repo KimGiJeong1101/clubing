@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Typography, Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import React, { useState } from 'react';
+import { Container, Typography,Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import AddIcon from "@mui/icons-material/Add";
 import CKEditor5Editor from '../../../components/club/ClubBoardEditor';
 import VoteCreationForm from '../../../components/club/ClubVote';
 import ListPosts from './BoardList';
-import axios from 'axios';
 import axiosInstance from "./../../../utils/axios";
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
+
 
 const Board = () => {
   const [open, setOpen] = useState(false);
@@ -24,33 +24,11 @@ const Board = () => {
   const [anonymous, setAnonymous] = useState(false);
   const [endTime, setEndTime] = useState('');
 
-  // 회원 여부 상태
-  const [isMember, setIsMember] = useState(false);
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
   const author = useSelector(state => state.user?.userData?.user?.email || null);
-
-  useEffect(() => {
-    const checkMembership = async () => {
-      try {
-        const response = await axiosInstance.get('http://localhost:4000/clubs/boards/membership', {
-          params: { clubNumber, email: author }
-        });
-        setIsMember(response.data.isMember);
-      } catch (error) {
-        console.error('회원 여부 확인 오류:', error);
-      }
-    };
-
-    // console.log('Request URL:', `clubNumber=${clubNumber}&email=${author}`);
-    // console.log("isMember: ",isMember)  //false로 값이 나오는데 작동은 잘 한다 왜지??
-
-    if (author && clubNumber) {
-      checkMembership();
-    }
-  }, [author, clubNumber]);
 
   const getCurrentDate = () => {
     const now = new Date();
@@ -89,10 +67,11 @@ const Board = () => {
       } else {
         alert('서버와의 연결에 문제가 발생했습니다.');
       }
-      console.error('내용 저장 오류:', error.message);
+      console.error('Error saving content:', error.message);
     }
   };
   
+
   const handleVoteSave = async () => {
     if (!title) {
       alert('제목을 입력해주세요.');
@@ -124,9 +103,10 @@ const Board = () => {
       });
       handleClose();
     } catch (error) {
-      console.error('투표 저장 오류:', error.message);
+      console.error('Error saving vote:', error.message);
     }
   };
+
 
   const handleEditorChange = (data) => {
     setEditorData(data);
@@ -164,20 +144,18 @@ const Board = () => {
 
   return (
     <Container>
-      {isMember && (
-        <Fab
-          onClick={handleClickOpen}
-          color="primary"
-          aria-label="add"
-          style={{
-            position: "fixed",
-            bottom: "50px",
-            right: "50px",
-          }}
-        >
-          <AddIcon />
-        </Fab>
-      )}
+      <Fab
+        onClick={handleClickOpen}
+        color="primary"
+        aria-label="add"
+        style={{
+          position: "fixed",
+          bottom: "50px",
+          right: "50px",
+        }}
+      >
+        <AddIcon />
+      </Fab>
 
       {showList && <ListPosts />}
 

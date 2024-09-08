@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import Draggable from 'react-draggable';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton, Box } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import CustomButton from '../../../../components/club/CustomButton'
+import CustomButton2 from '../../../../components/club/CustomButton2'
 
 // 팝업 내에서 선택된 카테고리 상태 관리
 const CategoryPopup = ({ categories, onSelect, onClose, selectedCategories }) => {
@@ -110,38 +112,64 @@ const CategoryPopup = ({ categories, onSelect, onClose, selectedCategories }) =>
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {subs.map(sub => (
-                <Button
+                <CustomButton
                   key={sub}
-                  variant={localSelectedCategories.some(cat => cat.main === main && cat.sub === sub) ? 'contained' : 'outlined'}
+                  
                   color="primary"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleSelect(main, sub);
                   }}
-                  sx={{ textTransform: 'none' }}
+                  sx={{ 
+                    textTransform: 'none',
+                    backgroundColor: localSelectedCategories.some(cat => cat.main === main && cat.sub === sub) ? '#A67153' : '#DBC7B5', // 배경색 설정
+                    borderColor: 'transparent', // 무색 테두리
+                    '&:hover': {
+                      backgroundColor: localSelectedCategories.some(cat => cat.main === main && cat.sub === sub) ? '#A67153' : '#DBC7B5', // 호버 시 배경색 유지
+                      borderColor: 'transparent', // 무색 테두리
+                    },
+                  }}
                 >
                   {sub}
-                </Button>
+                </CustomButton>
               ))}
             </Box>
           </Box>
         ))}
       </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-          <Button
+        <Box 
+        sx={{
+          position: 'sticky',
+          bottom: 0,
+          p: 2,
+          display: 'flex',
+          justifyContent: 'flex-end',
+          zIndex: 1400, // 버튼이 다른 콘텐츠 위에 오도록 설정
+          width: '130px', // 전체 너비로 설정
+          ml: 'auto', // 오른쪽에 고정
+        }}>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', width: 'auto' }}>
+          <CustomButton2
             variant="contained"
             color="primary"
             onClick={handleSubmit}
           >
             확인
-          </Button>
-          <Button
+          </CustomButton2>
+          <CustomButton
             variant="outlined"
             color="secondary"
             onClick={handleClose}
+            sx={{ 
+              borderColor: 'transparent', // 무색 테두리
+              '&:hover': {
+                borderColor: 'transparent', // 무색 테두리
+              },
+            }}
           >
             닫기
-          </Button>
+          </CustomButton>
+          </Box>
         </Box>
         </Box>
       </Draggable>

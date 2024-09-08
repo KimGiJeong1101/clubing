@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, List, ListItem, ListItemText, Box, Button, Dialog, DialogTitle, DialogContent } from '@mui/material';
+import { Container, List, ListItem, ListItemText, Box, Button } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Read from './BoardRead';
@@ -25,8 +25,6 @@ const ListPosts = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItemCategory, setSelectedItemCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('전체'); // 카테고리 상태 추가
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogTitle, setDialogTitle] = useState('');
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -38,41 +36,15 @@ const ListPosts = () => {
     keepPreviousData: true,
   });
 
-  const handleSelect = (id, category, title) => {
-    setSelectedItemId(id);
-    setSelectedItemCategory(category);
-    setDialogTitle(title);
-    setOpenDialog(true);
+  const handleSelect = (id, category) => {
+    if (selectedItemId === id) {
+      setSelectedItemId(null);
+      setSelectedItemCategory('');
+    } else {
+      setSelectedItemId(id);
+      setSelectedItemCategory(category);
+    }
   };
-
-  const handleClose = () => {
-    setOpenDialog(false);
-    setSelectedItemId(null);
-    setSelectedItemCategory('');
-    setDialogTitle('');
-  };
-
-  // const location = useLocation();
-  // const queryParams = new URLSearchParams(location.search);
-  // const clubNumber = queryParams.get("clubNumber");
-
-  // const { data: items, isLoading, error } = useQuery({
-  //   queryKey: ['posts', clubNumber],
-  //   queryFn: () => fetchPosts(clubNumber),
-  //   keepPreviousData: true,
-  // });
-
-  // const handleSelect = (id, category) => {
-  //   setSelectedItemId(id);
-  //   setSelectedItemCategory(category);
-  //   setOpenDialog(true);
-  // };
-
-  // const handleClose = () => {
-  //   setOpenDialog(false);
-  //   setSelectedItemId(null);
-  //   setSelectedItemCategory('');
-  // };
 
   const handleCategoryClick = (category) => {
     setSelectedCategory(category);
@@ -214,26 +186,22 @@ const ListPosts = () => {
           <React.Fragment key={item._id}>
             <ListItem
               button
-              onClick={() => handleSelect(item._id, item.options && item.options.length > 0 ? '투표' : '게시물', item.title)}
-
+              onClick={() => handleSelect(item._id, item.options && item.options.length > 0 ? '투표' : '게시물')}
             >
               <ListItemText
                 primary={item.title}
                 secondary={`${item.category || ' 투표 '} ${item.endTime ? `종료시간: ${new Date(item.endTime).toLocaleString()}` : ''}`}
               />
             </ListItem>
+            {selectedItemId === item._id && (
+              <Box sx={{ padding: 2 }}>
+                {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} onDelete={() => setSelectedItemId(null)} />}
+                {selectedItemCategory === '게시물' && <Read postId={selectedItemId} onClose={() => handleSelect(null, '')} />}
+              </Box>
+            )}
           </React.Fragment>
         ))}
       </List>
-      
-      {/* 모달 구현 */}
-      <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="md">
-      <DialogTitle>{selectedItemCategory === '투표' ? null : dialogTitle}</DialogTitle>
-        <DialogContent>
-        {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} title={dialogTitle} onDelete={() => handleClose()} />}
-        {selectedItemCategory === '게시물' && <Read postId={selectedItemId} title={dialogTitle} onClose={() => handleClose()} />}
-        </DialogContent>
-      </Dialog>
     </Container>
   );
 };

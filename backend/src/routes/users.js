@@ -154,7 +154,7 @@ router.post('/refresh-token', async (req, res, next) => {
     }
 });
 
-//8.22 쿠키랑 세션 삭제
+//8.22 쿠키랑 jwt 삭제
 router.post('/logout', (req, res, next) => {
     try {
         // 클라이언트 측에서 쿠키 삭제

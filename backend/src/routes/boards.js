@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require("../middleware/auth");
 const router = express.Router();
 const Board = require('../models/ClubBoard'); 
 const Club = require('../models/Club'); 
@@ -48,7 +49,7 @@ const upload = multer({
 });
 
 // Routes
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/upload',upload.single('file'), (req, res) => {
     res.status(200).json(req.file);
 });
 
@@ -128,7 +129,7 @@ router.put('/posts/:id', async (req, res) => {
     }
 });
 
-router.delete('/posts/:id', async (req, res) => {
+router.delete('/posts/:id',auth, async (req, res) => {
     const { id } = req.params;
     try {
         const post = await Board.findByIdAndDelete(id);
@@ -142,6 +143,34 @@ router.delete('/posts/:id', async (req, res) => {
     }
 });
 
+router.get('/membership',auth, async (req, res) => {
+  console.log(req.query); // 요청 쿼리 확인을 위한 로그
+
+  const { clubNumber, email } = req.query;
+
+  console.log('쿼리',req.query);
+  console.log('클럽ㅍ번호',clubNumber);
+  console.log('이메일',email);
+
+  try {
+    const club = await Club.findById(clubNumber);
+    if (!club) {
+      return res.status(404).json({ error: '클럽을 찾을 수 없습니다.' });
+    }
+
+    const email = req.query.email.trim(); // 공백 제거
+    console.log('query:', email)
+    if (club.members.includes(email)) {
+      return res.status(200).json({ isMember: true });
+    } else {
+      return res.status(200).json({ isMember: false });
+    }
+  } catch (error) {
+    console.error('회원 여부 확인 오류:', error);
+    res.status(500).json({ error: '서버 오류' });
+  }
+});
+
 router.get('/all', async (req, res) => {
   const { clubNumber } = req.query;
   try {
@@ -153,7 +182,7 @@ router.get('/all', async (req, res) => {
   }
 });
 
-router.post('/votes', async (req, res) => {
+router.post('/votes',auth, async (req, res) => {
     const {clubNumber, create_at,author,title, category, options, allowMultiple, anonymous, endTime } = req.body;
     
      // 클럽 확인
@@ -231,7 +260,7 @@ router.get('/votes/:id/summary', async (req, res) => {
 
 
 // 이 부분 수정 필요
-router.post('/votes/:id/vote', async (req, res) => {
+router.post('/votes/:id/vote',auth, async (req, res) => {
     const { id } = req.params;
     const { option, email } = req.body;
   
@@ -280,7 +309,7 @@ router.post('/votes/:id/vote', async (req, res) => {
   });
   
   // 이거 투표 한 사람 삭제
-  router.put('/votes/:id', async (req, res) => {
+  router.put('/votes/:id',auth, async (req, res) => {
     const { id } = req.params;
     const { option, email } = req.body;
   
@@ -317,7 +346,7 @@ router.post('/votes/:id/vote', async (req, res) => {
   
 
 // DELETE /api/votes/:id  ->이건 라우터 쓰는 버전
-router.delete('/votes/:id', async (req, res) => {
+router.delete('/votes/:id',auth, async (req, res) => {
     try {
       const board = await Board.findByIdAndDelete(req.params.id);
       if (!board) {

@@ -12,7 +12,7 @@ function Footer() {
           mt:1,
           width: "100%",
           height: "75px",
-          backgroundColor: "white",
+          backgroundColor: "#565903",
           color: "black",
           display: "flex",
           alignItems: "center",

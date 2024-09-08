@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import MainHeader from "../../../layout/Header"
+import MainFooter from "../../../layout/Footer"
 import Header from "./Header";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
@@ -53,8 +55,9 @@ function ClubLayout() {
 
   return (
     <Box>
-      <Header />
-      <NavBar />
+      <MainHeader/>
+      {/* <Header />  */}
+      <NavBar /> 
       <main>
         <Outlet />
         {joinHandler && (
@@ -113,6 +116,7 @@ function ClubLayout() {
         )}
       </main>
       <Footer />
+      <MainFooter/>
     </Box>
   );
 }

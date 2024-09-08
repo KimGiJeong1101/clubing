@@ -92,10 +92,10 @@ function Header() {
     <Box
       sx={{
         position: "fixed",
-        top: 95,
+        top: 0,
         left: 0,
         width: "100%",
-        height: "70px",
+        height: "64px",
         backgroundColor: "white",
         color: "black",
         display: "flex",

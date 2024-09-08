@@ -101,10 +101,10 @@ function Header() {
     <Box
       sx={{
         position: "fixed",
-        top: 10, // Header의 높이만큼 떨어뜨림
+        top: 0, // Header의 높이만큼 떨어뜨림
         left: 0,
         width: "100%",
-        height: "75px",
+        height: "85px",
         backgroundColor: "white",
         color: "black",
         display: "flex",

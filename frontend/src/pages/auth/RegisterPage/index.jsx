@@ -21,6 +21,9 @@ import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, 
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import color from '../../../color'; // 색상를 정의한 파일
 import '../../../assets/styles/LoginCss.css'
+import CustomCheckbox from '../../../components/club/CustomCheckbox'
+import CustomButton from '../../../components/club/CustomButton'
+import CustomButton2 from '../../../components/club/CustomButton2'
 
 const RegisterPage = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
@@ -553,8 +556,24 @@ const consentPopupClose = (type) => {
             mb: 2 ,
             mt: 2,
             }}>          
-      <Typography variant="h4" component="h1" align="center">
-       로고자리
+     <Typography
+        variant="h3"
+        component="h1"
+        sx={{
+          mt: 2,
+          mb: 2,
+          textAlign: "center",
+        }}
+      >
+        <img
+          src="/logo_string02.png"
+          style={{
+            display: "block",
+            margin: "auto auto 40px auto",
+            width: "300px", // 원하는 크기로 설정
+            height: "auto",
+          }}
+        />
       </Typography>
     </Box>  
     <Box 
@@ -594,30 +613,36 @@ const consentPopupClose = (type) => {
         />
          <Stack direction="row" spacing={2}>
           {!isEmailChecked && (
-            <Button 
+            <CustomButton2 
             variant="contained" 
             color="primary" 
             className="buttonMain"
             sx={{ height: '50px' }}
             onClick={handleCheckDuplicate}>
               중복검사
-            </Button>
+            </CustomButton2>
           )}
               {isEmailChecked && (
         <Stack direction="column" spacing={0}>
-          <Button variant="outlined"  
+          <CustomButton2  variant="outlined"  
           className="buttonSub1"
-          sx={{ height: '25px' }}
+          sx={{ 
+            height: '25px',
+            borderColor: 'transparent',
+            '&:hover': {
+              borderColor: 'transparent',
+            } 
+          }}
             onClick={handleReset}>
             메일수정
-          </Button>
-          <Button 
+          </CustomButton2 >
+          <CustomButton  
           variant="contained"
           className="buttonSub2"
           sx={{ height: '25px' }}
             onClick={handleSendAuthEmail}>
             인증하기
-          </Button>
+          </CustomButton>
         </Stack>
           )}
         </Stack>
@@ -664,7 +689,7 @@ const consentPopupClose = (type) => {
             readOnly: isVerified,
           }}
         />
-        <Button
+        <CustomButton2
           variant="contained"
           color={isVerified ? 'grey' : 'primary'}
           onClick={handleVerifyClick}
@@ -673,7 +698,7 @@ const consentPopupClose = (type) => {
           sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정하여 텍스트 필드와 높이를 맞춤
         >
           {isVerified ? '인증확인' : '인증완료'}
-        </Button>
+        </CustomButton2>
       </Box>
       {verifyError && (
         <Typography color="error" sx={{ mt: 1 }}>
@@ -694,6 +719,9 @@ const consentPopupClose = (type) => {
           fullWidth
           variant="outlined"
           {...register('password', userPassword)}
+          sx={{
+            bgcolor: 'white',
+          }}
           error={!!errors.password}
           helperText={errors.password ? errors.password.message : ''}
           InputProps={{
@@ -724,6 +752,9 @@ const consentPopupClose = (type) => {
           fullWidth
           variant="outlined"
           {...register('passwordCheck',  userPasswordCheck)}
+          sx={{
+            bgcolor: 'white',
+          }}
           error={!!errors.passwordCheck}
           helperText={errors.passwordCheck ? errors.passwordCheck.message : ''}
           InputProps={{
@@ -759,6 +790,9 @@ const consentPopupClose = (type) => {
             fullWidth
             variant="outlined"
             {...register('name', userName)}
+            sx={{
+              bgcolor: 'white',
+            }}
             error={!!errors.name}
             helperText={errors.name ? errors.name.message : ''}
           />
@@ -782,6 +816,9 @@ const consentPopupClose = (type) => {
         fullWidth
         variant="outlined"
         {...register('nickName', nickName)}
+        sx={{
+          bgcolor: 'white',
+        }}
         error={!!errors.nickName}
         helperText={errors.nickName ? errors.nickName.message : ''}
         />
@@ -811,6 +848,9 @@ const consentPopupClose = (type) => {
           {...field}
           labelId="year-label"
           label="연도"
+          sx={{
+            bgcolor: 'white',
+          }}
         >
           <MenuItem value="">선택</MenuItem>
           {years.map((year) => (
@@ -836,6 +876,9 @@ const consentPopupClose = (type) => {
           {...field}
           labelId="month-label"
           label="월"
+          sx={{
+            bgcolor: 'white',
+          }}
         >
           <MenuItem value="">선택</MenuItem>
           {months.map((month) => (
@@ -862,6 +905,9 @@ const consentPopupClose = (type) => {
           {...field}
           labelId="day-label"
           label="일"
+          sx={{
+            bgcolor: 'white',
+          }}
         >
           <MenuItem value="">선택</MenuItem>
           {days.map((day) => (
@@ -946,8 +992,8 @@ const consentPopupClose = (type) => {
           rules={{
             required: '전화번호는 필수입니다.',
             pattern: {
-              value: /^\d{3}-\d{4}-\d{4}$/, // 예: 010-7430-3504
-              message: '전화번호 형식을 확인해 주세요.\n 예) 010-7430-3504',
+              value: /^\d{3}-\d{4}-\d{4}$/, // 예: 010-0000-0000
+              message: '전화번호 형식을 확인해 주세요.\n 예) 010-0000-0000',
             }
           }}
           render={({ field }) => (
@@ -957,7 +1003,7 @@ const consentPopupClose = (type) => {
                 id="phone"
                 fullWidth
                 variant="outlined"
-                placeholder="010-7430-3504"
+                placeholder="010-0000-0000"
                 error={!!errors.phone}
                 helperText={errors.phone ? errors.phone.message : ''}
                 onChange={(e) => {
@@ -965,6 +1011,9 @@ const consentPopupClose = (type) => {
                   setValue('phone', formattedValue, { shouldValidate: true }); // 포맷된 값을 폼 상태에 설정
                 }}
                 value={watch('phone')}
+                sx={{
+                  bgcolor: 'white',
+                }}
               />
             </>
           )}
@@ -984,7 +1033,8 @@ const consentPopupClose = (type) => {
       <HomeSearch 
         setSelectedSido={(sido) => setHomeLocation(prev => ({ ...prev, sido }))} 
         setSelectedSigoon={(sigoon) => setHomeLocation(prev => ({ ...prev, sigoon }))} 
-        setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))} />
+        setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))} 
+        />
  
 {/*직장 */}
 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2  }}>
@@ -1018,13 +1068,13 @@ const consentPopupClose = (type) => {
 <Box>
       {/* 직종 선택 버튼 */}
       <Box mb={2} display="flex" alignItems="center" gap={2}>
-        <Button
+        <CustomButton2
           variant="contained"
           color="primary"
           onClick={() => handlePopupOpen('job')}
         >
           직종 선택
-        </Button>
+        </CustomButton2>
         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
           (최대 3개 선택 가능)
         </Typography>
@@ -1067,13 +1117,13 @@ const consentPopupClose = (type) => {
 <Box>
       {/* 카테고리 선택 버튼 */}
       <Box mb={2} display="flex" alignItems="center" gap={2}>
-        <Button
+        <CustomButton2
           variant="contained"
           color="primary"
           onClick={() => handlePopupOpen('category')}
         >
           카테고리 선택
-        </Button>
+        </CustomButton2>
         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
           3개 이상 선택해 주세요
         </Typography>
@@ -1128,7 +1178,7 @@ const consentPopupClose = (type) => {
       <Box mb={2}>
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               checked={checkboxState.all}
               onChange={handleAllCheck}
               color="primary"
@@ -1161,7 +1211,7 @@ const consentPopupClose = (type) => {
       <Box display="flex" alignItems="center">
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               id="terms-checkbox"
               checked={checkboxState.terms}
               onChange={() => handleCheck('terms')}
@@ -1190,7 +1240,7 @@ const consentPopupClose = (type) => {
       <Box display="flex" alignItems="center">
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               id="privacy-checkbox"
               checked={checkboxState.privacy}
               onChange={() => handleCheck('privacy')}
@@ -1219,7 +1269,7 @@ const consentPopupClose = (type) => {
       <Box display="flex" alignItems="center">
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               id="marketing-checkbox"
               checked={checkboxState.marketing}
               onChange={() => handleCheck('marketing')}

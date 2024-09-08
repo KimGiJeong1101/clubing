@@ -4,6 +4,8 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField,
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
+import CustomButton from '../../../components/club/CustomButton'
+import CustomButton2 from '../../../components/club/CustomButton2'
 
 const FindPasswordPage = ({ open, onClose }) => {
   const { register, handleSubmit, watch, setError, reset, formState: { errors }, getValues } = useForm({
@@ -252,14 +254,18 @@ const userPasswordCheck = {
       onClose={() => { handleReset(); onClose(); }}
       fullWidth
       PaperProps={{
-        style: {
-          maxWidth: 450, // 최대 너비를 400px로 설정
+        sx: {
+          maxWidth: 480, // 최대 너비를 450px로 설정
+          borderRadius: 5, // 테두리 반경을 5px로 설정
         },
       }}// 최대 너비 설정
     >  
-      <DialogTitle>비밀번호 변경</DialogTitle>
+       <DialogTitle
+        sx={{ mt: 2, }} // 상단 마진과 하단 마진, 폰트 크기 설정
+      >
+        비밀번호 변경</DialogTitle>
       <DialogContent
-        sx={{ padding: 0 }}>
+        sx={{ padding: 0, mt:2 }}>
       <Box
           sx={{
             width: '100%',
@@ -272,7 +278,7 @@ const userPasswordCheck = {
                 <Typography variant="body2" component="label" htmlFor="email" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
                   이메일
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center'}}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb:2}}>
                 <TextField
                     label="이메일"
                     type="email"
@@ -299,13 +305,13 @@ const userPasswordCheck = {
                     }}
                     error={!!emailError || !!errors.email} // 이메일 필드에 에러가 있거나 인증 오류가 있는 경우
                   />
-                  <Button 
+                  <CustomButton 
                     variant="contained"
-                    sx={{ height: '56px', lineHeight: '56px' }}
+                    sx={{ height: '56px', lineHeight: '56px',  }}
                     onClick={handleCheckDuplicate} // 이메일 중복 체크 및 인증 메일 발송
                   >
                     인증하기
-                  </Button>
+                  </CustomButton>
                 </Box>
                 {emailError && (
                 <Typography color="error" sx={{ mb: 2 }}>
@@ -314,7 +320,11 @@ const userPasswordCheck = {
               )}
               </>
       <Box sx={{ mb: 2 }}>
-      <Typography variant="body2" component="label" htmlFor="verification" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+      <Typography variant="body2" component="label" htmlFor="verification" 
+      sx={{ 
+        fontWeight: 'bold', 
+        color: 'text.secondary' ,
+        }}>
         인증번호
       </Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
@@ -338,7 +348,7 @@ const userPasswordCheck = {
             readOnly: isVerified,
           }}
         />
-        <Button
+        <CustomButton
           variant="contained"
           color={isVerified ? 'grey' : 'primary'}
           onClick={handleVerifyClick}
@@ -346,7 +356,7 @@ const userPasswordCheck = {
           sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정하여 텍스트 필드와 높이를 맞춤
         >
           {isVerified ? '인증확인' : '인증완료'}
-        </Button>
+        </CustomButton>
       </Box>
       {verifyError && (
         <Typography color="error" sx={{ mt: 1 }}>
@@ -354,11 +364,12 @@ const userPasswordCheck = {
         </Typography>
       )}
     </Box>
-      <Box>
-      <Typography variant="body2" component="label" htmlFor="verification" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+    <Box sx={{ mt: 4 }}>
+      <Typography variant="body2" component="label" htmlFor="verification" 
+      sx={{ fontWeight: 'bold', color: 'text.secondary', }}>
         새 비밀번호
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center'}}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb:2 }}>
       <TextField
             label="새 비밀번호"
             type={showPassword ? 'text' : 'password'}
@@ -396,7 +407,7 @@ const userPasswordCheck = {
         <Typography variant="body2" component="label" htmlFor="verification" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
           새 비밀번호 확인
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center'}}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb:4 }}>
         <TextField
             label="새 비밀번호 확인"
             type={showPasswordCheck ? 'text' : 'password'}
@@ -433,12 +444,21 @@ const userPasswordCheck = {
         </Box>
       </DialogContent>
       <DialogActions>
-      <Button onClick={handleSubmit(onSubmit)} color="primary" >
+      <CustomButton2 onClick={handleSubmit(onSubmit)} 
+        sx={{
+          mb: 3,
+        }}
+      >
           비밀번호 변경
-        </Button>
-      <Button onClick={() => { handleReset(); onClose(); }} color="primary">
+        </CustomButton2>
+      <CustomButton onClick={() => { handleReset(); onClose(); }} 
+        sx={{
+          mb: 3,
+          mr: 3,
+        }}
+        >
           취소
-        </Button>
+        </CustomButton>
       </DialogActions>
     </Dialog>
   );
