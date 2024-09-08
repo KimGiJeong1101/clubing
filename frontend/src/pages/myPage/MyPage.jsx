@@ -1,4 +1,4 @@
-import MyUpdate from './sections/MyUpdate'; // MyUpdate 컴포넌트를 임포트합니다.
+import MyUpdate from './sections/MyUpdate/MyUpdate'; // MyUpdate 컴포넌트를 임포트합니다.
 import MyChat from './sections/MyChat';
 import MyClub from './sections/MyClub';
 import MySetting from './sections/MySetting';

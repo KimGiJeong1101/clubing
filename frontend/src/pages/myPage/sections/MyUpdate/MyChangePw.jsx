@@ -2,28 +2,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUser, logoutUser } from '../../../store/actions/userActions'
-import HomeSearch from '../../auth/RegisterPage/address/HomeSearch';
-import WorkplaceSearch from '../../auth/RegisterPage/address/WorkplaceSearch';
-import InterestSearch from '../../auth/RegisterPage/address/InterestSearch';
-import CategoryPopup from '../../auth/RegisterPage/category/CategoryPopup';
-import categories from '../../auth/RegisterPage/category/CategoriesData';
-import JobPopup from '../../auth/RegisterPage/job/JobPopup';
-import JobCategories from '../../auth/RegisterPage/job/JobCategories';
-import MarketingPopup from '../../auth/RegisterPage/consent/Marketing';
-import axiosInstance from '../../../utils/axios'
+import { updateUser, logoutUser } from '../../../../store/actions/userActions'
+import HomeSearch from '../../../auth/RegisterPage/address/HomeSearch';
+import WorkplaceSearch from '../../../auth/RegisterPage/address/WorkplaceSearch';
+import InterestSearch from '../../../auth/RegisterPage/address/InterestSearch';
+import CategoryPopup from '../../../auth/RegisterPage/category/CategoryPopup';
+import categories from '../../../auth/RegisterPage/category/CategoriesData';
+import JobPopup from '../../../auth/RegisterPage/job/JobPopup';
+import JobCategories from '../../../auth/RegisterPage/job/JobCategories';
+import MarketingPopup from '../../../auth/RegisterPage/consent/Marketing';
+import axiosInstance from '../../../../utils/axios'
 import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, FormControlLabel,
-          FormControl, InputLabel, Select, MenuItem, FormHelperText, DialogActions,
-          Chip, Checkbox, Paper, Link, Snackbar, Modal, Grid, Alert
+          FormControl, InputLabel, Select, MenuItem, FormHelperText, 
+          Chip, Snackbar, Modal, Grid, Alert
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
-import color from '../../../color'; // 색상를 정의한 파일
-import '../../../assets/styles/LoginCss.css'
-import CustomButton from '../../../components/club/CustomButton.jsx'
-import CustomButton2 from '../../../components/club/CustomButton2.jsx'
-import CustomCheckbox from '../../../components/club/CustomCheckbox.jsx'
+import color from '../../../../color'; // 색상를 정의한 파일
+import '../../../../assets/styles/LoginCss.css'
+import CustomButton from '../../../../components/club/CustomButton.jsx'
+import CustomButton2 from '../../../../components/club/CustomButton2.jsx'
+import CustomCheckbox from '../../../../components/club/CustomCheckbox.jsx'
 
-const MyUpdate = () => {
+const MyChangePw = () => {
   const user = useSelector((state) => state.user?.userData?.user || {});
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
   useForm({  
@@ -410,38 +410,9 @@ const consentPopupClose = (type) => {
 // 정보 수정 / 탈퇴 버튼
 const [view, setView] = useState(''); // 클릭된 버튼의 상태를 저장하는 변수
 
-// 탈퇴 처리 함수
-const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열림 상태
-const [isDeleting, setIsDeleting] = useState(false); // 탈퇴 중 상태
-const [openSnackbar, setOpenSnackbar] = useState(false); // 스낵바 열림 상태
-const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시지
-
   // 회원 탈퇴 버튼 클릭 시 호출
   const handleDeleteAccount = () => {
     setIsModalOpen(true); // 모달 열기
-  };
-
-  // 모달에서 '탈퇴하기' 버튼 클릭 시 호출
-  const handleConfirmDelete = async () => {
-    setIsDeleting(true); // 탈퇴 요청 상태로 변경
-    try {
-      // 회원 탈퇴 요청
-      const response = await axiosInstance.put('/users/myPage/delete');
-      console.log('회원 탈퇴 요청이 전송되었습니다.', response.data);
-  
-      // 로그아웃 요청
-      await axiosInstance.post('/users/logout');
-      dispatch(logoutUser()); // 상태 초기화
-      setSnackbarMessage('회원 탈퇴가 완료되었습니다.');
-      setOpenSnackbar(true);
-    } catch (error) {
-      console.error('로그아웃 중 오류 발생:', error);
-      setSnackbarMessage('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
-      setOpenSnackbar(true);
-    } finally {
-      setIsDeleting(false); // 탈퇴 완료 상태로 변경
-      setIsModalOpen(false); // 모달 닫기
-    }
   };
 
   // 모달에서 '취소' 버튼 클릭 시 호출
@@ -1144,4 +1115,4 @@ const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시�
   );
 };
 
-export default MyUpdate
+export default MyChangePw

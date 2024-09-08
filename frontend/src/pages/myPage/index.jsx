@@ -1,5 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
-import MyUpdate from './sections/MyUpdate';
+import MyUpdate from './sections/MyUpdate/MyUpdate';
 import MyClub from './sections/MyClub';
 import MyWish from './sections/MyWish';
 import MyChat from './sections/MyChat';
