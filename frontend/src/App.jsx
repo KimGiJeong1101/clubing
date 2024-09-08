@@ -15,7 +15,7 @@ import { authUser } from "./store/actions/userActions";
 import "./App.css";
 import ClubCreate from "./pages/club/ClubCreate";
 import MeetingList from "./pages/club/meeting/MeetingList";
-
+import Home from "./pages/home/Home"
 
 function App() {
   const dispatch = useDispatch();
@@ -48,6 +48,7 @@ function App() {
 
       {/* 기본 Layout을 사용하는 경로 */}
       <Route path="/" element={<Layout />}>
+        <Route path="/home" element={<Home/>} />
         <Route path="/clublist" element={<Clubs />} />
         <Route path="/meetingList" element={<MeetingList />} />
         <Route path="*" element={<NotFound />} />
