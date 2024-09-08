@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Container, Typography, Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
 import AddIcon from "@mui/icons-material/Add";
 import CKEditor5Editor from '../../../components/club/ClubBoardEditor';
 import VoteCreationForm from '../../../components/club/ClubVote';
 import ListPosts from './BoardList';
-import axios from 'axios';
 import axiosInstance from "./../../../utils/axios";
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
@@ -27,6 +26,11 @@ const Board = () => {
   // 회원 여부 상태
   const [isMember, setIsMember] = useState(false);
 
+  // Snackbar 상태
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
@@ -44,9 +48,6 @@ const Board = () => {
       }
     };
 
-    // console.log('Request URL:', `clubNumber=${clubNumber}&email=${author}`);
-    // console.log("isMember: ",isMember)  //false로 값이 나오는데 작동은 잘 한다 왜지??
-
     if (author && clubNumber) {
       checkMembership();
     }
@@ -62,15 +63,15 @@ const Board = () => {
 
   const handleSave = async () => {
     if (!title) {
-      alert('제목을 입력해주세요.');
+      showSnackbar('제목을 입력해주세요.', 'error');
       return;
     }
     if (!category) {
-      alert('카테고리를 입력해주세요.');
+      showSnackbar('카테고리를 입력해주세요.', 'error');
       return;
     }
     if (!editorData) {
-      alert('내용을 입력해주세요.');
+      showSnackbar('내용을 입력해주세요.', 'error');
       return;
     }
     try {
@@ -85,9 +86,9 @@ const Board = () => {
       handleClose();
     } catch (error) {
       if (error.response) {
-        alert(error.response.data.error);
+        showSnackbar(error.response.data.error, 'error');
       } else {
-        alert('서버와의 연결에 문제가 발생했습니다.');
+        showSnackbar('서버와의 연결에 문제가 발생했습니다.', 'error');
       }
       console.error('내용 저장 오류:', error.message);
     }
@@ -95,19 +96,19 @@ const Board = () => {
   
   const handleVoteSave = async () => {
     if (!title) {
-      alert('제목을 입력해주세요.');
+      showSnackbar('제목을 입력해주세요.', 'error');
       return;
     }
     if (!category) {
-      alert('카테고리를 입력해주세요.');
+      showSnackbar('카테고리를 입력해주세요.', 'error');
       return;
     }
-    if (options.some(option => !option.trim())) { // 옵션이 비어 있는지 확인
-      alert('모든 항목을 입력해주세요.');
+    if (options.some(option => !option.trim())) {
+      showSnackbar('모든 항목을 입력해주세요.', 'error');
       return;
     }
     if (!endTime) {
-      alert('종료 시간을 입력해주세요.');
+      showSnackbar('종료 시간을 입력해주세요.', 'error');
       return;
     }
     try {
@@ -124,6 +125,7 @@ const Board = () => {
       });
       handleClose();
     } catch (error) {
+      showSnackbar('투표 저장 오류:', 'error');
       console.error('투표 저장 오류:', error.message);
     }
   };
@@ -160,6 +162,16 @@ const Board = () => {
     setAllowMultiple(false);
     setAnonymous(false);
     setEndTime('');
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -225,6 +237,22 @@ const Board = () => {
           )}
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        message={snackbarMessage}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbarSeverity} 
+          sx={{ width: '100%' }}
+        >
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };

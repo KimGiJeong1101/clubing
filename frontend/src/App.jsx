@@ -16,6 +16,7 @@ import "./App.css";
 import ClubCreate from "./pages/club/ClubCreate";
 import MeetingList from "./pages/club/meeting/MeetingList";
 import Board from "./pages/club/board/Board";
+import Home from "./pages/home/Home"
 
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
 
       {/* 기본 Layout을 사용하는 경로 */}
       <Route path="/" element={<Layout />}>
+        <Route path="/home" element={<Home/>} />
         <Route path="/clublist" element={<Clubs />} />
         <Route path="/meetingList" element={<MeetingList />} />
         <Route path="*" element={<NotFound />} />

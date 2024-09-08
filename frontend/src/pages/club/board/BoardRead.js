@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Container, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
 import CKEditor5Editor from '../../../components/club/ClubBoardRead';
 import UpdatePost from '../../../components/club/ClubBoardUpdateEditor';
 import { usePost } from '../../../hooks/usePost';
@@ -17,6 +17,10 @@ const Read = ({ postId, onClose }) => {
   const [content, setContent] = useState('');
   const [image, setImage] = useState('');
   const [isAuthor, setIsAuthor] = useState(false);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
 
   const author = useSelector(state => state.user?.userData?.user?.email || null);
 
@@ -69,6 +73,14 @@ const Read = ({ postId, onClose }) => {
   };
 
   const handleSave = () => {
+    if (!title) {
+      showSnackbar('제목이 없습니다.', 'error');
+      return;
+    }
+    if (!content) {
+      showSnackbar('내용이 없습니다.', 'error');
+      return;
+    }
     updateMutation.mutate();
   };
 
@@ -84,6 +96,16 @@ const Read = ({ postId, onClose }) => {
 
   const handleCloseEditModal = () => {
     setOpenEditModal(false);
+  };
+
+  const showSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   if (isLoading) return <p>Loading...</p>;
@@ -172,6 +194,18 @@ const Read = ({ postId, onClose }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
