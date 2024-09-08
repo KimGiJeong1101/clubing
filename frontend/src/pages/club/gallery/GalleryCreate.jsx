@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import ImageEditor from '@toast-ui/react-image-editor';
 import 'tui-image-editor/dist/tui-image-editor.css';
-import { Button, Box, Grid, Snackbar, Alert } from '@mui/material';
+import { Button, Box, Grid, Snackbar, Alert, TextField } from '@mui/material';
 import FloatingLabelInput from '../../../components/commonEffect/GalleryInput';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { useSelector } from 'react-redux';
@@ -307,19 +307,24 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           </DragDropContext>
 
           {/* 제목과 내용 입력 필드 */}
-          <FloatingLabelInput
+          <TextField
             label="Title"
-            sx={{ width: '500px', marginTop: '-10px' }}
+            variant="outlined"
+            fullWidth
             value={title}
-            onChange={(e) => setTitle(e.target.value)} // 제목 입력 핸들러
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{ marginTop: '16px' }}
           />
-          <FloatingLabelInput
+
+          <TextField
             label="Content"
+            variant="outlined"
             multiline
-            rows={7}
-            sx={{ width: '500px', marginTop: '0px' }}
+            rows={4}
+            fullWidth
             value={content}
-            onChange={(e) => setContent(e.target.value)} // 내용 입력 핸들러
+            onChange={(e) => setContent(e.target.value)}
+            sx={{ marginTop: '16px' }}
           />
 
           {/* 저장 버튼 */}
