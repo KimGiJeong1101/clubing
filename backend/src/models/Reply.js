@@ -20,6 +20,17 @@ const replySchema = new Schema(
       type: String,
       required: true,
     },
+    parentReplyId: {
+      type: Schema.Types.ObjectId,
+      ref: "Reply", // 부모 댓글을 참조하는 필드
+      default: null,
+    },
+    replies: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Reply", // 자식 댓글을 참조하는 필드
+      },
+    ],
     createdAt: {
       type: Date,
       default: Date.now,
@@ -32,13 +43,6 @@ const replySchema = new Schema(
     timestamps: true,
   }
 );
-
-replySchema.virtual("post", {
-  ref: (doc) => doc.postType,
-  localField: "postId",
-  foreignField: "_id",
-  justOne: true,
-});
 
 // 모델이 이미 존재하는지 확인한 후, 정의합니다.
 const Reply = mongoose.models.Reply || mongoose.model("Reply", replySchema);

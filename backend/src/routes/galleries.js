@@ -7,8 +7,7 @@ const path = require("path");
 const fs = require("fs");
 const Gallery = require("../models/ClubGallery");
 const moment = require("moment-timezone"); // moment-timezone 패키지를 사용하여 시간대 변환
-const User = require("../models/User")
-
+const User = require("../models/User");
 
 // 날짜별 폴더 생성 함수 (갤러리용)
 const createDailyFolder = () => {
@@ -56,16 +55,12 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const { originPath } = createDailyFolder();
-    const uniqueFilename = generateUniqueFilename(
-      originPath,
-      file.originalname
-    );
+    const uniqueFilename = generateUniqueFilename(originPath, file.originalname);
     cb(null, uniqueFilename);
   },
 });
 
 const upload = multer({ storage: storage }).array("files", 8);
-
 // 클럽별 갤러리 이미지 등록
 router.post("/:clubNumber/images", upload, async (req, res) => {
   try {
@@ -74,29 +69,27 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
     const { clubNumber } = req.params;
     const { writer, title, content } = req.body;
 
-    const writerNick = await User.findById(req.body.writer);
-    const NickName = writerNick.nickName
-    console.log(NickName)
-
     const club = await Club.findById(clubNumber);
     if (!club) {
       return res.status(404).json({ error: "클럽을 찾을 수 없습니다." });
     }
 
-    if (!club.members.includes(writer)) {
-      return res.status(403).json({ error: "이 클럽의 멤버가 아닙니다." });
+    // 1. 클럽 멤버 여부 및 관리자 권한 확인
+    const isAdmin = club.admin === writer; // 관리자인지 여부 확인
+    const isMember = club.members.includes(writer); // 클럽 멤버인지 여부 확인
+
+    if (!isAdmin && !isMember) {
+      // 클럽 관리자도 아니고 멤버도 아닌 경우
+      return res.status(403).json({ error: "이 클럽의 멤버가 아니거나 권한이 없습니다." });
     }
 
     let originImages = [];
     let thumbnailImages = [];
 
-    // 이미지 처리
+    // 2. 이미지 처리
     for (const file of files) {
       const originalFilePath = path.join(originPath, file.filename);
-      const thumbnailFilePath = path.join(
-        thumbnailPath,
-        `thumbnail_${file.filename}`
-      );
+      const thumbnailFilePath = path.join(thumbnailPath, `thumbnail_${file.filename}`);
 
       // 이미지 리사이징
       await sharp(file.path).resize(400).toFile(thumbnailFilePath);
@@ -105,7 +98,7 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
       thumbnailImages.push(thumbnailFilePath);
     }
 
-    // 갤러리 생성
+    // 3. 갤러리 생성
     const gallery = new Gallery({
       clubNumber,
       writer,
@@ -129,8 +122,6 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
 
 // 클럽별 이미지 수정 라우트
 router.put("/:clubNumber/images/:id", upload, async (req, res) => {
-
-
   try {
     const { clubNumber, id } = req.params;
     const { writer, title, content, sortedImages } = req.body;
@@ -139,9 +130,7 @@ router.put("/:clubNumber/images/:id", upload, async (req, res) => {
     const club = await Club.findById(clubNumber);
 
     if (!gallery || !club) {
-      return res
-        .status(404)
-        .json({ error: "클럽 또는 갤러리를 찾을 수 없습니다." });
+      return res.status(404).json({ error: "클럽 또는 갤러리를 찾을 수 없습니다." });
     }
 
     if (gallery.writer !== writer && club.admin !== writer) {
@@ -175,10 +164,7 @@ router.put("/:clubNumber/images/:id", upload, async (req, res) => {
 
       for (const file of req.files) {
         const originalFilePath = path.join(originPath, file.filename);
-        const thumbnailFilePath = path.join(
-          thumbnailPath,
-          `thumbnail_${file.filename}`
-        );
+        const thumbnailFilePath = path.join(thumbnailPath, `thumbnail_${file.filename}`);
 
         await sharp(file.path).resize(400).toFile(thumbnailFilePath);
 
@@ -208,25 +194,18 @@ router.get("/:clubNumber/images", async (req, res) => {
     const { clubNumber } = req.params;
     const galleries = await Gallery.find({ clubNumber });
 
-
     res.json(
       galleries.map((gallery) => ({
         _id: gallery._id,
         originalImage: `http://localhost:4000/${gallery.origin_images[0]}`,
         thumbnailImage: `http://localhost:4000/${gallery.thumbnail_images[0]}`,
-        allImages: gallery.origin_images.map(
-          (img) => `http://localhost:4000/${img}`
-        ),
+        allImages: gallery.origin_images.map((img) => `http://localhost:4000/${img}`),
         title: gallery.title,
         content: gallery.content,
         writer: gallery.writer,
-        createdAt: moment(gallery.createdAt)
-          .tz("Asia/Seoul")
-          .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
-        updatedAt: moment(gallery.updatedAt)
-          .tz("Asia/Seoul")
-          .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
-      }))
+        createdAt: moment(gallery.createdAt).tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
+        updatedAt: moment(gallery.updatedAt).tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
+      })),
     );
   } catch (error) {
     res.status(500).send(error.message);
@@ -242,40 +221,32 @@ router.get("/:clubNumber/images/:id", async (req, res) => {
     if (!gallery) {
       return res.status(404).json({ error: "Gallery not found" });
     }
-    const email = gallery.writer
-    const UserNickName = await User.findOne({ email })
+    const email = gallery.writer;
+    const UserNickName = await User.findOne({ email });
 
     res.json({
       _id: gallery._id,
-      originImages: gallery.origin_images.map(
-        (img) => `http://localhost:4000/${img}`
-      ),
+      originImages: gallery.origin_images.map((img) => `http://localhost:4000/${img}`),
       title: gallery.title,
       content: gallery.content,
       views: gallery.views,
       likes: gallery.likes,
       writer: UserNickName.nickName,
-      createdAt: moment(gallery.createdAt)
-        .tz("Asia/Seoul")
-        .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
-      updatedAt: moment(gallery.updatedAt)
-        .tz("Asia/Seoul")
-        .format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환  
-    })
+      createdAt: moment(gallery.createdAt).tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
+      updatedAt: moment(gallery.updatedAt).tz("Asia/Seoul").format("YYYY-MM-DD HH:mm:ss"), // 한국 시간으로 변환
+    });
   } catch (error) {
     res.status(500).send(error.message);
   }
 });
-
 // 클럽별 이미지 삭제 라우트
 router.delete("/:clubNumber/images", async (req, res) => {
   const { imageIds, writer } = req.body;
   const { clubNumber } = req.params;
+  console.log("권한 있는사람 : ", writer);
 
   if (!imageIds || !Array.isArray(imageIds) || imageIds.length === 0) {
-    return res
-      .status(400)
-      .json({ error: "삭제할 이미지를 선택 후에 선택삭제를 눌러주세요" });
+    return res.status(400).json({ error: "삭제할 이미지를 선택 후에 선택삭제를 눌러주세요" });
   }
 
   try {
@@ -303,15 +274,21 @@ router.delete("/:clubNumber/images", async (req, res) => {
 
     for (const gallery of galleriesToDelete) {
       for (const filePath of gallery.origin_images) {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {}
       }
 
       for (const filePath of gallery.thumbnail_images) {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {}
       }
     }
 
@@ -327,6 +304,7 @@ router.delete("/:clubNumber/images", async (req, res) => {
 router.delete("/:clubNumber/images/all", async (req, res) => {
   const { clubNumber } = req.params;
   const { writer } = req.body;
+  console.log("권한 있는사람 : ", writer);
 
   try {
     const club = await Club.findById(clubNumber);
@@ -336,26 +314,32 @@ router.delete("/:clubNumber/images/all", async (req, res) => {
     }
 
     if (club.admin !== writer) {
-      return res
-        .status(403)
-        .json({ error: "전체 삭제는 클럽장만 사용할 수 있습니다." });
+      return res.status(403).json({ error: "전체 삭제는 클럽장만 사용할 수 있습니다." });
     }
 
     const galleries = await Gallery.find({ clubNumber });
 
-    galleries.forEach((gallery) => {
-      gallery.origin_images.forEach((filePath) => {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      });
-      gallery.thumbnail_images.forEach((filePath) => {
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      });
-    });
+    for (const gallery of galleries) {
+      for (const filePath of gallery.origin_images) {
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {}
+      }
 
+      for (const filePath of gallery.thumbnail_images) {
+        try {
+          if (fs.existsSync(filePath)) {
+            // 비동기 unlink 사용 및 에러 처리
+            await fs.promises.unlink(filePath);
+          }
+        } catch (error) {}
+      }
+    }
+
+    // 모든 갤러리 삭제
     await Gallery.deleteMany({ clubNumber });
 
     res.json({ success: true, deletedCount: galleries.length });

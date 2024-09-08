@@ -32,7 +32,7 @@ const GalleryModal = ({ open, handleClose, images, writer, title, content, creat
           left: '50%',
           transform: 'translate(-50%, -50%)',
           width: '80%', // 모달 창의 전체 너비
-          height: '700px', // 고정된 높이 설정
+          height: '500px', // 고정된 높이 설정
           maxWidth: '100%',
           bgcolor: 'background.paper',
           boxShadow: 24,
@@ -64,7 +64,7 @@ const GalleryModal = ({ open, handleClose, images, writer, title, content, creat
 
         <Box
           sx={{
-            width: '70%',
+            width: '65%',
             height: '100%',
             display: 'flex',
             alignItems: 'center',
@@ -76,7 +76,17 @@ const GalleryModal = ({ open, handleClose, images, writer, title, content, creat
           <ImageCarousel images={images} />
         </Box>
 
-        <Box sx={{ width: '30%', height: '100%', p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box
+          sx={{
+            width: '35%',
+            height: '100%',
+            p: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center', // 수직 중앙 정렬
+            gap: 2,
+          }}
+        >
           <Box
             sx={{
               display: 'flex',
@@ -159,7 +169,7 @@ const GalleryModal = ({ open, handleClose, images, writer, title, content, creat
           </Box>
 
           {/* 댓글 컴포넌트: postType과 postId를 넘겨줌 */}
-          <Reply postType={postType} postId={postId} writer={writer} />
+          <Reply postType={postType} postId={postId}/>
         </Box>
 
         <IconButton

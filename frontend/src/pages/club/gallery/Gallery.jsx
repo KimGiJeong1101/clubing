@@ -28,7 +28,6 @@ const Gallery = () => {
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
-
   const [open, setOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedId, setSelectedId] = useState('');
@@ -157,7 +156,6 @@ const Gallery = () => {
     }
   };
 
-
   // 모달을 닫는 핸들러
   const handleClose = () => {
     setOpen(false);
@@ -271,58 +269,79 @@ const Gallery = () => {
     <div style={{ minWidth: '400px', overflowX: 'hidden', position: 'relative' }}>
       {error && <div>데이터 로드 에러: {error.message}</div>} {/* 에러가 있을 경우 에러 메시지 출력 */}
 
-      <ImageList
-        sx={{
-          width: '100%',
-          maxWidth: '1400px',
-          backgroundColor: 'white',
-          paddingTop: 5,
-          paddingLeft: 10,
-          paddingRight: 10,
-          paddingBottom: 20,
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '8px',
-          boxSizing: 'border-box',
-        }}
-        cols={3}
-      >
-        {!isLoading && !error && sortedImages.map((item, index) => (
-          <ImageListItem
-            key={item._id}
-            sx={{
-              margin: 0,
-              padding: 0,
-              position: 'relative',
-              overflow: 'hidden',
-              height: 0,
-              paddingBottom: '100%'
+      {/* 이미지가 없을 때 기본 이미지 표시 */}
+      {sortedImages.length === 0 ? (
+        <Box
+          sx={{
+            width: '100%',
+            textAlign: 'center',
+            padding: '50px 0',
+          }}
+        >
+          <img
+            src="/NoImagesAvailable.webp"
+            alt="No images available"
+            style={{
+              maxWidth: '600px',
+              margin: '0 auto',
             }}
-            onClick={(event) => {
-              if (event.target.type !== 'checkbox') {
-                handleOpen(item._id, index);
-              }
-            }}
-          >
-            <AnimatedCard image={item.thumbnailImage} />
-            {selectMode && (
-              <Checkbox
-                checked={selectedImageIds.includes(item._id)}
-                onChange={() => handleSelectImage(item._id)}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  zIndex: 1000,
-                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                  borderRadius: '50%',
-                }}
-              />
-            )}
-          </ImageListItem>
-        ))}
-      </ImageList>
+          />
+
+        </Box>
+      ) : (
+        <ImageList
+          sx={{
+            width: '100%',
+            maxWidth: '1400px',
+            backgroundColor: 'white',
+            paddingTop: 5,
+            paddingLeft: 10,
+            paddingRight: 10,
+            paddingBottom: 20,
+            margin: '0 auto',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '8px',
+            boxSizing: 'border-box',
+          }}
+          cols={3}
+        >
+          {sortedImages.map((item, index) => (
+            <ImageListItem
+              key={item._id}
+              sx={{
+                margin: 0,
+                padding: 0,
+                position: 'relative',
+                overflow: 'hidden',
+                height: 0,
+                paddingBottom: '100%'
+              }}
+              onClick={(event) => {
+                if (event.target.type !== 'checkbox') {
+                  handleOpen(item._id, index);
+                }
+              }}
+            >
+              <AnimatedCard image={item.thumbnailImage} />
+              {selectMode && (
+                <Checkbox
+                  checked={selectedImageIds.includes(item._id)}
+                  onChange={() => handleSelectImage(item._id)}
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    zIndex: 1000,
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    borderRadius: '50%',
+                  }}
+                />
+              )}
+            </ImageListItem>
+          ))}
+        </ImageList>
+      )}
 
       <GalleryModal
         open={open}
@@ -500,7 +519,7 @@ const Gallery = () => {
 
       <Backdrop
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isFetching}
+        open={isLoading || isFetching} // isLoading과 isFetching을 모두 확인
       >
         <CircularProgress color="inherit" />
       </Backdrop>
