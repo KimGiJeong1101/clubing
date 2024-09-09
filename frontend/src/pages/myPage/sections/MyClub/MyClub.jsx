@@ -1,14 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Typography, Box } from '@mui/material';
+import InvitedGroups from './InvitedGroups'
+import MyGroups from './MyGroups'
+import { useSelector } from 'react-redux';
+import RecentGroups from './RecentGroups'
+import WishGroups from './WishGroups'
+import axiosInstance from '../../../../utils/axios';
 
 const MyClub = () => {
+  const user = useSelector((state) => state.user?.userData?.user || {});
   // 클릭된 항목을 추적하는 상태
   const [activeItem, setActiveItem] = useState('myGroups');
+  const [counts, setCounts] = useState({
+    myGroups: 0,
+    wishGroups: 0,
+    //recentGroups: 0,
+    //invitedGroups: 0,
+  });
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const response = await axiosInstance.get('/users/myPage'); 
+        const { counts } = response.data; // 서버 응답에서 counts를 추출
+        console.log('상태11:', response.data.user);
+        console.log('상태:', response.data);
+        setCounts(counts); // 상태 업데이트
+      } catch (error) {
+        console.error('Error fetching group counts:', error);
+      }
+    };
+    fetchCounts();
+  }, []); // 빈 배열을 의존성 배열로 설정
 
   // 항목 클릭 핸들러
   const handleItemClick = (item) => {
     setActiveItem(item);
   };
+  //console.log('가입한 모임 수', counts.myGroups)
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto' }}>
@@ -21,7 +50,7 @@ const MyClub = () => {
           borderBottom: '1px solid #ddd', // 버튼과 콘텐츠 사이에 경계선 추가 (선택 사항)
         }}
       >
-        {['myGroups', 'savedGroups', 'recentGroups', 'invitedGroups'].map((item) => (
+        {['myGroups', 'wishGroups', 'recentGroups', 'invitedGroups'].map((item) => (
           <Box
             key={item}
             sx={{ 
@@ -53,13 +82,13 @@ const MyClub = () => {
           >
             <Typography variant="body1">
               {item === 'myGroups' && '내 모임'}
-              {item === 'savedGroups' && '찜 모임'}
+              {item === 'wishGroups' && '찜 모임'}
               {item === 'recentGroups' && '최근 본 모임'}
               {item === 'invitedGroups' && '초대받은 모임'}
             </Typography>
             <Typography variant="body2">
-              {item === 'myGroups' && '0'}
-              {item === 'savedGroups' && '0'}
+              {item === 'myGroups' && counts.myGroups}
+              {item === 'wishGroups' && counts.wishGroups}
               {item === 'recentGroups' && '4'}
               {item === 'invitedGroups' && '0'}
             </Typography>
@@ -79,24 +108,16 @@ const MyClub = () => {
         }}
       >
         {activeItem === 'myGroups' && (
-          <Typography variant="h6" align="center">
-            내 모임 콘텐츠
-          </Typography>
+        <MyGroups />
         )}
-        {activeItem === 'savedGroups' && (
-          <Typography variant="h6" align="center">
-            찜 모임 콘텐츠
-          </Typography>
+        {activeItem === 'wishGroups' && (
+         <WishGroups />
         )}
         {activeItem === 'recentGroups' && (
-          <Typography variant="h6" align="center">
-            최근 본 모임 콘텐츠
-          </Typography>
+         <RecentGroups />
         )}
         {activeItem === 'invitedGroups' && (
-          <Typography variant="h6" align="center">
-            초대받은 모임 콘텐츠
-          </Typography>
+          <InvitedGroups />
         )}
       </Box>
     </Box>

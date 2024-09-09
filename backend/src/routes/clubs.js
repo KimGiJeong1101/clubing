@@ -159,6 +159,14 @@ router.post("/addMember/:clubNumber", auth, async (req, res, next) => {
     const clubs = await Club.findById({ _id: req.params.clubNumber });
     clubs.members.push(req.user.email);
     clubs.save();
+
+    // 유저 정보에 클럽 ID 추가 (중복 방지) 9.9 hyk 추가
+    await User.findOneAndUpdate(
+      { email: req.user.email }, // 이메일로 유저를 찾음
+      { $addToSet: { clubs: req.params.clubNumber } }, // 유저의 클럽 목록에 클럽 ID 추가
+      { new: true } // 업데이트된 문서를 반환하도록 설정
+    );
+
     return res.sendStatus(200);
   } catch (error) {
     next(error);
@@ -200,6 +208,74 @@ router.post("/membersInfo", async (req, res, next) => {
       memberInfo.push(copymember);
     }
     return res.status(200).json(memberInfo);
+  } catch (error) {
+    next(error);
+  }
+});
+
+//찜하기
+router.post("/addWish/:clubNumber", auth, async (req, res, next) => {
+  
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+    }
+
+    const club = await Club.findById(req.params.clubNumber);
+    if (!club) {
+      return res.status(404).json({ error: '클럽을 찾을 수 없습니다.' });
+    }
+
+    // 클럽의 찜한 유저 목록에 유저 이메일 추가
+    await Club.findOneAndUpdate(
+      { _id: req.params.clubNumber },
+      { $addToSet: { wishHeart: req.user.email} }, // 유저 이메일 추가
+      { new: true }
+    );
+
+    // 유저의 찜 목록에도 클럽 ID 추가
+    await User.findOneAndUpdate(
+      { email: req.user.email },
+      { $addToSet: { wish: req.params.clubNumber } },
+      { new: true }
+    );
+
+    return res.sendStatus(200);
+  } catch (error) {
+    next(error);
+  }
+});
+
+//찜하기 해제
+router.post("/removeWish/:clubNumber", auth, async (req, res, next) => {
+  console.log('클럽 번호:', req.params.clubNumber);
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+    }
+
+    const club = await Club.findById(req.params.clubNumber);
+    if (!club) {
+      return res.status(404).json({ error: '클럽을 찾을 수 없습니다.' });
+    }
+
+    // 클럽의 찜한 유저 목록에서 유저 이메일 제거
+    await Club.findOneAndUpdate(
+      { _id: req.params.clubNumber },
+      { $pull: { wishHeart: req.user.email } },
+      { new: true }
+    );
+
+    // 유저의 찜 목록에서도 클럽 ID 제거
+    await User.findOneAndUpdate(
+      { email: req.user.email },
+      { $pull: { wish: req.params.clubNumber } },
+      { new: true }
+    );
+
+    return res.sendStatus(200);
   } catch (error) {
     next(error);
   }

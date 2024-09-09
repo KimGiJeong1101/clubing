@@ -90,7 +90,7 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
         }}
         placeholder='*읍면동 중 하나 입력해주세요 예) 옥천면'
         sx={{
-          bgcolor: 'white',
+          bgcolor: '#F2F2F2',
         }}
         error={!!errors.workplaceSearchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
         helperText={errors.workplaceSearchTerm ? errors.workplaceSearchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.

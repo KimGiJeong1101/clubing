@@ -92,7 +92,7 @@ return (
         }}
         placeholder='*읍면동 중 하나 입력해주세요 예) 강화읍'
         sx={{
-          bgcolor: 'white',
+          bgcolor: '#F2F2F2',
         }}
         error={!!errors.interestSearchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
         helperText={errors.interestSearchTerm ? errors.interestSearchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.
