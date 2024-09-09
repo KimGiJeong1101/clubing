@@ -132,6 +132,14 @@ const userSchema = mongoose.Schema({
     type: Boolean,
     default: true, // 기본값은 true, 즉 활성화 상태
   },
+  clubs: {
+    type: [Number], // 클럽 ID들을 저장하는 배열
+    default: [], // 기본값은 빈 배열
+  },
+  wish: {
+    type: [Number], // 클럽 ID들을 저장하는 배열
+    default: [], // 기본값은 빈 배열
+  },
 });
 
 userSchema.pre("save", async function (next) {

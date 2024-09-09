@@ -56,7 +56,11 @@ const clubSchema = mongoose.Schema({
     sysDate: {
         type: Date, // 만든 날짜
         default: Date.now // 자동으로 현재 시간 설정
-    }
+    },
+    wishHeart: {
+        type: [String], // 문자열 배열로 변경
+        default: [], // 기본값은 빈 배열
+    },
 })
 
 // 이거 기억할 수 있나.. 하튼 이거 자동 증가하는 거 추가하는 중 프리 + 이거 벨류 +

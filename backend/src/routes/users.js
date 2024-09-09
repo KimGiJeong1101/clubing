@@ -185,6 +185,12 @@ router.post('/logout', (req, res, next) => {
     }
 });
 
+// 클럽 ID 배열의 길이를 반환
+const getMyGroupsCount = async (clubIds) => {
+    console.log('가입한 클럽', clubIds)
+    return clubIds.length; // clubIds 배열의 길이를 반환
+};
+
 // src/routes/users.js
 router.get('/myPage', auth, async (req, res, next) => {
     try {
@@ -204,8 +210,17 @@ router.get('/myPage', auth, async (req, res, next) => {
                 user.profilePic.thumbnailImage = `${user.profilePic.thumbnailImage.replace(/\\/g, '/')}`;
             }
         }
+        const myGroupsCount = await getMyGroupsCount(user.clubs); // 사용자의 '내 모임' 클럽 개수
+        const wishGroupsCount = await getMyGroupsCount(user.wish); // 사용자의 '내 모임' 클럽 개수
+
+        return res.json({ 
+            user,
+            counts: {
+                myGroups: myGroupsCount,
+                wishGroups: wishGroupsCount,
+            } 
         
-        return res.json({ user }); // user 객체를 그대로 반환
+        }); // user 객체를 그대로 반환
     } catch (error) {
         next(error);
     }
@@ -466,8 +481,6 @@ router.put('/introduction', auth, async (req, res, next) => {
     }
 });
 
-
-
 // 특정 ID를 가진 사용자의 정보를 가져오는 라우트 핸들러
 router.get("/:id", async (req, res) => {
     try {
@@ -492,7 +505,41 @@ router.get("/:id", async (req, res) => {
     }
   });
   
+  router.post('/update-location', async (req, res) => {
+    try {
+        const { homeLocation, workplace, interestLocation } = req.body;
+        const { email } = req.body; // 인증된 사용자의 이메일을 가져옵니다.
 
+        // 필수 데이터 확인
+        if (!email) {
+            return res.status(400).json({ ok: false, msg: '이메일이 누락되었습니다.' });
+        }
+
+        // 사용자 조회
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ ok: false, msg: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 위치 정보가 요청된 경우에만 업데이트
+        if (homeLocation && (homeLocation.city || homeLocation.district || homeLocation.neighborhood)) {
+        user.homeLocation = homeLocation;
+        }
+        if (workplace && (workplace.city || workplace.district || workplace.neighborhood)) {
+            user.workplace = workplace;
+        }
+        if (interestLocation && (interestLocation.city || interestLocation.district || interestLocation.neighborhood)) {
+            user.interestLocation = interestLocation;
+        }
+
+        await user.save();
+
+        return res.json({ ok: true, msg: '위치 정보가 성공적으로 업데이트되었습니다.' });
+    } catch (error) {
+        console.error('서버 오류:', error);
+        return res.status(500).json({ ok: false, msg: '서버 오류가 발생했습니다.' });
+    }
+});
 
 
 module.exports = router; // 올바르게 내보내기

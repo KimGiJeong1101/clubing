@@ -1,6 +1,6 @@
-import MyUpdate from './sections/MyUpdate'; // MyUpdate 컴포넌트를 임포트합니다.
+import MyUpdate from './sections/MyUpdate/MyUpdate'; // MyUpdate 컴포넌트를 임포트합니다.
 import MyChat from './sections/MyChat';
-import MyClub from './sections/MyClub';
+import MyClub from './sections/MyClub/MyClub.jsx';
 import MySetting from './sections/MySetting';
 import MyWish from './sections/MyWish';
 import React, { useEffect, useState } from 'react';
@@ -206,10 +206,38 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
     alignItems: 'center',
   };
 
-  // 섹션 클릭 핸들러
+// 버튼 스타일을 선택된 섹션에 따라 동적으로 설정
   const handleSectionClick = (section) => {
     setSelectedSection(section);
   };
+
+  const getButtonStyles = (section) => ({
+    mb: 1,
+    fontSize: '1rem',
+    px: 3,
+    py: 1.5,
+    width: '100%',
+    height: '40px',
+    position: 'relative', // 가상 요소를 사용하기 위해 position 설정
+    variant: selectedSection === section ? 'contained' : 'outlined',
+    backgroundColor: selectedSection === section ? '#A67153' : '#DBC7B5',
+    color: selectedSection === section ? '#fff' : '#30231C',
+    '&:hover': {
+      backgroundColor: selectedSection === section ? '#A6836F' : '#A67153',
+    },
+    overflow: 'hidden',
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      bottom: 0,
+      left: '50%',
+      width: selectedSection === section ? '100%' : '0%',
+      height: '2px',
+      backgroundColor: '#595959',
+      transform: 'translateX(-50%)',
+      transition: 'width 0.3s ease',
+    },
+  });
 
   return (
     <Box
@@ -533,70 +561,35 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
               mt: 2 }}>
               <CustomButton
                 variant="contained"
-                sx={{
-                  mb: 1,
-                  fontSize: '1rem',    // 글꼴 크기 조절
-                  px: 3,               // 좌우 패딩
-                  py: 1.5,             // 상하 패딩
-                  width: '100%',      // 버튼 너비 조절
-                  height: '40px',      // 버튼 높이 조절
-                }}
+                sx={getButtonStyles('club')}
                 onClick={() => handleSectionClick('club')}
               >
                모임 관리
               </CustomButton>
               <CustomButton
                 variant="contained"
-                sx={{
-                  mb: 1,
-                  fontSize: '1rem',    // 글꼴 크기 조절
-                  px: 3,               // 좌우 패딩
-                  py: 1.5,             // 상하 패딩
-                  width: '100%',      // 버튼 너비 조절
-                  height: '40px',      // 버튼 높이 조절
-                }}
+                sx={getButtonStyles('chat')}
                 onClick={() => handleSectionClick('chat')}
               >
                 채팅
                 </CustomButton>
                 <CustomButton
                 variant="contained"
-                sx={{
-                  mb: 1,
-                  fontSize: '1rem',    // 글꼴 크기 조절
-                  px: 3,               // 좌우 패딩
-                  py: 1.5,             // 상하 패딩
-                  width: '100%',      // 버튼 너비 조절
-                  height: '40px',      // 버튼 높이 조절
-                }}
+                sx={getButtonStyles('update')}
                 onClick={() => handleSectionClick('update')}
               >
                 회원 정보
                 </CustomButton>
                 <CustomButton
                 variant="contained"
-                sx={{
-                  mb: 1,
-                  fontSize: '1rem',    // 글꼴 크기 조절
-                  px: 3,               // 좌우 패딩
-                  py: 1.5,             // 상하 패딩
-                  width: '100%',      // 버튼 너비 조절
-                  height: '40px',      // 버튼 높이 조절
-                }}
+                sx={getButtonStyles('wish')}
                 onClick={() => handleSectionClick('wish')}
               >
                 뭘 더 넣을깡
                 </CustomButton>
                 <CustomButton
                 variant="contained"
-                sx={{
-                  mb: 1,
-                  fontSize: '1rem',    // 글꼴 크기 조절
-                  px: 3,               // 좌우 패딩
-                  py: 1.5,             // 상하 패딩
-                  width: '100%',      // 버튼 너비 조절
-                  height: '40px',      // 버튼 높이 조절
-                }}
+                 sx={getButtonStyles('setting')}
                 onClick={() => handleSectionClick('setting')}
               >
                 안내사항
