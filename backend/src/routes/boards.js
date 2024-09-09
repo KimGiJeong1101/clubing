@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require("../middleware/auth");
 const router = express.Router();
 const Board = require('../models/ClubBoard'); 
 const Club = require('../models/Club'); 
@@ -48,7 +49,7 @@ const upload = multer({
 });
 
 // Routes
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/upload',upload.single('file'), (req, res) => {
     res.status(200).json(req.file);
 });
 
@@ -140,6 +141,34 @@ router.delete('/posts/:id', async (req, res) => {
         console.error('Error deleting post:', error);
         res.status(500).send('Failed to delete post');
     }
+});
+
+router.get('/membership',auth, async (req, res) => {
+  console.log(req.query); // 요청 쿼리 확인을 위한 로그
+
+  const { clubNumber, email } = req.query;
+
+  console.log('쿼리',req.query);
+  console.log('클럽번호',clubNumber);
+  console.log('이메일',email);
+
+  try {
+    const club = await Club.findById(clubNumber);
+    if (!club) {
+      return res.status(404).json({ error: '클럽을 찾을 수 없습니다.' });
+    }
+
+    const email = req.query.email.trim(); // 공백 제거
+    console.log('query:', email)
+    if (club.members.includes(email)) {
+      return res.status(200).json({ isMember: true });
+    } else {
+      return res.status(200).json({ isMember: false });
+    }
+  } catch (error) {
+    console.error('회원 여부 확인 오류:', error);
+    res.status(500).json({ error: '서버 오류' });
+  }
 });
 
 router.get('/all', async (req, res) => {

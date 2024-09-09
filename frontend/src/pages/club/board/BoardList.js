@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Container, Typography, List, ListItem, ListItemText, Box, Button } from '@mui/material';
+import { Container, List, ListItem, ListItemText, Box, Button, Dialog, DialogTitle, DialogContent } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { useLocation } from 'react-router-dom';
+import { fetchPosts } from '../../../api/ClubBoardApi';
 import Read from './BoardRead';
 import ReadVote from './BoardReadVote';
-import { useLocation } from 'react-router-dom';
 
 const categoryStyles = {
   display: 'inline',
@@ -15,16 +15,12 @@ const categoryStyles = {
   borderRadius: 2
 };
 
-// API에서 게시물을 가져오는 함수
-const fetchPosts = async (clubNumber) => {
-  const response = await axios.get(`http://localhost:4000/clubs/boards/all?clubNumber=${clubNumber}`);
-  return response.data;
-};
-
 const ListPosts = () => {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedItemCategory, setSelectedItemCategory] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('전체'); // 카테고리 상태 추가
+  const [selectedCategory, setSelectedCategory] = useState('전체');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState('');
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -36,14 +32,18 @@ const ListPosts = () => {
     keepPreviousData: true,
   });
 
-  const handleSelect = (id, category) => {
-    if (selectedItemId === id) {
-      setSelectedItemId(null);
-      setSelectedItemCategory('');
-    } else {
-      setSelectedItemId(id);
-      setSelectedItemCategory(category);
-    }
+  const handleSelect = (id, category, title) => {
+    setSelectedItemId(id);
+    setSelectedItemCategory(category);
+    setDialogTitle(title);
+    setOpenDialog(true);
+  };
+
+  const handleClose = () => {
+    setOpenDialog(false);
+    setSelectedItemId(null);
+    setSelectedItemCategory('');
+    setDialogTitle('');
   };
 
   const handleCategoryClick = (category) => {
@@ -61,77 +61,50 @@ const ListPosts = () => {
   return (
     <Container>
       <Box sx={{ '& button': { m: 1 } }}>
-        <Button 
-          variant={selectedCategory === '전체' ? 'contained' : 'outlined'} 
-          size="small" 
-          onClick={() => handleCategoryClick('전체')}
-        >
-          전체
-        </Button>
-        <Button 
-          variant={selectedCategory === '공지사항(전체알림)' ? 'contained' : 'outlined'} 
-          size="small" 
-          onClick={() => handleCategoryClick('공지사항(전체알림)')}
-        >
-          공지
-        </Button>
-        <Button 
-          variant={selectedCategory === '자유글' ? 'contained' : 'outlined'} 
-          size="small" 
-          onClick={() => handleCategoryClick('자유글')}
-        >
-          자유
-        </Button>
-        <Button 
-          variant={selectedCategory === '관심사공유' ? 'contained' : 'outlined'} 
-          size="small" 
-          onClick={() => handleCategoryClick('관심사공유')}
-        >
-          관심사
-        </Button>
-        <Button 
-          variant={selectedCategory === '모임후기' ? 'contained' : 'outlined'} 
-          size="small" 
-          onClick={() => handleCategoryClick('모임후기')}
-        >
-          모임후기
-        </Button>
-        <Button 
-          variant={selectedCategory === '가입인사' ? 'contained' : 'outlined'} 
-          size="small" 
-          onClick={() => handleCategoryClick('가입인사')}
-        >
-          가입인사
-        </Button>
-        <Button 
-          variant={selectedCategory === '투표' ? 'contained' : 'outlined'} 
-          size="small" 
-          onClick={() => handleCategoryClick('투표')}
-        >
-          투표
-        </Button>
+        {['전체', '공지사항(전체알림)', '자유글', '관심사공유', '모임후기', '가입인사', '투표'].map(category => (
+          <Button
+            key={category}
+            variant={selectedCategory === category ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => handleCategoryClick(category)}
+            sx={{
+              bgcolor: selectedCategory === category ? '#DBC7B5' : 'transparent',
+              color: selectedCategory === category ? '#fff' : '#000',
+              borderColor: selectedCategory === category ? '#DBC7B5' : '#BDC0C8',
+              '&:hover': {
+                bgcolor: '#A67153',
+                borderColor: '#A67153',
+                color: '#fff',
+              },
+            }}
+          >
+            {category}
+          </Button>
+        ))}
       </Box>
       <List>
         {filteredItems.map((item) => (
           <React.Fragment key={item._id}>
             <ListItem
               button
-              onClick={() => handleSelect(item._id, item.options && item.options.length > 0 ? '투표' : '게시물')}
+              onClick={() => handleSelect(item._id, item.options && item.options.length > 0 ? '투표' : '게시물', item.title)}
             >
               <ListItemText
                 primary={item.title}
                 secondary={`${item.category || ' 투표 '} ${item.endTime ? `종료시간: ${new Date(item.endTime).toLocaleString()}` : ''}`}
               />
             </ListItem>
-            {selectedItemId === item._id && (
-              <Box sx={{ padding: 2 }}>
-                {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} onDelete={() => setSelectedItemId(null)} />}
-                {selectedItemCategory === '게시물' && <Read postId={selectedItemId} onClose={() => handleSelect(null, '')} />}
-              </Box>
-            )}
           </React.Fragment>
         ))}
       </List>
+      
+      <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="md">
+        <DialogTitle>{selectedItemCategory === '투표' ? null : dialogTitle}</DialogTitle>
+        <DialogContent>
+          {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} title={dialogTitle} onDelete={() => handleClose()} />}
+          {selectedItemCategory === '게시물' && <Read postId={selectedItemId} title={dialogTitle} onClose={() => handleClose()} />}
+        </DialogContent>
+      </Dialog>
     </Container>
   );
 };
