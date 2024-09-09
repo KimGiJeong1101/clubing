@@ -30,23 +30,46 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 //리스트 보여주기
-router.get('/:clubNumber', async (req, res, next) => {
-    try {
-        const meetings = await Meeting.find({clubNumber : req.params.clubNumber});
+router.get("/:clubNumber", async (req, res, next) => {
+  try {
+    const meetings = await Meeting.find({ clubNumber: req.params.clubNumber });
 
-        res.json(meetings);
-    } catch (error) {
-        next(error)
-    }
-})
+    res.json(meetings);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/", async (req, res, next) => {
+  try {
+    const now = new Date(); // 현재 날짜와 시간
+    const date = new Date(req.query.nowDate);
+    date.setDate(date.getDate() - 1);
+    const formattedDate = date.toISOString().split("T")[0];
+    const targetDateStart = new Date(`${formattedDate}T15:00:00Z`); // UTC 기준
+    const targetDateEnd = new Date(`${req.query.nowDate}T14:59:59Z`); // UTC 기준
+    const meetings = await Meeting.find({
+      $and: [
+        { dateTimeSort: { $gte: now } },
+        { dateTimeSort: { $gte: targetDateStart, $lte: targetDateEnd } }, 
+      ],
+    })
+      .sort({ date: 1 })
+      .limit(4); // 가까운 날짜 순으로 정렬
+    res.json(meetings);
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post("/create", auth, upload.single("img"), async (req, res, next) => {
   try {
     // Meeting 인스턴스 생성
+    console.log(req.body.dateTimeSort);
     const meeting = new Meeting(req.body);
     meeting.img = req.file.destination + req.file.filename;
     const copy = meeting.dateTime.split(" ");
-    const time = copy[4].split(':');
+    const time = copy[4].split(":");
     let dayOfWeek = "";
     let month = "";
     //요일 변환
@@ -116,9 +139,9 @@ router.post("/create", auth, upload.single("img"), async (req, res, next) => {
       default:
         month = "알 수 없는 월";
     }
-    
-    const realDateTime = `${copy[3]}년 ${month} ${copy[2]}일 ${dayOfWeek} ${time[0]}:${time[1]}`;
-    meeting.dateTime = realDateTime;
+
+    const stringDateTime = `${copy[3]}년 ${month} ${copy[2]}일 ${dayOfWeek} ${time[0]}:${time[1]}`;
+    meeting.dateTime = stringDateTime;
     await meeting.save();
     return res.sendStatus(200);
   } catch (error) {
@@ -131,16 +154,16 @@ router.post("/join/:meetingId", auth, async (req, res, next) => {
   try {
     const meetingId = req.params.meetingId;
     const meeting = await Meeting.findById(meetingId);
-    if(!meeting.joinMember){
-        meeting.joinMember = [];
+    if (!meeting.joinMember) {
+      meeting.joinMember = [];
     }
     //멤버 중 내가 이미 참가했었나
-    for(let i = 0 ; i<meeting.joinMember.length ; i++){
-        if(meeting.joinMember[i] == req.user.email){
-            meeting.joinMember.splice(i, 1); 
-            await meeting.save();
-            return res.status(200).json({ message: '참석 취소' });
-        }
+    for (let i = 0; i < meeting.joinMember.length; i++) {
+      if (meeting.joinMember[i] == req.user.email) {
+        meeting.joinMember.splice(i, 1);
+        await meeting.save();
+        return res.status(200).json({ message: "참석 취소" });
+      }
     }
     meeting.joinMember.push(req.user.email);
     await meeting.save();
