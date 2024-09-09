@@ -51,7 +51,7 @@ function App() {
 
       {/* 기본 Layout을 사용하는 경로 */}
       <Route path="/" element={<Layout />}>
-        <Route path="/home" element={<Home/>} />
+        <Route path="" element={<Home />} />
         <Route path="/clublist" element={<Clubs />} />
         <Route path="/meetingList" element={<MeetingList />} />
         <Route path="*" element={<NotFound />} />
