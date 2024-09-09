@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -7,6 +8,7 @@ import {
   ListItem,
   ListItemText,
   Container,
+  Typography,
   Button,
   Dialog,
   DialogTitle,
@@ -14,9 +16,8 @@ import {
   DialogActions,
   styled
 } from '@mui/material';
-import ChatIcon from '@mui/icons-material/Chat';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchVote, fetchVoteSummary, voteForOption, removeVote, deleteVote } from '../../../api/ClubBoardApi';
+import ChatIcon from '@mui/icons-material/Chat';
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
   display: 'flex',
@@ -47,37 +48,40 @@ const ReadVote = ({ voteId, onDelete }) => {
   const email = useSelector(state => state.user?.userData?.user?.email || null);
 
   useEffect(() => {
-    const fetchVoteData = async () => {
+    const fetchVote = async () => {
       try {
-        const voteData = await fetchVote(voteId);
-        setVote(voteData);
+        const response = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}`);
+        setVote(response.data);
         
+        // Determine if the vote has ended
         const currentTime = new Date();
-        const endTime = new Date(voteData.endTime);
+        const endTime = new Date(response.data.endTime);
         setIsVoteEnded(currentTime > endTime);
 
-        const summaryData = await fetchVoteSummary(voteId);
-        setSummary(summaryData);
+        const summaryResponse = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}/summary`);
+        setSummary(summaryResponse.data);
 
-        const userHasVoted = voteData.votes.some(vote => vote.emails.includes(email));
+        const userHasVoted = response.data.votes.some(vote => vote.emails.includes(email));
         setHasVoted(userHasVoted);
 
-        const votedOptionsList = voteData.votes
+        const votedOptions = response.data.votes
           .filter(vote => vote.emails.includes(email))
           .map(vote => vote.option);
-        setVotedOptions(votedOptionsList);
+        setVotedOptions(votedOptions);
 
-        setIsAuthor(voteData.author === email);
+        setIsAuthor(response.data.author === email);
       } catch (error) {
-        console.error('투표 데이터를 가져오는 중 오류 발생:', error);
+        console.error('투표를 가져오는 중 오류 발생:', error);
       }
     };
 
-    fetchVoteData();
+    fetchVote();
   }, [voteId, email]);
 
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteVote(voteId),
+  const { mutate: deleteVote } = useMutation({
+    mutationFn: async () => {
+      await axios.delete(`http://localhost:4000/clubs/boards/votes/${voteId}`);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['posts']);
       if (onDelete) onDelete();
@@ -87,48 +91,31 @@ const ReadVote = ({ voteId, onDelete }) => {
     }
   });
 
-  const voteMutation = useMutation({
-    mutationFn: () => voteForOption(voteId, selectedOption, email),
-    onSuccess: () => {
-      setHasVoted(true);
-      setVotedOptions([...votedOptions, selectedOption]);
-
-      const updatedSummary = summary.map(item =>
-        item.option === selectedOption ? { ...item, count: item.count + 1 } : item
-      );
-      setSummary(updatedSummary);
-
-      setIsVoteEnded(true);
-    },
-    onError: (error) => {
-      console.error('투표하기 중 오류 발생:', error);
-    }
-  });
-
-  const removeVoteMutation = useMutation({
-    mutationFn: () => removeVote(voteId, selectedOption, email),
-    onSuccess: async () => {
-      setHasVoted(false);
-      setSelectedOption(null);
-      setVotedOptions(votedOptions.filter(option => option !== selectedOption));
-
-      const updatedSummary = await fetchVoteSummary(voteId);
-      setSummary(updatedSummary);
-    },
-    onError: (error) => {
-      console.error('투표 취소 중 오류 발생:', error);
-    }
-  });
-
-  const handleVote = () => {
-    if (selectedOption && !hasVoted) {
-      voteMutation.mutate();
-    }
+  const formatToLocalDatetime = (dateString) => {
+    const date = new Date(dateString);
+    // 로컬 시간대로 변환
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    // yyyy-MM-ddTHH:mm 형식으로 변환
+    return localDate.toISOString().slice(0, 16);
   };
 
-  const handleRemoveVote = () => {
-    if (selectedOption && hasVoted) {
-      removeVoteMutation.mutate();
+  const handleVote = async () => {
+    if (selectedOption && !hasVoted) {
+      try {
+        await axios.post(`http://localhost:4000/clubs/boards/votes/${voteId}/vote`, { option: selectedOption, email });
+        setHasVoted(true);
+        setVotedOptions([...votedOptions, selectedOption]);
+
+        const updatedSummary = summary.map(item =>
+          item.option === selectedOption ? { ...item, count: item.count + 1 } : item
+        );
+        setSummary(updatedSummary);
+
+        // Open summary after voting
+        setIsVoteEnded(true);
+      } catch (error) {
+        console.error('Error updating vote count:', error);
+      }
     }
   };
 
@@ -140,11 +127,11 @@ const ReadVote = ({ voteId, onDelete }) => {
 
   const handleSummaryOpen = async () => {
     try {
-      const summaryData = await fetchVoteSummary(voteId);
-      setSummary(summaryData);
+      const response = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}/summary`);
+      setSummary(response.data);
       setOpenSummary(true);
     } catch (error) {
-      console.error('투표 요약 정보를 가져오는 중 오류 발생:', error);
+      console.error('Error fetching vote summary:', error);
     }
   };
 
@@ -152,18 +139,37 @@ const ReadVote = ({ voteId, onDelete }) => {
     setOpenSummary(false);
   };
 
-  const handleDelete = () => {
-    deleteMutation.mutate();
+  const handleRemoveVote = async () => {
+    if (selectedOption && hasVoted) {
+      try {
+        await axios.put(`http://localhost:4000/clubs/boards/votes/${voteId}`, {
+          option: selectedOption,
+          email
+        });
+
+        setHasVoted(false);
+        setSelectedOption(null);
+        setVotedOptions(votedOptions.filter(option => option !== selectedOption));
+
+        const updatedSummaryResponse = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}/summary`);
+        setSummary(updatedSummaryResponse.data);
+      } catch (error) {
+        console.error('투표 취소 중 오류 발생:', error);
+      }
+    }
   };
 
-  const formatToLocalDatetime = (dateString) => {
-    const date = new Date(dateString);
-    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    return localDate.toISOString().slice(0, 16);
+  const handleDelete = () => {
+    deleteVote();
   };
+  
+  console.log('vote:',vote)
 
   return (
     <Container>
+      {/* <Typography variant="h4" component="h1" gutterBottom>
+        투표 내용
+      </Typography> */}
       {vote && (
         <>
           <Box sx={{ padding: 2 }}>
@@ -185,12 +191,12 @@ const ReadVote = ({ voteId, onDelete }) => {
                       onClick={() => handleOptionClick(option)}
                     >
                       <ListItemText primary={option} />
+                      {/* <ListItemText secondary={`선택 수: ${count}`} /> */}
                     </StyledListItem>
                   );
                 })}
               </List>
             )}
-
             <Box my={2}>
               {!isVoteEnded ? (
                 <>
@@ -202,12 +208,12 @@ const ReadVote = ({ voteId, onDelete }) => {
                       disabled={!selectedOption}
                       mr={2}
                       sx={{
-                        backgroundColor: '#DBC7B5',
-                        color: '#000',
+                        backgroundColor: '#DBC7B5', 
+                        color: '#000', 
                         '&:hover': {
                           backgroundColor: '#A67153'
                         }
-                      }}
+                      }} 
                     >
                       투표하기
                     </Button>
@@ -215,17 +221,10 @@ const ReadVote = ({ voteId, onDelete }) => {
                     <Button
                       variant="contained"
                       color="primary"
-                      onClick={handleSummaryOpen}
+                      onClick={handleRemoveVote}
                       mr={2}
-                      sx={{
-                        backgroundColor: '#DBC7B5',
-                        color: '#000',
-                        '&:hover': {
-                          backgroundColor: '#A67153'
-                        }
-                      }}
                     >
-                      투표 결과 보기
+                      투표 취소하기
                     </Button>
                   )}
                 </>
@@ -236,12 +235,12 @@ const ReadVote = ({ voteId, onDelete }) => {
                   onClick={handleSummaryOpen}
                   mr={2}
                   sx={{
-                    backgroundColor: '#DBC7B5',
-                    color: '#000',
+                    backgroundColor: '#DBC7B5', 
+                    color: '#000', 
                     '&:hover': {
                       backgroundColor: '#A67153'
                     }
-                  }}
+                  }} 
                 >
                   투표 결과 보기
                 </Button>
@@ -253,18 +252,17 @@ const ReadVote = ({ voteId, onDelete }) => {
                   onClick={handleDelete}
                   mr={2}
                   sx={{
-                    backgroundColor: '#6E3C21',
-                    color: '#fff',
+                    backgroundColor: '#6E3C21', 
+                    color: '#fff', 
                     '&:hover': {
                       backgroundColor: '#A67153'
                     }
-                  }}
+                  }} 
                 >
                   투표 삭제
                 </Button>
               )}
             </Box>
-
             <TextField
               label="투표 종료 시간"
               type="datetime-local"
@@ -275,21 +273,21 @@ const ReadVote = ({ voteId, onDelete }) => {
               readOnly
             />
           </Box>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              width: '100%'
-            }}
-          >
-            <ChatIcon
-              sx={{
-                color: '#999999',
-                fontSize: '30px',
-                marginRight: '15px'
-              }}
-            />
-          </Box>
+          <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', // 아이콘을 오른쪽 끝으로 정렬
+            width: '100%' // 전체 너비를 사용하여 아이콘이 오른쪽 끝에 위치하도록 함
+          }}
+        >
+          <ChatIcon 
+            sx={{ 
+              color: '#999999', 
+              fontSize: '30px',
+              marginRight:'15px'
+            }} 
+          />
+        </Box>
         </>
       )}
       <Dialog open={openSummary} onClose={handleSummaryClose} fullWidth maxWidth="md">
@@ -300,6 +298,7 @@ const ReadVote = ({ voteId, onDelete }) => {
               <ListItem key={index}>
                 <ListItemText primary={item.option} />
                 <ListItemText secondary={`선택 수: ${item.count}`} />
+                {/* `anonymous`가 true일 때 `투표한 사람` 부분 숨기기 */}
                 {!vote.anonymous && (
                   <ListItemText secondary={`투표한 사람: ${item.emails}`} />
                 )}

@@ -8,6 +8,7 @@ function NavBar() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
+  const [showNavbar, setShowNavbar] = useState(true);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -81,9 +82,10 @@ function NavBar() {
     <Box sx={{ width: "100%", height: "114px" }}>
       <Box
         sx={{
-          position: "fixed",
-          top: "64px", // Header의 높이만큼 떨어뜨림
-          left: 0,
+          // position: "fixed",
+          // top: "85px", // Header의 높이만큼 떨어뜨림
+          // left: 0,
+          marginTop: "-15px",
           width: "100%",
           height: "50px",
           backgroundColor: "white",
@@ -92,22 +94,25 @@ function NavBar() {
           alignItems: "center",
           justifyContent: "center",
           zIndex: 1100, // Header와 동일한 z-index로 설정
+          transform: showNavbar ? "translateY(0)" : "translateY(-100%)",
+          transition: "transform 0.3s ease",
         }}
       >
-        <Container maxWidth="md" sx={{ padding: "0px !important" }}>
+        <Container maxWidth="lg" sx={{ padding: "0px !important" }}>
           <Grid
             container
             sx={{
               alignItems: "center",
               justifyContent: "center",
               textAlign: "center",
-              fontSize: "21px",
+              fontSize: "18px",
             }}
           >
             {navItems.map((item) => (
               <Grid
                 item
                 xs={3}
+                mt={2.5}
                 key={item.name}
                 component={Link} // 기본 Link 컴포넌트 사용
                 to={item.path}
@@ -124,7 +129,7 @@ function NavBar() {
                   "&::after": {
                     content: '""',
                     position: "absolute",
-                    bottom: 0,
+                    bottom: 10,
                     left: "50%",
                     width: selected === item.name ? "70%" : "0%",
                     height: "2px",

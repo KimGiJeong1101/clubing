@@ -8,7 +8,7 @@ function Layout() {
   return (
     <div>
       <Header />
-      <NavBar />
+      {/* <NavBar /> */}
       <main>
         <Outlet /> {/* 이곳에 페이지 컴포넌트가 렌더링됩니다 */}
       </main>

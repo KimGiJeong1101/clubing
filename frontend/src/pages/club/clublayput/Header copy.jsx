@@ -95,7 +95,7 @@ function Header() {
         top: 0,
         left: 0,
         width: "100%",
-        height: "70px",
+        height: "64px",
         backgroundColor: "white",
         color: "black",
         display: "flex",
@@ -104,7 +104,7 @@ function Header() {
         zIndex: 1100, // Material-UI의 기본 z-index보다 높은 값 설정
       }}
     >
-      <Container maxWidth="lg" sx={{ padding: "0px !important" }}>
+      <Container maxWidth="md" sx={{ padding: "0px !important" }}>
         <Box>
           <Toolbar sx={{ padding: "0px !important" }}>
             <ArrowBackIosIcon
