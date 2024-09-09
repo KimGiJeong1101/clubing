@@ -35,7 +35,7 @@ const Main = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
-  //Clubmember=3 이란 거 가져오기 위해서!.end
+  //Clubmember=3 이란 거 가져오기 위해서!.end 
 
   useEffect(() => {
     window.scrollTo(0, 0);

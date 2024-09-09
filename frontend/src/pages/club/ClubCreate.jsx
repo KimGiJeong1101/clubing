@@ -69,9 +69,9 @@ const ClubCreate = () => {
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [uploadFileName, setUploadFileName] = useState("");
 
-  const cropButtonClick = ()=>{
+  const cropButtonClick = () => {
     setCropModalOpen(true); // 크롭 모달 열기
-  }
+  };
   //파일이 체인지 되었을 때
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -181,13 +181,13 @@ const ClubCreate = () => {
             <Typography sx={{ fontWeight: "600", padding: "0px" }}>큰 관심사</Typography>
           </Grid>
           <Grid item xs={9}>
-            <TextField id="mainCategory" label="ex ) 큰 관심사 : 운동,여행,사교 등등" placeholder="눌럿을 때 모달띄워서 큰관심 선택 후 작은관심선택 후 자동기입까지" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedCategory} {...register("mainCategory")} />
+            <TextField id="mainCategory" label="ex ) 큰 관심사 : 운동,여행,사교 등등" placeholder="눌럿을 때 모달띄워서 큰관심 선택 후 작은관심선택 후 자동기입까지" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedCategory} {...register("mainCategory", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={3} sx={{ padding: "0px" }}>
             <Typography sx={{ fontWeight: "600", padding: "0px" }}>상세 관심사</Typography>
           </Grid>
           <Grid item xs={9}>
-            <TextField id="subCategory" label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedSubCategory} {...register("subCategory")} />
+            <TextField id="subCategory" label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedSubCategory} {...register("subCategory", { required: " 필수입력 요소." })} />
           </Grid>
           {/* 파일 입력 및 미리보기 */}
 
@@ -218,7 +218,7 @@ const ClubCreate = () => {
               </Box>
             )}
             {preview && (
-              <Box mt={2} sx={{ width: "100%", height: "478.5px", position: "relative"  }}>
+              <Box mt={2} sx={{ width: "100%", height: "478.5px", position: "relative" }}>
                 <img src={preview} alt="미리보기" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 <CropIcon
                   sx={{
@@ -232,7 +232,6 @@ const ClubCreate = () => {
                     cursor: "pointer",
                   }}
                   onClick={cropButtonClick}
-
                 />
               </Box>
             )}
