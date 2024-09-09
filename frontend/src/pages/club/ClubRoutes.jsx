@@ -13,7 +13,7 @@ function ClubRoutes() {
       <Route path="board/*" element={<BoardRoutes />} />
       <Route path="gallery/*" element={<GalleryRoutes />} />
       <Route path="meeting/*" element={<MeetingRoutes />} />
-      <Route path="chat/:id" element={<ChatRoutes />} />
+      <Route path="chat/*" element={<ChatRoutes />} />
     </Routes>
   );
 }

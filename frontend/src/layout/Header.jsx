@@ -2,10 +2,11 @@ import React ,{  useState , useEffect } from "react";
 // import Toolbar from "@mui/material/Toolbar";
 // import Typography from "@mui/material/Typography";
 import MenuIcon from "@mui/icons-material/Menu";
-import { IconButton, Container, Tooltip , Box, Grid,Typography,Toolbar  } from "@mui/material";
+import { IconButton, Container, Tooltip , Box, Grid,Typography,Toolbar, Menu, MenuItem, Dialog,DialogTitle, DialogContent, DialogActions, Button} from "@mui/material";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import CloseIcon from '@mui/icons-material/Close';
 import {  Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -25,6 +26,9 @@ function Header() {
   const [scrollY, setScrollY] = useState(0);
   const [showNavbar, setShowNavbar] = useState(true);
 
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
    // 현재 URL을 기준으로 선택된 항목을 결정
    const getSelected = () => {
     const path = location.pathname;
@@ -35,6 +39,7 @@ function Header() {
     if (path.includes("event")) return "이벤트";
     return "추천모임"; // 기본값
   };
+
 
   // 선택된 항목을 현재 URL과 비교하여 상태를 설정
   useEffect(() => {
@@ -60,7 +65,7 @@ function Header() {
     { name: "추천모임", path: `/clubList` },
     { name: "정모일정", path: `/meetingList` },
     { name: "신규모임", path: `/newClubList` },
-    { name: "클래스", path: `/class` },
+    // { name: "클래스", path: `/class` }, // 이거 생략
     { name: "이벤트", path: `/event` }
   ];
 
@@ -90,10 +95,33 @@ function Header() {
         .then(() => {
           navigate('/login');
         })
-        
+        handleClose(); // 메뉴 닫기
       } catch (error) {
         console.error(error);
       }
+    };
+
+    const handleClick = (event) => {
+      setAnchorEl(event.currentTarget);
+    };
+  
+    const handleClose = () => {
+      setAnchorEl(null);
+    };
+  
+    //검색 부분
+    const [showSearch, setShowSearch] = useState(false);
+    const [openSearchDialog, setOpenSearchDialog] = useState(false);
+    const handleSearchDialogOpen = () => {
+      setOpenSearchDialog(true);
+    };
+    const handleSearchDialogClose = () => {
+      setOpenSearchDialog(false);
+    };
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleInputChange = (event) => {
+      setSearchTerm(event.target.value);
     };
 
   return (
@@ -126,13 +154,13 @@ function Header() {
           }}
         >
           <Box>
-            <Link to="/home">
+            <Link to="">
               <img src="/logo/khaki_long.png" alt="Logo" style={{ height: '45px' }} />
             </Link>
           </Box>
   
           <Box
-            mr ={23}
+            mr ={40}
             sx={{
               display: 'flex',
               flexGrow: 1,
@@ -215,10 +243,11 @@ function Header() {
   
               <Tooltip title="검색" arrow>
                 <SearchIcon
-                  onClick={() => {}}
+                  onClick={handleSearchDialogOpen}
                   sx={{ padding: "7px", color: "gray", ":hover": { cursor: 'pointer' }, fontSize: 24 }}
                 />
               </Tooltip>
+
   
               <Tooltip title="알림" arrow>
                 <NotificationsIcon
@@ -233,7 +262,7 @@ function Header() {
                   sx={{ padding: "7px", color: "gray", ":hover": { cursor: 'pointer' }, fontSize: 24 }}
                 />
               </Tooltip>
-  
+{/*   
               {routes.map(({ to, name, auth }) => {
               return isAuth === auth ? (
                 <Tooltip title={name} key={name} arrow>
@@ -301,13 +330,103 @@ function Header() {
                 </IconButton>
                 </Tooltip>
               ) : null;
-            })}
+            })} */}
+
+            <Tooltip title="계정" arrow>
+                <IconButton onClick={handleClick}>
+                  <AccountCircleIcon sx={{ color: "gray", ":hover": { cursor: 'pointer', fontSize: 24 } }} />
+                </IconButton>
+              </Tooltip>
+              <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                PaperProps={{
+                  sx: {
+                    maxHeight: 48 * 4.5,
+                    width: '20ch',
+                  },
+                }}
+              >
+                {routes.map(({ to, name, auth }) => (
+                  isAuth === auth ? (
+                    <MenuItem
+                      key={name}
+                      onClick={() => {
+                        if (name === '로그아웃') {
+                          handleLogout(); // 로그아웃 핸들러 호출
+                        } else {
+                          navigate(to);
+                        }
+                        handleClose();
+                      }}
+                    >
+                      {name === '로그아웃' ? <LogoutIcon sx={{ marginRight: 1 }} /> :
+                       name === '로그인' ? <LoginIcon sx={{ marginRight: 1 }} /> :
+                       name === '회원가입' ? <GroupAdd sx={{ marginRight: 1 }} /> :
+                       name === '마이페이지' ? <AccountCircleIcon sx={{ marginRight: 1 }} /> : name}
+                      {name}
+                    </MenuItem>
+                  ) : null
+                ))}
+              </Menu>
 
             </Toolbar>
           </Box>
         </Grid>
       </Container>
     </Box>
+
+    <Dialog
+      open={openSearchDialog}
+      onClose={handleSearchDialogClose}
+      maxWidth="md"
+      fullWidth
+    >
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        모임 이름 검색
+        <IconButton onClick={handleSearchDialogClose} sx={{ padding: 0 }}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '4px 8px',
+            backgroundColor: 'white',
+          }}
+        >
+          <SearchIcon sx={{ color: 'gray', fontSize: 24, marginRight: 1 }} />
+          <input
+            type="text"
+            placeholder="검색어를 입력하세요"
+            value={searchTerm}
+            onChange={handleInputChange}
+            style={{ 
+              border: 'none',
+              outline: 'none',
+              padding: '4px',
+              fontSize: '20px',
+              flexGrow: 1,
+              borderBottom: '2px solid gray' // 두꺼운 밑줄 추가
+            }}
+          />
+        </Box>
+        {/* 검색 결과 리스트 */}
+        {searchTerm && (
+          <Box sx={{ marginTop: 2 }}>
+            <Typography variant="h6">검색 결과</Typography>
+            {/* 검색 결과를 여기에 표시 */}
+          </Box>
+        )}
+      </DialogContent>
+    </Dialog>
+
+
+
+
   </Box>
   
   );
