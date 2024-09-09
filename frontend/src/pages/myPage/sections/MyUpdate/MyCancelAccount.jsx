@@ -5,7 +5,7 @@ import { Button, Typography, Box, Modal, Grid, Snackbar, Alert } from '@mui/mate
 import { logoutUser } from '../../../../store/actions/userActions';
 import axiosInstance from '../../../../utils/axios';
 
-const MyCancelAccount = ({ view }) => {  // view props 사용
+const MyCancelAccount = ({ view }) => {  
   const dispatch = useDispatch();
   const navigate = useNavigate();
 

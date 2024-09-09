@@ -2,16 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import { useDispatch, useSelector } from 'react-redux';
-import { updateUser, logoutUser } from '../../../../store/actions/userActions'
-import HomeSearch from '../../../auth/RegisterPage/address/HomeSearch';
-import WorkplaceSearch from '../../../auth/RegisterPage/address/WorkplaceSearch';
-import InterestSearch from '../../../auth/RegisterPage/address/InterestSearch';
+import { updateUser } from '../../../../store/actions/userActions'
 import CategoryPopup from '../../../auth/RegisterPage/category/CategoryPopup';
 import categories from '../../../auth/RegisterPage/category/CategoriesData';
 import JobPopup from '../../../auth/RegisterPage/job/JobPopup';
 import JobCategories from '../../../auth/RegisterPage/job/JobCategories';
 import MarketingPopup from '../../../auth/RegisterPage/consent/Marketing';
 import MyCancelAccount from './MyCancelAccount.jsx'
+import MyChangePw from './MyChangePw.jsx'
+import MyChangeLocation from './MyChangeLocation.jsx'
 import axiosInstance from '../../../../utils/axios'
 import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, FormControlLabel,
           FormControl, InputLabel, Select, MenuItem, FormHelperText, 
@@ -26,7 +25,7 @@ import CustomCheckbox from '../../../../components/club/CustomCheckbox.jsx'
 
 const MyUpdate = () => {
   const user = useSelector((state) => state.user?.userData?.user || {});
-  const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
+  const { register, handleSubmit, formState: { errors }, watch, setValue, control  } = 
   useForm({  
             defaultValues: {
               name: user.name || '',
@@ -34,9 +33,6 @@ const MyUpdate = () => {
               age: user.age || { year: '', month: '', day: '' },
               gender: user.gender || '',
               phone: user.phone || '',
-              homeLocation: user.homeLocation || { city: '', district: '', neighborhood: '' },
-              workplace: user.workplace || { city: '', district: '', neighborhood: '' },
-              interestLocation: user.interestLocation || { city: '', district: '', neighborhood: '' },
               job: user.job || [],
               category: user.category || [],
               marketingAccepted: user.marketingAccepted || false
@@ -49,18 +45,14 @@ const MyUpdate = () => {
   // 정보수정 폼 제출 시 실행되는 함수
   const onSubmit = async (data) => {
     console.log('폼 제출 데이터:', data);
-    const { password, name, nickName, age = {}, gender, 
-            homeLocation = {}, workplace = {}, interestLocation = {}, 
+    const { name, nickName, age = {}, gender, 
             selectedJobs = [], category = [], phone = '',  } = data;
             
     //console.log('Checked asdasd:', checked); 
     const { marketing } = checkboxState;
 
     const { year = '', month = '', day = '' } = age;
-    const { sido = '', sigoon = '', dong = '' } = homeLocation;
-    const { w_sido = '', w_sigoon = '', w_dong = '' } = workplace;
-    const { i_sido = '', i_sigoon = '', i_dong = '' } = interestLocation;
-  
+
      const categoryObject = category.reduce((acc, cat) => {
       if (cat.main && Array.isArray(cat.sub)) {
         acc.push({
@@ -70,14 +62,8 @@ const MyUpdate = () => {
       }
       return acc;
     }, []);
-
-    // 현재 비밀번호를 기존 비밀번호로 설정 (사용자 객체에 있는 기존 비밀번호를 사용)
-    const currentPassword = user.password || '';
-
     //이 코드는 category 배열을 객체 형태로 변환합니다. 배열의 각 요소가 main과 sub을 포함한 객체로 변환됩니다.
-    // 언디파인드 대비해서 초기값 넣기
     const body = {
-      password: password ? password : currentPassword, // 비밀번호가 입력된 경우에만 업데이트
       name,
       nickName,
       age: {
@@ -91,48 +77,21 @@ const MyUpdate = () => {
       phone,
       marketingAccepted: marketing,
     }
-    // 지역 데이터가 포함되면 추가
-    if (showLocationFields) {
-      body.homeLocation = {
-        city: homeLocation.sido,
-        district: homeLocation.sigoon,
-        neighborhood: homeLocation.dong,
-      };
-      body.workplace = {
-        city: workplace.w_sido,
-        district: workplace.w_sigoon,
-        neighborhood: workplace.w_dong,
-      };
-      body.interestLocation = {
-        city: interestLocation.i_sido,
-        district: interestLocation.i_sigoon,
-        neighborhood: interestLocation.i_dong,
-      };
-    }
-
   // 바디 객체를 콘솔에 출력
   console.log('전송할 데이터:', body);
   
     dispatch(updateUser(body))
       .then(() => {
         // 회원가입 성공 후 리다이렉트 처리
-        navigate('/mypage'); // 성공 페이지로 리다이렉트
+        navigate('/'); // 성공 페이지로 리다이렉트
       })
       .catch((error) => {
         console.error('정보수정 실패:', error);
         // 에러 처리 로직
       });
   };
-  
-  //api
-  const apiUrl = process.env.REACT_APP_API_URL;
 
-  // 상태 정의
-   const [homeLocation, setHomeLocation] = useState({ sido: '', sigoon: '', dong: '' });
-   const [workplace, setWorkplace] = useState({ w_sido: '', w_sigoon: '', w_dong: '' });
-   const [interestLocation, setInterestLocation] = useState({ i_sido: '', i_sigoon: '', i_dong: '' });
-
-   // 성별 값 설정 함수 // 무이로 바꿔서 잠시 보류
+  // 성별 값 설정 함수 // 무이로 바꿔서 잠시 보류
   const setGender = (value) => {
     setValue('gender', value);
   };
@@ -167,50 +126,6 @@ const MyUpdate = () => {
     }
   };
 
-//비밀번호 원할때만 수정가능하게
-const [isPasswordChangeVisible, setIsPasswordChangeVisible] = useState(false);
-
-const [showPassword, setShowPassword] = useState(false);
-const [showPasswordCheck, setShowPasswordCheck] = useState(false);
-
-const handleTogglePasswordChange = () => {
-  setIsPasswordChangeVisible(!isPasswordChangeVisible);
-};
-
-const handleClickShowPassword = () => 
-  setShowPassword(!showPassword
-
-  );
-const handleClickShowPasswordCheck = () => 
-  setShowPasswordCheck(!showPasswordCheck
-
-  );
-
- // 비밀번호 유효성 검사 규칙
- const userPassword = {
-  required: "필수 필드입니다.",
-  minLength: {
-    value: 8,
-    message: "최소 8자입니다."
-  },validate: value => {
-    // 비밀번호 유효성 검사 정규 표현식
-     const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
-     if (!regex.test(value)) {
-       return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
-     }
-     return true; // 유효성 검사 통과
-  }
-};
-
-const userPasswordCheck = {
-  required: 0,
-  minLength: {
-    value: 8,
-    message: "최소 8자입니다."
-  },
-  validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
-};
-
   // 연도, 월, 일을 위한 옵션 생성
   const generateOptions = (start, end) => {
     const options = [];
@@ -220,33 +135,10 @@ const userPasswordCheck = {
     return options;
   };
 
-
 // 생년월일 범주
   const years = generateOptions(1950, 2040);
   const months = generateOptions(1, 12);
   const days = generateOptions(1, 31);
-
-// 값설정
-  useEffect(() => {
-    setValue('homeLocation.sido', homeLocation.sido);
-    setValue('homeLocation.sigoon', homeLocation.sigoon);
-    setValue('homeLocation.dong', homeLocation.dong);
-  }, [homeLocation, setValue]);
-
-  useEffect(() => {
-    setValue('workplace.w_sido', workplace.w_sido);
-    setValue('workplace.w_sigoon', workplace.w_sigoon);
-    setValue('workplace.w_dong', workplace.w_dong);
-  }, [workplace, setValue]);
-
-  useEffect(() => {
-    setValue('interestLocation.i_sido', interestLocation.i_sido);
-    setValue('interestLocation.i_sigoon', interestLocation.i_sigoon);
-    setValue('interestLocation.i_dong', interestLocation.i_dong);
-  }, [interestLocation, setValue]);
-
-// 지역 변경 버튼
-  const [showLocationFields, setShowLocationFields] = useState(false);
 
 //카테고리
   const [isCategoryPopupOpen, setIsCategoryPopupOpen] = useState(false);
@@ -266,7 +158,6 @@ const userPasswordCheck = {
           sub: item
         }));
       });
-  
       //console.log("Formatted Categories:", formattedCategories); // 변환된 데이터 확인
       setSelectedCategories(formattedCategories); // 상태 업데이트
     }
@@ -319,8 +210,7 @@ useEffect(() => {
   //console.log("선택된 직종:", selectedJobs);
 }, [selectedJobs, setValue]);
 
-  // 카테고리 선택 핸들러
- // 통합된 핸들러
+// 카테고리 선택 핸들러
  const handleSelection = (newSelections) => {
   //console.log("New Selections:", newSelections);
   if (isCategoryPopupOpen) {
@@ -393,7 +283,6 @@ const handleCheck = (type) => {
   });
 };
 
-
 useEffect(() => {
   console.log('업데이트된 체크박스 상태:', checkboxState);
 }, [checkboxState]);
@@ -410,17 +299,75 @@ const consentPopupClose = (type) => {
 
 // 정보 수정
 const [view, setView] = useState(''); // 클릭된 버튼의 상태를 저장하는 변수
-
-//회원탈퇴
+const [isChangePwVisible, setIsChangePwVisible] = useState(false);
+const [isChangeLocationVisible, setIsChangeLocationVisible] = useState(false);
 const [isAccountDeleteVisible, setIsAccountDeleteVisible] = useState(false);
 
+const handleUpdateView = () => {
+  if (view === 'update') {
+    // 이미 'update' 뷰가 열려 있을 때, 닫기
+    setView('');
+    setIsChangePwVisible(false);
+    setIsChangeLocationVisible(false);
+    setIsAccountDeleteVisible(false);
+  } else {
+    // 다른 뷰가 열려 있을 때, 'update' 뷰로 변경
+    setView('update');
+    setIsChangePwVisible(false);
+    setIsChangeLocationVisible(false);
+    setIsAccountDeleteVisible(false);
+  }
+};
+
+const handlePwChange = () => {
+  if (view === 'changePw') {
+    // 이미 'changePw' 뷰가 열려 있을 때, 닫기
+    setView('');
+    setIsChangePwVisible(false);
+    setIsChangeLocationVisible(false);
+    setIsAccountDeleteVisible(false);
+  } else {
+    // 다른 뷰가 열려 있을 때, 'changePw' 뷰로 변경
+    setView('changePw');
+    setIsChangePwVisible(true);
+    setIsChangeLocationVisible(false);
+    setIsAccountDeleteVisible(false);
+  }
+};
+
+const handleLocationChange = () => {
+  if (view === 'changeLocation') {
+    // 이미 'changeLocation' 뷰가 열려 있을 때, 닫기
+    setView('');
+    setIsChangePwVisible(false);
+    setIsChangeLocationVisible(false);
+    setIsAccountDeleteVisible(false);
+  } else {
+    // 다른 뷰가 열려 있을 때, 'changeLocation' 뷰로 변경
+    setView('changeLocation');
+    setIsChangeLocationVisible(true);
+    setIsChangePwVisible(false);
+    setIsAccountDeleteVisible(false);
+  }
+};
+
 const handleDeleteAccount = () => {
-  setIsAccountDeleteVisible(!isAccountDeleteVisible); // 상태 토글
-  setView(view === 'delete' ? '' : 'delete');
+  if (view === 'delete') {
+    // 이미 'delete' 뷰가 열려 있을 때, 닫기
+    setView('');
+    setIsChangePwVisible(false);
+    setIsChangeLocationVisible(false);
+    setIsAccountDeleteVisible(false);
+  } else {
+    // 다른 뷰가 열려 있을 때, 'delete' 뷰로 변경
+    setView('delete');
+    setIsAccountDeleteVisible(true);
+    setIsChangePwVisible(false);
+    setIsChangeLocationVisible(false);
+  }
 };
 
   return (
-    
     <Box 
       sx={{ 
           display: 'flex', 
@@ -432,7 +379,7 @@ const handleDeleteAccount = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', }}>
       <CustomButton
         variant={view === 'update' ? 'contained' : 'outlined'}
-        onClick={() => setView(view === 'update' ? '' : 'update')} // 클릭 시 상태 변경
+        onClick={handleUpdateView}
         sx={{ 
           borderColor: 'transparent', // 무색 테두리
           color: '#30231C',
@@ -447,7 +394,19 @@ const handleDeleteAccount = () => {
           display: 'flex',
           justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
           alignItems: 'center', // 버튼 내 텍스트 세로 중앙 정렬
-          marginBottom: '5px' // 버튼 아래에 간격 추가
+          marginBottom: '15px', // 버튼 아래에 간격 추가
+          overflow: 'hidden',
+          '&::after': {
+          content: '""',
+          position: 'absolute',
+          bottom: 0,
+          left: '50%',
+          width: view === 'update' ? '100%' : '0%', // 현재 뷰가 'update'일 때 선이 보이도록 설정
+          height: '2px',
+          backgroundColor: '#595959',
+          transform: 'translateX(-50%)',
+          transition: 'width 0.3s ease', // 선의 너비 변화에 애니메이션 적용
+          },
         }}
       >
         정보 수정
@@ -482,92 +441,6 @@ const handleDeleteAccount = () => {
             </Typography>
           </Box>
         </Box>
-
-<Box sx={{ display: 'flex', flexDirection: 'column', mb: 2 }}>
-  {/* 비밀번호 변경 버튼 */}
-  <CustomButton
-    variant={isPasswordChangeVisible ? 'contained' : 'outlined'}
-    onClick={handleTogglePasswordChange}
-    sx={{
-      borderColor: 'transparent', // 무색 테두리
-      backgroundColor: isPasswordChangeVisible ? '#A67153' : '#DBC7B5',
-      color: '#30231C',
-      '&:hover': {
-        borderColor: 'transparent', // 무색 테두리
-        backgroundColor: isPasswordChangeVisible ? '#DBC7B5' : '#A67153'
-      },
-      textAlign: 'left',
-      paddingLeft: '16px',
-      width: '100%',
-      display: 'flex',
-      justifyContent: 'flex-start',
-      alignItems: 'center'
-    }}
-  >
-    비밀번호 변경
-  </CustomButton>
-
- {/* 비밀번호 입력 필드 (조건부 렌더링) */}
- {isPasswordChangeVisible && (
-        <>
-  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, mt:2 }}>
-      <Typography variant="body2" component="label" htmlFor="password" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
-        비밀번호
-      </Typography>
-        <TextField
-          label="비밀번호"
-          type={showPassword ? 'text' : 'password'}
-          fullWidth
-          variant="outlined"
-          {...register('password', userPassword)}
-          error={!!errors.password}
-          helperText={errors.password ? errors.password.message : ''}
-          sx={{ flex: 1 }} // 남은 공간을 채우도록 설정
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickShowPassword}
-                  edge="end"
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-    </Box>
-{/* 비밀번호 확인 */}
-    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-      <Typography variant="body2" component="label" htmlFor="passwordCheck" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
-        번호 확인
-      </Typography>
-        <TextField
-          label="비밀번호 확인"
-          type={showPasswordCheck ? 'text' : 'password'}
-          fullWidth
-          variant="outlined"
-          {...register('passwordCheck',  userPasswordCheck)}
-          error={!!errors.passwordCheck}
-          helperText={errors.passwordCheck ? errors.passwordCheck.message : ''}
-          sx={{ flex: 1 }} // 남은 공간을 채우도록 설정
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickShowPasswordCheck}
-                  edge="end"
-                >
-                  {showPasswordCheck ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-    </Box>
-    </>
-      )}
-</Box> 
 {/*이름 */}          
     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
         <Typography variant="body2" component="label" htmlFor="name" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
@@ -779,64 +652,7 @@ const handleDeleteAccount = () => {
             </>
           )}
         />
-    </Box>
-{/*집주소 */}
-<CustomButton
-  variant="contained"
-  onClick={() => setShowLocationFields(prev => !prev)}
-  sx={{
-    mb: 2,
-    backgroundColor: isPasswordChangeVisible ? '#A67153' : '#DBC7B5',
-    color: '#30231C',
-    '&:hover': {
-      backgroundColor: isPasswordChangeVisible ? '#DBC7B5' : '#A67153'
-    },
-    textAlign: 'left',
-    paddingLeft: '16px',
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'flex-start',
-    alignItems: 'center'
-  }}
->
-  {showLocationFields ? '지역 변경' : '지역 변경'}
-</CustomButton>
-{showLocationFields && (
-  <>
-<Box mb={2}>
-  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-  <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
-      집주소
-    </Typography>
-      <HomeSearch 
-        setSelectedSido={(sido) => setHomeLocation(prev => ({ ...prev, sido }))} 
-        setSelectedSigoon={(sigoon) => setHomeLocation(prev => ({ ...prev, sigoon }))} 
-        setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))} />
-  </Box>
-{/*직장 */}
-<Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-  <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
-      직장 주소
-    </Typography>
-    {/* WorkplaceSearch 컴포넌트에 초기값 및 상태 업데이트 함수를 전달 */}
-      <WorkplaceSearch 
-        setWorkplaceSido={(sido) => setWorkplace(prev => ({ ...prev, w_sido: sido }))} 
-        setWorkplaceSigoon={(sigoon) => setWorkplace(prev => ({ ...prev, w_sigoon: sigoon }))} 
-        setWorkplaceDong={(dong) => setWorkplace(prev => ({ ...prev, w_dong: dong }))} />    
- </Box>
-{/*관심지역 */}
-<Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-  <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
-   관심지역
-    </Typography>
-      <InterestSearch 
-        setInterestSido={(sido) => setInterestLocation(prev => ({ ...prev, i_sido: sido }))} 
-        setInterestSigoon={(sigoon) => setInterestLocation(prev => ({ ...prev, i_sigoon: sigoon }))} 
-        setInterestDong={(dong) => setInterestLocation(prev => ({ ...prev, i_dong: dong }))} />
-  </Box>
-</Box>
-</>   
-)}  
+    </Box> 
 {/*직종 */}
 <Box>
       {/* 직종 선택 버튼 */}
@@ -997,9 +813,86 @@ const handleDeleteAccount = () => {
               수정 하기
             </CustomButton2>
           </Box>
-        </form>
+        </form>        
     )}
   </Box>
+     {/* 비밀번호 변경 버튼 */}
+     <Button
+     variant={view === 'changePw' ? 'contained' : 'outlined'}
+     onClick={handlePwChange} // 상태 변경 함수 사용
+     sx={{ 
+       borderColor: 'transparent', // 무색 테두리
+       backgroundColor: view === 'changePw' ? '#A67153' : '#DBC7B5', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
+       color: '#30231C',
+       '&:hover': {
+         borderColor: 'transparent', // 무색 테두리
+         backgroundColor: view === 'changePw' ? '#DBC7B5' : '#A67153' , // 호버 상태의 배경색 설정
+       },
+       textAlign: 'left', // 글씨 왼쪽 정렬
+       paddingLeft: '16px', // 글씨와 버튼 왼쪽의 간격 조정 (옵션)
+       width: '100%', // 버튼 전체 너비 사용 (옵션)
+       display: 'flex',
+       justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
+       alignItems: 'center', // 버튼 내 텍스트 세로 중앙 정렬
+       marginBottom: '15px',
+       overflow: 'hidden',
+          '&::after': {
+          content: '""',
+          position: 'absolute',
+          bottom: 0,
+          left: '50%',
+          width: view === 'changePw' ? '100%' : '0%', // 현재 뷰가 'update'일 때 선이 보이도록 설정
+          height: '2px',
+          backgroundColor: '#595959',
+          transform: 'translateX(-50%)',
+          transition: 'width 0.3s ease', // 선의 너비 변화에 애니메이션 적용
+          },
+     }}
+   >
+     비밀번호 변경
+   </Button>
+   {/* 비밀번호 변경 폼 (추가할 부분) */}
+   {isChangePwVisible && <MyChangePw view={view} />}
+
+    {/* 지역변경 버튼 */}
+    <Button
+        variant={view === 'changeLocation' ? 'contained' : 'outlined'}
+        onClick={handleLocationChange} // 상태 변경 함수 사용
+        sx={{ 
+          borderColor: 'transparent', // 무색 테두리
+          backgroundColor: view === 'changeLocation' ? '#A67153' : '#DBC7B5', // 눌렸을 때와 눌리지 않았을 때의 배경색 설정
+          color: '#30231C',
+          '&:hover': {
+            borderColor: 'transparent', // 무색 테두리
+            backgroundColor: view === 'changeLocation' ? '#DBC7B5' : '#A67153' , // 호버 상태의 배경색 설정
+          },
+          textAlign: 'left', // 글씨 왼쪽 정렬
+          paddingLeft: '16px', // 글씨와 버튼 왼쪽의 간격 조정 (옵션)
+          width: '100%', // 버튼 전체 너비 사용 (옵션)
+          display: 'flex',
+          justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
+          alignItems: 'center', // 버튼 내 텍스트 세로 중앙 정렬
+          marginBottom: '15px',
+          overflow: 'hidden',
+             '&::after': {
+             content: '""',
+             position: 'absolute',
+             bottom: 0,
+             left: '50%',
+             width: view === 'changeLocation' ? '100%' : '0%', // 현재 뷰가 'update'일 때 선이 보이도록 설정
+             height: '2px',
+             backgroundColor: '#595959',
+             transform: 'translateX(-50%)',
+             transition: 'width 0.3s ease', // 선의 너비 변화에 애니메이션 적용
+             },
+        }}
+      >
+        주소 변경
+      </Button>
+
+      {/* 지역변경 폼 (추가할 부분) */}
+      {isChangeLocationVisible && <MyChangeLocation view={view} />}
+
    {/* 회원 탈퇴 버튼 */}
       <Button
         variant={view === 'delete' ? 'contained' : 'outlined'}
@@ -1018,16 +911,26 @@ const handleDeleteAccount = () => {
           display: 'flex',
           justifyContent: 'flex-start', // 버튼 내 텍스트 왼쪽 정렬
           alignItems: 'center', // 버튼 내 텍스트 세로 중앙 정렬
-          marginBottom: '15px'
+          marginBottom: '15px',
+          overflow: 'hidden',
+             '&::after': {
+             content: '""',
+             position: 'absolute',
+             bottom: 0,
+             left: '50%',
+             width: view === 'delete' ? '100%' : '0%', // 현재 뷰가 'update'일 때 선이 보이도록 설정
+             height: '2px',
+             backgroundColor: '#595959',
+             transform: 'translateX(-50%)',
+             transition: 'width 0.3s ease', // 선의 너비 변화에 애니메이션 적용
+             },
         }}
       >
         회원 탈퇴
       </Button>
-
       {/* 회원 탈퇴 폼 (추가할 부분) */}
       {isAccountDeleteVisible && <MyCancelAccount view={view} />}
-
-      </Box>
+</Box>
   );
 };
 

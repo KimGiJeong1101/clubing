@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import MyUpdate from './sections/MyUpdate/MyUpdate';
-import MyClub from './sections/MyClub';
+import MyClub from './sections/MyClub/MyClub';
 import MyWish from './sections/MyWish';
 import MyChat from './sections/MyChat';
 import MySetting from './sections/MySetting';

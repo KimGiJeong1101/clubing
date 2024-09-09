@@ -21,6 +21,19 @@ function ClubLayout() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [joinHandler, setJoinHandler] = useState(false);
 
+  useEffect(() => {
+    if (clubNumber) {
+      dispatch(fetchGetClub(clubNumber));
+    }
+  }, [dispatch, clubNumber]);
+
+  useEffect(() => {
+    if (getClub.clubs && user.email) {
+      setJoinHandler(!getClub.clubs.members.includes(user.email));
+      setIsFavorite(getClub.clubs.wishHeart.includes(user.email));
+    }
+  }, [getClub, user.email, clubNumber]);
+
   const handleOpen = () => {
     if (user.email === "") {
       alert("로그인이 필요한 서비스입니다.");
@@ -38,18 +51,37 @@ function ClubLayout() {
         });
     }
   };
-
-  useEffect(() => {
-    if (clubNumber) {
-      dispatch(fetchGetClub(clubNumber));
-    }
-  }, [dispatch, clubNumber]);
+  // 찜하기
 
   useEffect(() => {
     if (getClub.clubs && user.email) {
-      setJoinHandler(!getClub?.clubs?.members?.includes(user.email));
+      // 클럽의 찜 목록(wishHeart)에 유저 이메일이 포함되어 있는지 확인
+      setIsFavorite(getClub.clubs.wishHeart.includes(user.email));
     }
   }, [getClub, user.email]);
+
+  const handleFavoriteToggle = () => {
+    if (user.email === "") {
+      alert("로그인이 필요한 서비스입니다.");
+      navigate("/login");
+      return;
+    }
+  
+    const url = isFavorite
+      ? `/clubs/removeWish/${clubNumber}` // 찜 해제 API (추가 필요)
+      : `/clubs/addWish/${clubNumber}`;
+  
+    axiosInstance
+      .post(url)
+      .then(() => {
+        setIsFavorite(!isFavorite); // 찜 상태 토글
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("찜하기에 실패했습니다.");
+      });
+  };
+
 
   return (
     <Box>
@@ -83,7 +115,7 @@ function ClubLayout() {
                   }}
                 >
                   <FavoriteIcon
-                    onClick={() => setIsFavorite(!isFavorite)}
+                    onClick={handleFavoriteToggle}
                     sx={{
                       fontSize: "26px",
                       padding: "7px",
