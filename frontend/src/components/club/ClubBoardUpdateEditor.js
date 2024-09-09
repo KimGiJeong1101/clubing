@@ -72,7 +72,7 @@ import 'ckeditor5/ckeditor5.css';
 import '../../assets/styles/ClubBoard.css';
 import { TextField, MenuItem, FormControl, InputLabel, Select, Box } from '@mui/material';
 
-const categories = ['자유글', '관심사공유', '모임후기', '가입인사','공지사항(전체알림)','투표']; // 카테고리 옵션
+const categories = ['자유글', '관심사공유', '모임후기', '가입인사','공지사항(전체알림)']; // 카테고리 옵션
 
 export default function CKEditor5Editor({ post, onChange, title, setTitle, category, setCategory, content, setImage }) {
   const editorContainerRef = useRef(null);
