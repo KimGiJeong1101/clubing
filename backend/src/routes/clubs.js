@@ -12,9 +12,40 @@ const User = require("../models/User");
 //리스트 보여주기
 router.get("/", async (req, res, next) => {
   try {
-    const clubs = await Club.find().sort({ _id: -1 }).limit(3); // 오름차순 솔팅
-    const isProduction = process.env.NODE_ENV === "production";
-    res.status(200).json(clubs);
+    if (req.query.searchRegion) {
+      const clubs = await Club.find({ "region.district": req.query.searchRegion }).sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    } else {
+      const clubs = await Club.find().sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+router.get("/:category", async (req, res, next) => {
+  try {
+    if (req.query.searchRegion) {
+      const clubs = await Club.find({ mainCategory: req.params.category, "region.district": req.query.searchRegion }).sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    } else {
+      const clubs = await Club.find({ mainCategory: req.params.category }).sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+router.get("/scroll/:scrollCount/:category", async (req, res, next) => {
+  try {
+    const skip = (req.params.scrollCount - 1) * 6;
+    if (req.query.searchRegion) {
+      const clubs = await Club.find({ mainCategory: req.params.category, "region.district": req.query.searchRegion }).sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    } else {
+      const clubs = await Club.find({ mainCategory: req.params.category }).sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    }
   } catch (error) {
     next(error);
   }
@@ -22,9 +53,15 @@ router.get("/", async (req, res, next) => {
 
 router.get("/scroll/:scrollCount", async (req, res, next) => {
   try {
-    const skip = (req.params.scrollCount - 1) * 3;
-    const clubs = await Club.find().sort({ _id: 1 }).skip(skip).limit(3); // 오름차순 솔팅
-    res.status(200).json(clubs);
+    const skip = (req.params.scrollCount - 1) * 6;
+
+    if (req.query.searchRegion) {
+      const clubs = await Club.find({ "region.district": req.query.searchRegion }).sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    } else {
+      const clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      res.status(200).json(clubs);
+    }
   } catch (error) {
     next(error);
   }
@@ -122,11 +159,6 @@ router.delete("/delete/:id", async (req, res, next) => {
 
 router.post("/update/:clubNumber", auth, upload.single("img"), async (req, res, next) => {
   try {
-    //서브카테고리 나누기
-    //서브카테고리 나누기.end
-    console.log(`req.body`);
-    console.log(req.body);
-    console.log(`req.body`);
 
     req.body.img = req.file.destination + req.file.filename;
 
