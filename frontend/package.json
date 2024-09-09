@@ -21,6 +21,7 @@
     "ckeditor5": "^43.0.0",
     "cropperjs": "^1.6.2",
     "dayjs": "^1.11.12",
+    "framer-motion": "^11.5.4",
     "frontend": "file:",
     "http-proxy-middleware": "^3.0.0",
     "js-cookie": "^3.0.5",

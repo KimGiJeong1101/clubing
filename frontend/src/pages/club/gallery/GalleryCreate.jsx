@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import ImageEditor from '@toast-ui/react-image-editor';
 import 'tui-image-editor/dist/tui-image-editor.css';
 import { Button, Box, Grid, Snackbar, Alert, TextField } from '@mui/material';
-import FloatingLabelInput from '../../../components/commonEffect/GalleryInput';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { useSelector } from 'react-redux';
 import './CustomImageEditor.css';
