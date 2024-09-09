@@ -159,11 +159,6 @@ router.delete("/delete/:id", async (req, res, next) => {
 
 router.post("/update/:clubNumber", auth, upload.single("img"), async (req, res, next) => {
   try {
-    //서브카테고리 나누기
-    //서브카테고리 나누기.end
-    console.log(`req.body`);
-    console.log(req.body);
-    console.log(`req.body`);
 
     req.body.img = req.file.destination + req.file.filename;
 

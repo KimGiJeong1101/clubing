@@ -24,7 +24,9 @@ import Diversity1Icon from "@mui/icons-material/Diversity1";
 import AutoStoriesIcon from "@mui/icons-material/AutoStories";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { throttle } from "lodash";
-import { textAlign } from "@mui/system";
+import SearchIcon from "@mui/icons-material/Search";
+import ModeNightIcon from "@mui/icons-material/ModeNight";
+
 const Clubs = () => {
   let [category, setCategory] = useState("");
   //검색 스위치
@@ -105,11 +107,6 @@ const Clubs = () => {
   }, [category, searchRegion]);
   //무한스크롤 구현.end
 
-  //추천
-  const handleCategoryClick = () => {
-    // 카테고리별 버튼 클릭 시 동작
-  };
-
   const handleRegionClick = () => {
     setScrollData([]);
     setScrollCount(1);
@@ -182,15 +179,8 @@ const Clubs = () => {
           flexDirection: "column",
           gap: "10px",
         }}
-      >
-        <Button variant="contained" color="primary" onClick={handleCategoryClick}>
-          카테고리별
-        </Button>
-        <Button variant="contained" color="secondary" onClick={handleRegionClick}>
-          지역별 검색
-        </Button>
-      </Box>
-      <Box sx={{ width: "100%", height: "400px", backgroundColor: "white" }}>
+      ></Box>
+      <Box sx={{ width: "100%", height: "450px", backgroundColor: "white" }}>
         <Container maxWidth="lg" sx={{ marginTop: "40px", paddingBottom: "40px" }}>
           <Grid container spacing={3} justifyContent="center">
             {[
@@ -249,6 +239,47 @@ const Clubs = () => {
               </Grid>
             ))}
           </Grid>
+          <Typography
+            variant={"h6"}
+            onClick={handleRegionClick}
+            sx={{
+              width: "80%",
+              backgroundColor: "#f2f2f2",
+              padding: "12px 20px",
+              borderRadius: "20px",
+              color: "#A6836F",
+              boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
+              position: "relative", // 부모 요소가 위치를 기준으로 버튼을 배치
+              marginTop: "50px",
+              marginLeft: "20px",
+              transition: "transform 0.3s ease, box-shadow 0.3s ease", // 부드러운 트랜지션 추가
+              "&:hover": {
+                transform: "scale(1.02)", // 호버 시 크기 확대
+                boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)", // 부드러운 그림자 추가
+                cursor: "pointer",
+              },
+            }}
+          >
+            <b>지역으로 클럽 찾기</b> <span style={{ fontSize: "15px", marginLeft: "10px" }}>* 카테고리와 지역을 동시에 선택하여 더 정확한 검색 결과를 확인해보세요.</span>
+            <Box
+              sx={{
+                width: "10%",
+                backgroundColor: "#A6836F",
+                padding: "12px 20px",
+                height: "33px",
+                borderTopRightRadius: "20px",
+                borderBottomRightRadius: "20px",
+                color: "white",
+                boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
+                position: "absolute", // 부모 요소가 위치를 기준으로 버튼을 배치
+                right: 0,
+                top: 0,
+                textAlign: "center",
+              }}
+            >
+              <SearchIcon sx={{ fontSize: "35px" }} />
+            </Box>
+          </Typography>
         </Container>
       </Box>
       <Container maxWidth="lg" sx={{ marginTop: "40px", paddingBottom: "40px" }}>
@@ -259,7 +290,7 @@ const Clubs = () => {
                 variant={"h6"}
                 style={{
                   backgroundColor: "#fff",
-                  padding: "12px 20px",
+                  padding: "10px 20px",
                   borderRadius: "20px",
                   color: "#A6836F",
                   boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
@@ -302,7 +333,7 @@ const Clubs = () => {
                 variant={"h6"}
                 style={{
                   backgroundColor: "#fff",
-                  padding: "12px 20px",
+                  padding: "10px 20px",
                   borderRadius: "20px",
                   color: "#A6836F",
                   boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
@@ -310,7 +341,7 @@ const Clubs = () => {
                   opacity: "0.8",
                 }}
               >
-                <b>{category}</b>
+                {category}
                 <Box
                   onClick={() => setCategory("")}
                   style={{
@@ -375,7 +406,7 @@ const Clubs = () => {
                       width: "100%",
                       height: "100%",
                       objectFit: "cover",
-                      borderRadius: "12px 50px 0 0",
+                      borderRadius: "20px 20px 0 0",
                     }}
                   />
                   <Box
@@ -410,6 +441,29 @@ const Clubs = () => {
                       {club.mainCategory}
                     </Box>
                   </Box>
+                  {/* 지옥의 둥굴게 말기.... */}
+                  <ModeNightIcon
+                    sx={{
+                      position: "absolute",
+                      top: 49,
+                      right: -24,
+                      color: "#f2f2f2",
+                      zIndex: 3,
+                      fontSize: "50px",
+                      transform: "rotate(-45deg)",
+                    }}
+                  />
+                  <ModeNightIcon
+                    sx={{
+                      position: "absolute",
+                      top: -23,
+                      right: 141,
+                      color: "#f2f2f2",
+                      zIndex: 3,
+                      fontSize: "50px",
+                      transform: "rotate(-45deg)",
+                    }}
+                  />
                 </Box>
                 <Box
                   sx={{
@@ -506,7 +560,6 @@ const Clubs = () => {
                       borderBottom: "15px solid #f2f2f2",
                       borderLeft: "15px solid #f2f2f2",
                       borderTopLeftRadius: "20px",
-                      zIndex: 999999999,
                     }}
                     onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
                   >
@@ -536,6 +589,53 @@ const Clubs = () => {
                       <ArrowForwardIcon sx={{ color: "white" }} />
                     </Box>
                   </Box>
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: -0,
+                      right: 80,
+                      backgroundColor: "white",
+                      width: "20px",
+                      height: "20px",
+                      zIndex: 3,
+                      borderBottomRightRadius: "50px", // 둥근 모서리 적용
+                    }}
+                  ></Box>
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: -0,
+                      right: 80,
+                      backgroundColor: "#f2f2f2",
+                      width: "20px",
+                      height: "20px",
+                      zIndex: 2,
+                    }}
+                  ></Box>
+
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: 78,
+                      right: 0,
+                      backgroundColor: "white",
+                      width: "20px",
+                      height: "20px",
+                      zIndex: 3,
+                      borderBottomRightRadius: "50px", // 둥근 모서리 적용
+                    }}
+                  ></Box>
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: 78,
+                      right: 0,
+                      backgroundColor: "#f2f2f2",
+                      width: "20px",
+                      height: "20px",
+                      zIndex: 2,
+                    }}
+                  ></Box>
                 </Box>
               </Paper>
             </Grid>
@@ -574,7 +674,7 @@ const Clubs = () => {
                         width: "100%",
                         height: "100%",
                         objectFit: "cover",
-                        borderRadius: "12px 50px 0 0",
+                        borderRadius: "20px 20px 0 0",
                       }}
                     />
                     <Box
@@ -600,7 +700,7 @@ const Clubs = () => {
                           alignItems: "center",
                           width: "130px",
                           height: "50px",
-                          color: "#3f51b5",
+                          color: "#A6836F",
                           fontWeight: "bold",
                           borderRadius: "20px",
                           backgroundColor: "white",
@@ -609,6 +709,29 @@ const Clubs = () => {
                         {club.mainCategory}
                       </Box>
                     </Box>
+                    {/* 지옥의 둥굴게 말기.... */}
+                    <ModeNightIcon
+                      sx={{
+                        position: "absolute",
+                        top: 49,
+                        right: -24,
+                        color: "#f2f2f2",
+                        zIndex: 3,
+                        fontSize: "50px",
+                        transform: "rotate(-45deg)",
+                      }}
+                    />
+                    <ModeNightIcon
+                      sx={{
+                        position: "absolute",
+                        top: -23,
+                        right: 141,
+                        color: "#f2f2f2",
+                        zIndex: 3,
+                        fontSize: "50px",
+                        transform: "rotate(-45deg)",
+                      }}
+                    />
                   </Box>
                   <Box
                     sx={{
@@ -705,10 +828,8 @@ const Clubs = () => {
                         borderBottom: "15px solid #f2f2f2",
                         borderLeft: "15px solid #f2f2f2",
                         borderTopLeftRadius: "20px",
-                        zIndex: 999999999,
-                        transition: "transform 0.3s ease", // 호버 시 변화를 부드럽게
                       }}
-                      onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)} // 클릭 핸들러 추가
+                      onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
                     >
                       <Box
                         sx={{
@@ -719,13 +840,16 @@ const Clubs = () => {
                           alignItems: "center",
                           width: "50px",
                           height: "50px",
-                          color: "#3f51b5",
+                          color: "white",
                           fontWeight: "bold",
                           borderRadius: "25px",
-                          backgroundColor: "black",
-                          transition: "transform 0.3s ease", // 호버 시 변화를 부드럽게
+                          backgroundColor: "#A6836F",
+                          transition: "all 0.3s ease", // 모든 속성에 대해 부드럽게 변환
                           "&:hover": {
                             transform: "scale(1.2)", // 호버 시 크기 확대
+                            color: "#f2f2f2", // 색상 변경
+                            backgroundColor: "#3f51b5", // 배경색 변경
+                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자 추가
                             cursor: "pointer",
                           },
                         }}
@@ -733,6 +857,53 @@ const Clubs = () => {
                         <ArrowForwardIcon sx={{ color: "white" }} />
                       </Box>
                     </Box>
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        bottom: -0,
+                        right: 80,
+                        backgroundColor: "white",
+                        width: "20px",
+                        height: "20px",
+                        zIndex: 3,
+                        borderBottomRightRadius: "50px", // 둥근 모서리 적용
+                      }}
+                    ></Box>
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        bottom: -0,
+                        right: 80,
+                        backgroundColor: "#f2f2f2",
+                        width: "20px",
+                        height: "20px",
+                        zIndex: 2,
+                      }}
+                    ></Box>
+
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        bottom: 78,
+                        right: 0,
+                        backgroundColor: "white",
+                        width: "20px",
+                        height: "20px",
+                        zIndex: 3,
+                        borderBottomRightRadius: "50px", // 둥근 모서리 적용
+                      }}
+                    ></Box>
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        bottom: 78,
+                        right: 0,
+                        backgroundColor: "#f2f2f2",
+                        width: "20px",
+                        height: "20px",
+                        zIndex: 2,
+                      }}
+                    ></Box>
                   </Box>
                 </Paper>
               </Grid>
