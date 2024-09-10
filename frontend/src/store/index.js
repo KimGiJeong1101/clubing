@@ -5,11 +5,10 @@ import storage from "redux-persist/lib/storage"; // 로컬 스토리지
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persistReducer } from "redux-persist";
 import chatReducer from "./reducers/chatSlice.js";
 
-
 const persistConfig = {
   key: "root",
   storage: storage,
-  whitelist: ["user", "club", "getClub", "meetingList", "categoryClub", "getClubMember","chat"],
+  whitelist: ["user", "club", "getClub", "meetingList", "categoryClub", "getClubMember", "chat"],
 };
 
 const rootReducer = combineReducers({
