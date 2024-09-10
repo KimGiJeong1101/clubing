@@ -44,15 +44,12 @@ router.get("/", async (req, res, next) => {
   try {
     const now = new Date(); // 현재 날짜와 시간
     const date = new Date(req.query.nowDate);
-    date.setDate(date.getDate() - 1);
+    date.setDate(date.getDate() - 1); //1일전 바꾸는거 -> 한국시간 utc시간이 다름
     const formattedDate = date.toISOString().split("T")[0];
     const targetDateStart = new Date(`${formattedDate}T15:00:00Z`); // UTC 기준
     const targetDateEnd = new Date(`${req.query.nowDate}T14:59:59Z`); // UTC 기준
     const meetings = await Meeting.find({
-      $and: [
-        { dateTimeSort: { $gte: now } },
-        { dateTimeSort: { $gte: targetDateStart, $lte: targetDateEnd } }, 
-      ],
+      $and: [{ dateTimeSort: { $gte: now } }, { dateTimeSort: { $gte: targetDateStart, $lte: targetDateEnd } }],
     })
       .sort({ date: 1 })
       .limit(4); // 가까운 날짜 순으로 정렬
