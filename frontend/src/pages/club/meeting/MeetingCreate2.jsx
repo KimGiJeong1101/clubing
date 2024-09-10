@@ -16,12 +16,11 @@ import CropIcon from "@mui/icons-material/Crop";
 
 dayjs.locale("ko");
 
-const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal }) => {
+const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category }) => {
   //정기모임 글 등록, 두번쨰 모달
   const [dateTime, setDateTime] = useState(null);
   const [dateTimeSort, setDateTimeSort] = useState(null);
   const [checked, setChecked] = useState(false); // 정기모임 전체알림 스테이트
-  const [category, setCategory] = useState("");
   const navigate = useNavigate();
   const checkedChange = (event) => {
     setChecked(event.target.checked);
