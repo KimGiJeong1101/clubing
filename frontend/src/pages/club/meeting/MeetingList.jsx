@@ -1,39 +1,66 @@
 import React, { useEffect, useState } from "react";
-import { Box, Container, Grid, Paper, Tab, Tabs, Typography } from "@mui/material";
+import { Avatar, AvatarGroup, Box, Container, Grid, Paper, Tab, Tabs, Typography } from "@mui/material";
 import clubCategories from "../main/CategoriesDataClub";
+import { useQuery } from "@tanstack/react-query";
+import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
+import { useNavigate } from "react-router-dom";
 
 const MeetingList = () => {
   const [nowTime, setNowTime] = useState([]);
   const [selectedTab, setSelectedTab] = useState(0); // 선택된 탭의 상태
   const [category, setCategory] = useState(["맞춤 추천", ...Object.keys(clubCategories)]);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState(0); // 선택된 탭의 상태
-  const days = ["일", "월", "화", "수", "목", "금", "토", "일", "월", "화", "수", "목", "금", "토"];
+  const days = ["일", "월", "화", "수", "목", "금", "토"];
+  const [nowDate, setNowDate] = useState("");
+  const navigate = useNavigate();
 
-  // 번호를 받아 요일 이름을 반환하는 함수
-  const getDayName = (dayNumber) => {
-    return days[dayNumber];
-  };
-
+  // 날짜 목록 생성
   useEffect(() => {
     const now = new Date();
     const dateList = [];
     for (let i = 0; i < 14; i++) {
-      if (now.getDay() + i >= 7) {
-        const date = {
-          date: now.getDate() + i,
-          day: getDayName(now.getDay() + i - 7),
-        };
-        dateList.push(date);
-      } else {
-        const date = {
-          date: now.getDate() + i,
-          day: getDayName(now.getDay() + i),
-        };
-        dateList.push(date);
-      }
+      const tempDate = new Date(now);
+      tempDate.setDate(now.getDate() + i);
+      const date = {
+        date: tempDate.getDate(),
+        day: days[tempDate.getDay()],
+        fullDate: tempDate.toISOString().split("T")[0], // "YYYY-MM-DD" 형식으로 날짜 저장
+      };
+      dateList.push(date);
     }
     setNowTime(dateList);
+    setNowDate(dateList[0].fullDate);
+    console.log(`dateList[0]`);
   }, []);
+
+  // 탭 클릭 핸들러
+  const handleTabClick = (date) => {
+    setNowDate(date);
+  };
+
+  // 미팅 리스트 가져오기
+  const getMeetingList = async () => {
+    const response = await fetch(`http://localhost:4000/meetings?nowDate=${nowDate}`);
+    const data = await response.json();
+    console.log(data);
+    return data;
+  };
+
+  const {
+    data: meetingList,
+    error,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["meetingList", nowDate],
+    queryFn: getMeetingList,
+    enabled: !!nowDate,
+  });
+
+  // // 번호를 받아 요일 이름을 반환하는 함수
+  // const getDayName = (dayNumber) => {
+  //   return days[dayNumber % 7]; // 월-일 기준으로 요일 반환
+  // };
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue); // 클릭된 탭을 설정
@@ -42,6 +69,14 @@ const MeetingList = () => {
   const handleCategoryTabChange = (event, newValue) => {
     setSelectedCategoryTab(newValue); // 클릭된 탭을 설정
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (isError) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <Box sx={{ width: "100%", backgroundColor: "white" }}>
@@ -83,8 +118,9 @@ const MeetingList = () => {
               },
             }}
           >
-            {nowTime.map((a, i) => (
+            {nowTime.map((item, i) => (
               <Tab
+                onClick={() => handleTabClick(item.fullDate)} // 클릭 시 상태 업데이트
                 key={i}
                 label={
                   <Box sx={{ marginLeft: "15px", marginRight: "15px" }}>
@@ -100,392 +136,109 @@ const MeetingList = () => {
       {/* 게시글들 분류 텝.end */}
       {/* 모임리스트들 */}
       <Container maxWidth="lg" sx={{ backgroundColor: "#f2f2f2", padding: "20px", borderRadius: "30px" }}>
-        <Grid container spacing={3}>
-          <Grid item xs={6} sx={{ height: "200px", marginBottom: "30px" }}>
-            <Paper
-              elevation={2}
-              sx={{
-                padding: "16px",
-                display: "flex",
-                borderRadius: "20px",
-              }}
-            >
-              <Grid item xs={12} sm={12} md={4}>
-                <Box
+        {meetingList &&
+          meetingList.map((meeting, index) => {
+            const avatars = meeting.joinMember.map((member, i) => (
+              <Avatar
+                key={i}
+                alt={member.name}
+                src={member.avatarUrl || "/static/images/avatar/default.jpg"} // 기본 이미지 URL 설정
+              />
+            ));
+            return (
+              <Grid container spacing={1} key={index}>
+                <Grid
+                  item
+                  xs={6}
+                  onClick={() => {
+                    navigate(`/clubs/main?clubNumber=${meeting.clubNumber}`);
+                  }}
                   sx={{
-                    width: "160px",
-                    height: "160px",
-                    overflow: "hidden",
-                    borderRadius: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#f0f0f0",
+                    height: "200px",
+                    marginBottom: "30px",
+                    cursor: "pointer", // 커서 포인터 추가
+                    transition: "all 0.3s ease", // 부드러운 전환 효과 추가
+                    "&:hover": {
+                      // 호버 스타일 추가
+                      backgroundColor: "#f0f0f0", // 호버 시 배경색 변경
+                      transform: "scale(1.05)", // 호버 시 살짝 확대
+                    },
                   }}
                 >
-                  <img
-                    src="" // 이미지 경로
-                    alt="Example"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={12} md={8}>
-                <Box
-                  sx={{
-                    color: "#666060",
-                    backgroundColor: "#F4F4F4",
-                    display: "inline-flex",
-                    borderRadius: "20px",
-                    padding: "5px 20px",
-                    margin: "10px 0px",
-                    fontWeight: "700",
-                    fontSize: "18px",
-                  }}
-                >
-                  서브타이틀
-                </Box>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: "700",
-                    fontSize: "22px",
-                    color: "#383535",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  제목
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    textAlign: "left",
-                    color: "#9F9E9D",
-                    display: "inline-flex",
-                  }}
-                >
-                  메인카테고리 · 지역 ·
-                </Typography>
-
-                <Typography variant="h6" sx={{ color: "green", display: "inline-flex" }}>
-                  {" "}
-                  채팅
-                </Typography>
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center", // 수직 중앙 정렬
-                    margin: "10px 0px",
-                  }}
-                >
-                  <Box
+                  <Paper
+                    elevation={2}
                     sx={{
+                      padding: "16px",
                       display: "flex",
-                      alignItems: "center",
-                      marginLeft: "8px",
+                      borderRadius: "20px",
                     }}
                   >
-                    <span style={{ marginLeft: "5px" }}>0명/20명</span>
-                  </Box>
-                </Box>
-              </Grid>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sx={{ height: "200px", marginBottom: "30px" }}>
-            <Paper
-              elevation={2}
-              sx={{
-                padding: "16px",
-                display: "flex",
-                borderRadius: "20px",
-              }}
-            >
-              <Grid item xs={12} sm={12} md={4}>
-                <Box
-                  sx={{
-                    width: "160px",
-                    height: "160px",
-                    overflow: "hidden",
-                    borderRadius: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  <img
-                    src="" // 이미지 경로
-                    alt="Example"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={12} md={8}>
-                <Box
-                  sx={{
-                    color: "#666060",
-                    backgroundColor: "#F4F4F4",
-                    display: "inline-flex",
-                    borderRadius: "20px",
-                    padding: "5px 20px",
-                    margin: "10px 0px",
-                    fontWeight: "700",
-                    fontSize: "18px",
-                  }}
-                >
-                  서브타이틀
-                </Box>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: "700",
-                    fontSize: "22px",
-                    color: "#383535",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  제목
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    textAlign: "left",
-                    color: "#9F9E9D",
-                    display: "inline-flex",
-                  }}
-                >
-                  메인카테고리 · 지역 ·
-                </Typography>
+                    <Grid item xs={12} sm={12} md={4}>
+                      <Box
+                        sx={{
+                          width: "160px",
+                          height: "160px",
+                          overflow: "hidden", // 박스 영역을 넘어서는 이미지 잘리기
+                          borderRadius: "20px", // 원하는 경우 둥근 모서리 적용
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: "#f0f0f0", // 박스 배경 색상 (선택 사항)
+                        }}
+                      >
+                        <img
+                          src={`http://localhost:4000/` + meeting.img} // 이미지 경로
+                          alt="Example222"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover", // 박스 크기에 맞게 이미지 잘리기
+                          }}
+                        />
+                      </Box>
+                    </Grid>
+                    <Grid item xs={12} sm={12} md={8}>
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          fontWeight: "700",
+                          fontSize: "22px",
+                          color: "#383535",
+                        }}
+                      >
+                        {meeting.title}
+                      </Typography>
+                      <Box sx={{ margin: "4px" }}>일시 : {meeting.dateTime}</Box>
+                      <Box sx={{ margin: "4px" }}>위치 : {meeting.where}</Box>
+                      <Box sx={{ margin: "4px" }}>비용 : {meeting.cost}</Box>
 
-                <Typography variant="h6" sx={{ color: "green", display: "inline-flex" }}>
-                  {" "}
-                  채팅
-                </Typography>
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center", // 수직 중앙 정렬
-                    margin: "10px 0px",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      marginLeft: "8px",
-                    }}
-                  >
-                    <span style={{ marginLeft: "5px" }}>0명/20명</span>
-                  </Box>
-                </Box>
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center", // 수직 중앙 정렬
+                          margin: "10px 0px",
+                        }}
+                      >
+                        <AvatarGroup max={4}>{avatars}</AvatarGroup>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            marginLeft: "8px",
+                          }}
+                        >
+                          <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
+                          <span style={{ marginLeft: "5px" }}>
+                            {meeting?.joinMember?.length}/{meeting?.totalCount}
+                          </span>
+                        </Box>
+                      </Box>
+                    </Grid>
+                  </Paper>
+                </Grid>
               </Grid>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sx={{ height: "200px", marginBottom: "30px" }}>
-            <Paper
-              elevation={2}
-              sx={{
-                padding: "16px",
-                display: "flex",
-                borderRadius: "20px",
-              }}
-            >
-              <Grid item xs={12} sm={12} md={4}>
-                <Box
-                  sx={{
-                    width: "160px",
-                    height: "160px",
-                    overflow: "hidden",
-                    borderRadius: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  <img
-                    src="" // 이미지 경로
-                    alt="Example"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={12} md={8}>
-                <Box
-                  sx={{
-                    color: "#666060",
-                    backgroundColor: "#F4F4F4",
-                    display: "inline-flex",
-                    borderRadius: "20px",
-                    padding: "5px 20px",
-                    margin: "10px 0px",
-                    fontWeight: "700",
-                    fontSize: "18px",
-                  }}
-                >
-                  서브타이틀
-                </Box>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: "700",
-                    fontSize: "22px",
-                    color: "#383535",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  제목
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    textAlign: "left",
-                    color: "#9F9E9D",
-                    display: "inline-flex",
-                  }}
-                >
-                  메인카테고리 · 지역 ·
-                </Typography>
-
-                <Typography variant="h6" sx={{ color: "green", display: "inline-flex" }}>
-                  {" "}
-                  채팅
-                </Typography>
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center", // 수직 중앙 정렬
-                    margin: "10px 0px",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      marginLeft: "8px",
-                    }}
-                  >
-                    <span style={{ marginLeft: "5px" }}>0명/20명</span>
-                  </Box>
-                </Box>
-              </Grid>
-            </Paper>
-          </Grid>
-          <Grid item xs={6} sx={{ height: "200px", marginBottom: "30px" }}>
-            <Paper
-              elevation={2}
-              sx={{
-                padding: "16px",
-                display: "flex",
-                borderRadius: "20px",
-              }}
-            >
-              <Grid item xs={12} sm={12} md={4}>
-                <Box
-                  sx={{
-                    width: "160px",
-                    height: "160px",
-                    overflow: "hidden",
-                    borderRadius: "20px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#f0f0f0",
-                  }}
-                >
-                  <img
-                    src="" // 이미지 경로
-                    alt="Example"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={12} md={8}>
-                <Box
-                  sx={{
-                    color: "#666060",
-                    backgroundColor: "#F4F4F4",
-                    display: "inline-flex",
-                    borderRadius: "20px",
-                    padding: "5px 20px",
-                    margin: "10px 0px",
-                    fontWeight: "700",
-                    fontSize: "18px",
-                  }}
-                >
-                  서브타이틀
-                </Box>
-                <Typography
-                  variant="h5"
-                  sx={{
-                    fontWeight: "700",
-                    fontSize: "22px",
-                    color: "#383535",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  제목
-                </Typography>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    textAlign: "left",
-                    color: "#9F9E9D",
-                    display: "inline-flex",
-                  }}
-                >
-                  메인카테고리 · 지역 ·
-                </Typography>
-
-                <Typography variant="h6" sx={{ color: "green", display: "inline-flex" }}>
-                  {" "}
-                  채팅
-                </Typography>
-                <Box
-                  sx={{
-                    display: "inline-flex",
-                    alignItems: "center", // 수직 중앙 정렬
-                    margin: "10px 0px",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      marginLeft: "8px",
-                    }}
-                  >
-                    <span style={{ marginLeft: "5px" }}>0명/20명</span>
-                  </Box>
-                </Box>
-              </Grid>
-            </Paper>
-          </Grid>
-        </Grid>
+            );
+          })}
         <Typography
           variant={"h6"}
           sx={{
