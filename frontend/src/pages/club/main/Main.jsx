@@ -44,19 +44,6 @@ const Main = () => {
   //헤더에 있던 거 옮기기 .
   //헤더에 있던 거 옮기기 .
   const getClub = useSelector((state) => state.getClub);
-  //클럽 삭제
-  const handleClubDelete = async () => {
-    try {
-      await axiosInstance.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
-      // 삭제 후 원하는 페이지로 이동
-      navigate("/clublist");
-      alert("삭제 완료");
-    } catch (error) {
-      console.error("삭제 실패:", error);
-    }
-    handleClose();
-  };
-  //클럽 삭제.end
   const [anchorHeaderEl, setAnchorHeaderEl] = useState(null);
   const handleClick2 = (event) => {
     setAnchorHeaderEl(event.currentTarget);
@@ -137,7 +124,7 @@ const Main = () => {
 
   //미팅 지우기
   const deleteMeeting = async (meetingNumber) => {
-    const response = await fetch(`http://localhost:4000/meetings/delete/` + meetingNumber);
+    await fetch(`http://localhost:4000/meetings/delete/` + meetingNumber);
     window.location.reload();
   };
   //미팅 지우기.end
@@ -239,7 +226,7 @@ const Main = () => {
       setMeetingList([...response.data]);
       setMeeetingListBoolean(copy);
     });
-  }, []);
+  }, [clubNumber, user.userData.user.email]);
   //////리엑트 쿼리
 
   const memberModalHandleropen = () => {
