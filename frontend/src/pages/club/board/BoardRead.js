@@ -111,9 +111,9 @@ const Read = ({ postId, onClose }) => {
   const handleSnackbarClose = () => setSnackbarOpen(false); // 스낵바 닫기
 
   // 로딩 상태 처리
-  if (isLoading) return <p>Loading...</p>;
-  if (error) return <p>게시물 가져오기 오류: {error.message}</p>;
-  if (!post) return <p>게시물을 찾을 수 없습니다</p>;
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>게시물 가져오기 오류: {error.message}</div>;
+  if (!post) return <div>게시물을 찾을 수 없습니다</div>;
 
   return (
     <Container>

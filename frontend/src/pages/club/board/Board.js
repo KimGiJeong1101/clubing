@@ -13,7 +13,6 @@ const Board = () => {
   const [editorData, setEditorData] = useState('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
-  const [showList, setShowList] = useState(true);
   const [image, setImage] = useState('');
   const [options, setOptions] = useState(['', '']);
   const [allowMultiple, setAllowMultiple] = useState(false);
@@ -87,12 +86,10 @@ const Board = () => {
 
   const handleClickOpen = () => {
     setOpen(true);
-    setShowList(false);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setShowList(true);
     category === '투표' ? resetVoteState() : resetEditorState();
   };
 
@@ -134,7 +131,7 @@ const Board = () => {
         </Fab>
       )}
 
-      {showList && <ListPosts />}
+      <ListPosts />
 
       <Dialog
         open={open}

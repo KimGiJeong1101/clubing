@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Container, Grid, Typography, Link } from '@mui/material';
+import { Box, Container, Grid, Typography } from '@mui/material';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import XIcon from '@mui/icons-material/X';
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -53,14 +53,15 @@ const Footer = () => {
             <Box>
               <Typography variant="h6" sx={{ marginBottom: '16px' }}>고객센터</Typography>
               <Typography variant="body2">
-                <Typography>전화: 000-0000-0000 </Typography>
-                <Typography>이메일: clubing@clubing.com</Typography>
-                <Box>
-                  <FacebookIcon/>
-                  <XIcon/>
-                  <InstagramIcon/>
-                </Box>
-                
+                전화: 000-0000-0000
+              </Typography>
+              <Typography variant="body2">
+                이메일: clubing@clubing.com
+              </Typography>
+              <Typography variant="body2">
+                <FacebookIcon />
+                <XIcon />
+                <InstagramIcon />
               </Typography>
             </Box>
           </Grid>
