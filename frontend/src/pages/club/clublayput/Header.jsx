@@ -44,16 +44,6 @@ function Header() {
     }
     handleClose();
   };
-  // 클럽 리스트 불러오는 거 ! redux 이용
-  // const getClubList = useSelector((state) => state.clubList);
-  // const [clubList, setClubList] = useState([]);
-  // useEffect(() => {
-  //   if (getClubList.status === "succeeded") {
-  //     setClubList(getClubList.clubs);
-  //   }
-  // }, [getClubList]);
-  // 클럽 리스트 불러오는 거 ! redux 이용.end
-
   //하트 아이콘 색깔 state
   const [isFavorite, setIsFavorite] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);

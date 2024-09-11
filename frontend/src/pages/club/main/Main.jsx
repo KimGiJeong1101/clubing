@@ -1,30 +1,33 @@
-import { Avatar, AvatarGroup, Box, Container, Fab, Grid, Menu, MenuItem, Paper, Typography } from "@mui/material";
+import { Avatar, AvatarGroup, Box, Container, Fab, Grid, Menu, MenuItem, Paper, Popover, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import club from "../../../data/Club.js";
 import WhereToVoteIcon from "@mui/icons-material/WhereToVote";
 import PeopleIcon from "@mui/icons-material/People";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import AddIcon from "@mui/icons-material/Add";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
 import dayjs from "dayjs";
 import "dayjs/locale/ko"; // 한국어 로케일 import
 import axiosInstance from "./../../../utils/axios";
-import { fetchCategoryClubList, fetchMeetingList } from "../../../store/reducers/clubReducer.js";
+import { fetchCategoryClubList } from "../../../store/reducers/clubReducer.js";
 import CustomButton from "../../../components/club/CustomButton.jsx";
 import MeetingCreate1 from "../meeting/MeetingCreate1.jsx";
 import MeetingCreate2 from "../meeting/MeetingCreate2.jsx";
 import ClubCarousel from "../../../components/club/ClubCarousel.jsx";
+import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import MenuIcon from "@mui/icons-material/Menu";
+import MemberModal from "./MemberModal.jsx";
+
 dayjs.locale("ko");
 
 const Main = () => {
+  const [memberModalOpen, setMemberModalOpen] = useState(false);
   //리덕스 함수 부르기 위해서
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   //멤버들 숨겼다가 나왔다가
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleExpand = () => {
@@ -36,6 +39,43 @@ const Main = () => {
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
   //Clubmember=3 이란 거 가져오기 위해서!.end
+
+  //헤더에 있던 거 옮기기 .
+  //헤더에 있던 거 옮기기 .
+  //헤더에 있던 거 옮기기 .
+  const getClub = useSelector((state) => state.getClub);
+  const [anchorHeaderEl, setAnchorHeaderEl] = useState(null);
+  const handleClick2 = (event) => {
+    setAnchorHeaderEl(event.currentTarget);
+  };
+  const handleClose2 = () => {
+    setAnchorHeaderEl(null);
+  };
+  const cancellClub = () => {
+    if (user.userData.user.email === "") {
+      alert("로그인이 필요한 서비스입니다.");
+      navigate("/login");
+    } else {
+      axiosInstance
+        .post(`http://localhost:4000/clubs/cencellMember/${clubNumber}`)
+        .then((response) => {
+          alert("모임 탈퇴 성공");
+          navigate(`/mypage/wish`);
+        })
+        .catch((err) => {
+          console.log(err);
+          alert("모임 탈퇴에 실패했습니다.");
+        });
+    }
+  };
+  const open2 = Boolean(anchorHeaderEl);
+  const id = open2 ? "simple-popover" : undefined;
+  //hyk 추가 언디파인에 대한 에러 값을 설정
+  const clubs = getClub.clubs || {};
+  const adminEmail = clubs?.admin || "";
+  //헤더에 있던 거 옮기기 .end
+  //헤더에 있던 거 옮기기 .end
+  //헤더에 있던 거 옮기기 .end
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -52,9 +92,9 @@ const Main = () => {
   //모달창관련 스위치 및 State
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
-  const FadHandleClick = (event) => {
-    const ariaLabel = event.currentTarget.getAttribute("aria-label");
-    setCategory(ariaLabel);
+  const FadHandleClick = (picCategory) => {
+    setCategory(picCategory);
+    console.log(picCategory);
     setOpen(false);
     setSecondModal(true);
   };
@@ -76,6 +116,7 @@ const Main = () => {
 
   //로그인 정보 where redux
   const user = useSelector((state) => state.user);
+
   const [meetingList, setMeetingList] = useState([]);
   const [meeetingListBoolean, setMeeetingListBoolean] = useState([]);
 
@@ -83,7 +124,7 @@ const Main = () => {
 
   //미팅 지우기
   const deleteMeeting = async (meetingNumber) => {
-    const response = await fetch(`http://localhost:4000/meetings/delete/` + meetingNumber);
+    await fetch(`http://localhost:4000/meetings/delete/` + meetingNumber);
     window.location.reload();
   };
   //미팅 지우기.end
@@ -92,7 +133,7 @@ const Main = () => {
   const getReadClub = async () => {
     const response = await fetch(`http://localhost:4000/clubs/read2/${clubNumber}`);
     const data = await response.json();
-    
+
     await dispatch(fetchCategoryClubList(data.mainCategory));
     return data;
   };
@@ -103,7 +144,7 @@ const Main = () => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["readClub", clubNumber],
+    queryKey: ["readClub", clubNumber, memberModalOpen],
     queryFn: getReadClub,
     enabled: !!clubNumber, //
   });
@@ -126,7 +167,7 @@ const Main = () => {
   //모임수정 시 이동 핸들러.end
 
   //모임삭제 시 이동 핸들러
-  const handleDelete = async () => {
+  const handleDelete2 = async () => {
     try {
       await axios.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
       // 삭제 후 원하는 페이지로 이동
@@ -185,10 +226,18 @@ const Main = () => {
       setMeetingList([...response.data]);
       setMeeetingListBoolean(copy);
     });
-  }, []);
+  }, [clubNumber, user.userData.user.email]);
   //////리엑트 쿼리
+
+  const memberModalHandleropen = () => {
+    setMemberModalOpen(true);
+  };
+  const memberModalHandlerClose = () => {
+    setMemberModalOpen(false);
+  };
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>로딩 중...</div>; // 최초 로딩 시
   }
 
   if (isError) {
@@ -202,7 +251,7 @@ const Main = () => {
       {/* 모달창.end */}
 
       {/* 2번째 글등록 모달창 */}
-      {secondModal && <MeetingCreate2 clubNumber={clubNumber} secondModalClose={secondModalClose} secondModal={secondModal} />}
+      {secondModal && <MeetingCreate2 clubNumber={clubNumber} secondModalClose={secondModalClose} secondModal={secondModal} category={category} />}
       {/* 2번째 글등록 모달창.end */}
 
       <Container maxWidth="md" sx={{ padding: "0px !important" }}>
@@ -233,7 +282,7 @@ const Main = () => {
       </Container>
       <Container maxWidth="md" sx={{ backgroundColor: "white" }}>
         {/* 모달창 버튼*/}
-        {readClub.admin === user.userData.user.email && (
+        {adminEmail === user.userData.user.email && (
           <>
             <Fab
               onClick={handleClick}
@@ -253,7 +302,7 @@ const Main = () => {
             </Fab>
             <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
               <MenuItem onClick={handleUpdate}>모임 및 게시글 수정</MenuItem>
-              <MenuItem onClick={handleDelete}>모임 삭제</MenuItem>
+              <MenuItem onClick={handleDelete2}>모임 삭제</MenuItem>
             </Menu>
           </>
         )}
@@ -284,13 +333,61 @@ const Main = () => {
                   {readClub.title}
                 </Typography>
               </Grid>
-              <Grid item xs={12}>
-                호스트 <b> {readClub.adminNickName}</b>
+              <Grid container spacing={2}>
+                <Grid item xs={6}>
+                  호스트 <b> {readClub.adminNickName}</b>
+                </Grid>
+                <Grid item xs={6} sx={{ color: "#555555", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                  <FavoriteIcon
+                    onClick={() => {}}
+                    sx={{
+                      padding: "7px",
+                      color: "lightcoral",
+                      ":hover": {
+                        cursor: "pointer",
+                      },
+                    }}
+                  />
+                  <ShareOutlinedIcon sx={{ padding: "7px", color: "black" }} />
+                  <MenuIcon onClick={handleClick2} variant="contained" sx={{ padding: "7px", color: "black" }} />
+                </Grid>
+                <Popover
+                  id={id}
+                  open={open2}
+                  anchorEl={anchorHeaderEl}
+                  onClose={handleClose2}
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "center",
+                  }}
+                  transformOrigin={{
+                    vertical: "top",
+                    horizontal: "center",
+                  }}
+                >
+                  {/* hyk 수정 위에 언디파인 예외처리를 위해 레퍼런스 값 변경 */}
+                  {user.userData.user.email !== getClub.clubs.admin && getClub?.clubs?.members?.includes(user.userData.user.email) && (
+                    <Box
+                      onClick={() => {
+                        cancellClub();
+                      }}
+                      sx={{ padding: "10px" }}
+                    >
+                      클럽 탈퇴하기
+                    </Box>
+                  )}
+                  <Box onClick={() => {}} sx={{ padding: "10px" }}>
+                    모임 url 공유하기
+                  </Box>
+                  <Box onClick={() => {}} sx={{ padding: "10px" }}>
+                    모임 신고하기
+                  </Box>
+                </Popover>
               </Grid>
             </Grid>
           </Grid>
           <Grid container spacing={2}>
-            <Grid item xs={12} sx={{ color: "#555555" }}>
+            <Grid item xs={6} sx={{ color: "#555555" }}>
               <b> 1</b>/{readClub.maxMember}명<b> {readClub.meeting.length}</b> 정기모임
               <b> 0</b> 글 갯수
               <b> 5</b> 분 전 대화
@@ -326,8 +423,8 @@ const Main = () => {
             정기적으로 모임을 가지고 있어요
           </Typography>
           {/* 정기 모임 */}
-          {readClub.meeting.length === 0 && user.userData.user.email !== readClub.admin && <Box>아직 정기모임이 없습니다.</Box>}
-          {readClub.meeting.length === 0 && user.userData.user.email === readClub.admin && (
+          {readClub.meeting.length === 0 && user.userData.user.email !== adminEmail && <Box>아직 정기모임이 없습니다.</Box>}
+          {readClub.meeting.length === 0 && user.userData.user.email === adminEmail && (
             <Grid container spacing={2}>
               <Grid item xs={12} sx={{ marginBottom: "30px" }}>
                 <Paper
@@ -411,7 +508,7 @@ const Main = () => {
                         >
                           {meeetingListBoolean[i] ? "취소" : "참석하기"}
                         </CustomButton>
-                        {user.userData.user.email === readClub.admin && (
+                        {user.userData.user.email === adminEmail && (
                           <CustomButton
                             variant="outlined"
                             onClick={() => {
@@ -471,7 +568,7 @@ const Main = () => {
             );
           })}
           {/* 비슷한 클럽.end */}
-          {readClub.meeting.length !== 0 && user.userData.user.email === readClub.admin && (
+          {readClub.meeting.length !== 0 && user.userData.user.email === adminEmail && (
             <Grid item xs={12}>
               <CustomButton variant="contained" onClick={handleOpen} sx={{ width: "100%", fontSize: "18px", borderRadius: "15px", backgroundColor: "#DBC7B5" }}>
                 정모 만들기
@@ -552,7 +649,14 @@ const Main = () => {
                   <Grid item xs={4} sx={{ marginTop: "8px" }}>
                     <Typography variant="h6">{member.name}</Typography>
                   </Grid>
-                  {index === 0 && (
+                  {user.userData.user.email === adminEmail && index === 0 && (
+                    <Grid item xs={7} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
+                      <CustomButton variant="contained" onClick={memberModalHandleropen} sx={{ color: "white", backgroundColor: "#DBC7B5", marginRight: "10px", borderRadius: "10px" }}>
+                        멤버 관리
+                      </CustomButton>
+                    </Grid>
+                  )}
+                  {!(user.userData.user.email === adminEmail) && index === 0 && (
                     <Grid item xs={7} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
                       <CustomButton variant="contained" sx={{ color: "white", backgroundColor: "#DBC7B5", marginRight: "10px", borderRadius: "10px" }}>
                         1:1 문의하기
@@ -635,6 +739,7 @@ const Main = () => {
           {clubList.length > 1 ? <ClubCarousel clubList={clubList} /> : <Box sx={{ height: "200px", alignItems: "center" }}> 같은 카테고리 관련 클럽이 적습니다 </Box>}
           {/* 비슷한 클럽.end */}
         </Grid>
+        {memberModalOpen && <MemberModal clubNumber={clubNumber} members={readClub.clubmembers} open={memberModalOpen} onClose={memberModalHandlerClose} />}
       </Container>
     </Box>
   );

@@ -9,6 +9,7 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid"); // uuid v4 방식 사용
 const User = require("../models/User");
 
+// ======================================연코드=========================================================================
 router.get("/card", async (req, res, next) => {
   try {
     console.log("클럽 목록 가져오기 시작");
@@ -46,7 +47,7 @@ router.get("/card", async (req, res, next) => {
     next(error);
   }
 });
-
+// ======================================연코드.end=========================================================================
 //리스트 보여주기
 router.get("/", async (req, res, next) => {
   try {
@@ -281,7 +282,29 @@ router.post("/membersInfo", async (req, res, next) => {
     next(error);
   }
 });
+router.post("/deleteMember/:nickName/:clubNumber", async (req, res, next) => {
+  try {
+    let club = await Club.findById(req.params.clubNumber);
+    const userinfo = await User.findOne({ nickName: req.params.nickName });
 
+    const indexToRemove = club.members.indexOf(userinfo.email);
+    console.log(`indexToRemove`);
+    console.log(indexToRemove);
+    console.log(indexToRemove);
+    if (indexToRemove !== -1) {
+      club.members.splice(indexToRemove, 1);
+      await club.save();
+      return res.status(200).json("성공");
+    } else {
+      return res.status(500).json("실패");
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 //찜하기
 router.post("/addWish/:clubNumber", auth, async (req, res, next) => {
   try {

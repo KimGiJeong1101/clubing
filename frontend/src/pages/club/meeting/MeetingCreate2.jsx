@@ -16,11 +16,11 @@ import CropIcon from "@mui/icons-material/Crop";
 
 dayjs.locale("ko");
 
-const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal }) => {
+const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category }) => {
   //정기모임 글 등록, 두번쨰 모달
   const [dateTime, setDateTime] = useState(null);
+  const [dateTimeSort, setDateTimeSort] = useState(null);
   const [checked, setChecked] = useState(false); // 정기모임 전체알림 스테이트
-  const [category, setCategory] = useState("");
   const navigate = useNavigate();
   const checkedChange = (event) => {
     setChecked(event.target.checked);
@@ -40,13 +40,14 @@ const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal }) => {
 
     const formData = new FormData();
     // 일반 필드 추가
-
+    console.log(dateTime);
     if (!dateTime) {
       alert("날짜를 입력해주세요");
 
       return;
     }
     formData.append("dateTime", dateTime.$d.toString());
+    formData.append("dateTimeSort", dateTimeSort);
     formData.append("alertAll", checked);
     formData.append("title", data.title);
     formData.append("category", category);
@@ -204,6 +205,7 @@ const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal }) => {
                       id="dateTime"
                       label="만나는 날짜 및 시간"
                       onChange={(date) => {
+                        setDateTimeSort(date.toISOString());
                         setDateTime(date);
                       }}
                     />
