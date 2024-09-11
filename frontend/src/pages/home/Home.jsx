@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography, Grid } from "@mui/material";
 import { motion } from "framer-motion";
 import './HomeImageCarousel.css';
 import HomeCard from "../../components/commonEffect/HomeCard";
@@ -54,7 +54,6 @@ const imageVariants = {
 
 const fetchCardData = async () => {
   const response = await axios.get(`http://localhost:4000/clubs/card`);
-  console.log('data:', response.data);
   return response.data;
 };
 
@@ -87,8 +86,20 @@ const Home = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // 중심을 기준으로 카드들이 회전하도록 하는 로직
+  const [rotation, setRotation] = useState(0);
+
+  useEffect(() => {
+    const rotateInterval = setInterval(() => {
+      setRotation(prev => prev + 20); // 매번 20도씩 회전
+    }, 3000);
+
+    return () => clearInterval(rotateInterval);
+  }, []);
+
   return (
     <>
+      {/* 이미지 캐러셀 */}
       <Box className="carousel-container" sx={{ position: 'relative' }}>
         <Box className="carousel">
           <motion.div className="image-frame">
@@ -116,11 +127,68 @@ const Home = () => {
       {isLoading && <div>Loading...</div>}
       {error && <div>Error fetching data</div>}
 
-      {/* clubsData 배열을 map으로 렌더링 */}
-      <Box display="flex" flexWrap="wrap" gap={2} justifyContent="center">
-        {clubsData && clubsData.map((club, idx) => (
-          <HomeCard key={idx} club={club} />
-        ))}
+      {/* 평범하게 렌더링되는 카드 섹션 */}
+      <Box sx={{ mt: 5, padding: '20px' }}>
+        <Typography sx={{ fontWeight: 'bold', fontSize: '24px', ml: '20' }}>
+          평범하게 렌더링된 카드들
+        </Typography>
+
+        <Grid container spacing={2} sx={{ mt: 2 }}>
+          {clubsData && clubsData.map((club, idx) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
+              <HomeCard club={club} />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+
+      <Box sx={{ borderBottom: '3px solid black', mb: 3, display: 'flex', justifyContent: 'left' }}>
+        <Typography sx={{ fontWeight: 'bold', fontSize: '24px', ml: '20' }}>
+          이런 클럽 어때요?
+        </Typography>
+      </Box>
+
+      {/* 카드들을 중앙을 기준으로 회전시키는 컨테이너 */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '400px',
+          perspective: '10000px', // 3D 원근 효과
+          overflow: 'hidden', // 화면 밖으로 넘치는 카드 숨김
+        }}
+      >
+        <Box
+          sx={{
+            mt: '60px',
+            position: 'relative',
+            width: '400px',
+            height: '400px',
+            transformStyle: 'preserve-3d', // 3D 효과 유지
+            transform: `rotateY(${rotation}deg)`, // 회전 각도
+            transition: 'transform 10s ease', // 회전 애니메이션
+          }}
+        >
+          {clubsData && clubsData.map((club, idx) => {
+            const angle = (idx / clubsData.length) * 360; // 각 카드마다 각도 계산
+
+            return (
+              <Box
+                key={idx}
+                sx={{
+                  position: 'absolute',
+                  width: '300px',
+                  height: '200px',
+                  transform: `rotateY(${angle}deg) rotateX(0deg) translateZ(400px)`, // Y축 회전 후 각 카드의 위치와 축을 조정
+                  backfaceVisibility: 'hidden', // 카드 뒷면 숨김
+                }}
+              >
+                <HomeCard club={club} />
+              </Box>
+            );
+          })}
+        </Box>
       </Box>
     </>
   );

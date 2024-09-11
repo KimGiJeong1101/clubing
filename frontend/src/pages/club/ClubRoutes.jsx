@@ -3,7 +3,7 @@ import MainRoutes from "./main/MainRoutes";
 import BoardRoutes from "./board/BoardRoutes";
 import GalleryRoutes from "./gallery/GalleryRoutes";
 import MeetingRoutes from "./meeting/MeetingRoutes";
-import ChatRoutes from "../chat/index";
+import ChatPage from "../chat/index";
 
 //여기까지 경로 /clubs
 function ClubRoutes() {
@@ -13,7 +13,8 @@ function ClubRoutes() {
       <Route path="board/*" element={<BoardRoutes />} />
       <Route path="gallery/*" element={<GalleryRoutes />} />
       <Route path="meeting/*" element={<MeetingRoutes />} />
-      <Route path="chat/*" element={<ChatRoutes />} />
+      <Route path="chat/*" element={<ChatPage />} />
+      
     </Routes>
   );
 }
