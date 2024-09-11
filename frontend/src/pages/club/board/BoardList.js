@@ -88,6 +88,7 @@ const ListPosts = () => {
             <ListItem
               button
               onClick={() => handleSelect(item._id, item.options && item.options.length > 0 ? '투표' : '게시물', item.title)}
+              sx={{ borderBottom: '1px solid #ddd' }} // 글 사이에 선 추가
             >
               <ListItemText
                 primary={item.title}
@@ -98,7 +99,7 @@ const ListPosts = () => {
         ))}
       </List>
       
-      <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="md">
+      <Dialog open={openDialog} onClose={handleClose} fullWidth maxWidth="lg">
         <DialogTitle>{selectedItemCategory === '투표' ? null : dialogTitle}</DialogTitle>
         <DialogContent>
           {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} title={dialogTitle} onDelete={() => handleClose()} />}

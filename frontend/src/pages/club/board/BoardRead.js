@@ -150,7 +150,7 @@ const Read = ({ postId, onClose }) => {
           )}
         </>
       )}
-      <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="md">
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="lg" >
         <DialogTitle>게시물 수정</DialogTitle>
         <DialogContent>
           <UpdatePost

@@ -22,7 +22,7 @@ function NavBar() {
   const userId = useSelector(state => state.user?.userData?.user?._id);
 
 
-  console.log("유저아이디 뭐찍힘"+ userId)
+  // console.log("유저아이디 뭐찍힘"+ userId)
 
 
   const handleClickChat = async () => {

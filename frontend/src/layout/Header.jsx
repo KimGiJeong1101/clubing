@@ -155,7 +155,7 @@ function Header() {
         >
           <Box>
             <Link to="">
-              <img src="/logo/khaki_long.png" alt="Logo" style={{ height: '45px' }} />
+              <img src="/logo/khaki_long_h.png" alt="Logo" style={{ height: '50px' }} />
             </Link>
           </Box>
   
