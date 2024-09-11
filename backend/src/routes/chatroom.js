@@ -17,99 +17,117 @@ const ReadBy = require("../models/ReadBy"); // ReadBy 모델 불러오기
 const getUserById = async (id) => {
   try {
     // 몽구스는 ID를 _id로 사용할 수도 있지만, findById 메서드를 사용해 사용자 검색 가능
-    return await User.findById(id); // User 모델을 사용하여 주어진 ID로 사용자 검색
+    // User 모델을 사용하여 주어진 ID로 사용자 검색
+    return await User.findById(id);
   } catch (error) {
-    console.error("Error fetching user:", error); // 오류 발생 시 콘솔에 로그 출력
-    throw new Error("Error fetching user"); // 오류를 던져 호출한 곳에서 처리하도록 함
+    // 사용자 정보를 가져오는 중 오류가 발생하면 콘솔에 로그를 출력
+    console.error("Error fetching user:", error);
+    // 호출한 곳에서 이 오류를 처리할 수 있도록 새로운 오류를 던짐
+    throw new Error("Error fetching user");
   }
 };
 
-
+// POST 요청을 처리하는 라우터 핸들러
 router.post("/room", async (req, res) => {
   try {
+    // 클라이언트로부터 받은 요청 본문에서 clubId와 participants를 추출
     const { clubId, participants } = req.body;
 
-    console.log("Received request body:", req.body); // 전체 요청 본문 로그 추가
+    // 요청 본문을 로그에 출력하여 디버깅에 도움을 줌
+    console.log("Received request body:", req.body);
     console.log("Received clubId:", clubId);
     console.log("Received participants:", participants);
 
-    // clubId가 제공되지 않았을 경우
+    // clubId가 제공되지 않은 경우, 클라이언트에게 에러 메시지를 반환
     if (!clubId) {
       return res.status(400).json({ message: "clubId는 필수 항목입니다." });
     }
 
-    // clubId에 해당하는 모임이 존재하는지 확인
+    // clubId에 해당하는 모임이 실제로 존재하는지 확인
     const clubExists = await Club.findById(clubId);
     if (!clubExists) {
+      // 모임이 존재하지 않을 경우, 클라이언트에게 에러 메시지를 반환
       return res.status(404).json({ message: "해당 모임이 존재하지 않습니다." });
     }
 
     // participants 배열이 유효한지 확인
+    // 배열이 아니거나 길이가 0인 경우, 클라이언트에게 에러 메시지를 반환
     if (!Array.isArray(participants) || participants.length === 0) {
       console.error("Invalid participants array:", participants);
       return res.status(400).json({ message: "참가자 목록이 유효하지 않습니다." });
     }
 
-
-    // 참가자 ID로 사용자 정보 가져오기
+    // 참가자 ID 배열을 순회하며 사용자 정보를 비동기적으로 가져옴
     const participantUsers = await Promise.all(
       participants.map(async (id) => {
         try {
-          console.log("Fetching user for ID:", id); // 사용자 정보 요청 ID 로그 추가
+          // 각 참가자 ID에 대해 사용자 정보를 가져옴
+          console.log("Fetching user for ID:", id);
           return await getUserById(id);
         } catch (err) {
+          // 사용자 정보를 가져오는 중 오류가 발생하면 로그를 출력하고 null 반환
           console.error("Error fetching user by ID:", id, err);
           return null;
         }
       })
     );
 
-
-    // 유효한 사용자들만 ObjectId로 변환
+    // 유효한 사용자들만 필터링하고 ObjectId로 변환
     const participantObjectIds = participantUsers
-      .filter((user) => user) // null인 값을 필터링
-      .map((user) => new mongoose.Types.ObjectId(user._id));
+      .filter((user) => user) // null 값은 제거
+      .map((user) => new mongoose.Types.ObjectId(user._id)); // 사용자 ID를 ObjectId로 변환
 
     console.log("Participant Object IDs:", participantObjectIds);
 
     // clubId로 이미 존재하는 채팅방을 찾음
     let chatRoom = await ChatRoom.findOne({ clubId });
     if (chatRoom) {
-      console.log("Existing chat room found:", chatRoom); // 기존 채팅방 로그 추가
+      // 기존 채팅방이 존재하는 경우
+      console.log("Existing chat room found:", chatRoom);
 
+      // 기존 채팅방의 참가자 목록을 문자열로 변환
       const existingParticipants = chatRoom.participants.map((participant) =>
         participant.toString()
       );
 
-      // 중복을 제거하고 기존 참가자 목록에 새로운 참가자들을 추가
+      // 새로운 참가자들을 추가하고 중복을 제거
       const updatedParticipants = [
         ...new Set([
           ...existingParticipants,
-          ...participantObjectIds.map((id) => id.toString()), // 새로운 참가자 목록을 문자열로 변환 후 추가
+          ...participantObjectIds.map((id) => id.toString()),
         ]),
       ];
 
+      // 업데이트된 참가자 목록을 ObjectId로 변환
       chatRoom.participants = updatedParticipants.map(
         (id) => new mongoose.Types.ObjectId(id)
       );
 
-      // 업데이트된 채팅방 저장
-      const updatedChatRoom = await chatRoom.save(); // 업데이트된 채팅방 저장
+      // 업데이트된 채팅방을 데이터베이스에 저장
+      const updatedChatRoom = await chatRoom.save();
       console.log("Updated chatRoom:", updatedChatRoom);
-      return res.status(200).json(updatedChatRoom); // 업데이트된 채팅방 정보 반환
+
+      // 업데이트된 채팅방 정보를 클라이언트에 반환
+      return res.status(200).json(updatedChatRoom);
     }
 
-    // 새로운 채팅방 생성
+    // 새로운 채팅방을 생성
     const newChatRoom = new ChatRoom({
       clubId,
       participants: participantObjectIds,
     });
 
+    // 새로운 채팅방을 데이터베이스에 저장
     const savedChatRoom = await newChatRoom.save();
     console.log("Newly saved chatRoom:", savedChatRoom);
+
+    // 생성된 채팅방 정보를 클라이언트에 반환
     res.status(201).json(savedChatRoom);
   } catch (error) {
+    // 채팅방 생성 또는 업데이트 중 오류가 발생하면 콘솔에 로그를 출력
     console.error("Error creating or updating chat room:", error);
+
+    // 클라이언트에게 오류 메시지를 반환
     res.status(500).json({ message: "채팅방 생성에 실패했습니다." });
   }
 });
@@ -120,13 +138,14 @@ router.post("/room", async (req, res) => {
 
 
 
-
-router.get("/room/:id", async (req, res) => {
+router.get("/room/:clubId", async (req, res) => {
   try {
-    const chatRoomId = req.params.id;
-    console.log("Fetching chat room with ID:", chatRoomId);
-    const chatRoom = await ChatRoom.findById(chatRoomId);
+    const clubId = req.query.clubNumber;  // URL에서 clubNumber를 가져옴
+    console.log("Fetching chat room with clubId:", clubId);
 
+    // clubId로 채팅방 조회
+    const chatRoom = await ChatRoom.findOne({ clubId });
+    
     if (!chatRoom) {
       console.log("Chat room not found");
       return res.status(404).json({ message: "채팅방을 찾을 수 없습니다." });
@@ -141,20 +160,25 @@ router.get("/room/:id", async (req, res) => {
     }
 
     console.log("Club found:", club);
-    res.status(200).json(club);
+    res.status(200).json({ chatRoom, club });  // 채팅방과 클럽 정보 반환
   } catch (error) {
-    console.error("Error fetching club by chat room ID:", error);
-    res.status(500).json({ message: "모임 세부 정보를 가져오는 중 오류가 발생했습니다." });
+    console.error("Error fetching chat room by clubId:", error);
+    res.status(500).json({ message: "채팅방 세부 정보를 가져오는 중 오류가 발생했습니다." });
   }
 });
 
 
 // 채팅방의 메시지를 페이지네이션 처리하여 가져오는 API
-router.get("/:id/messages", async (req, res) => {
-  const { id } = req.params; // 채팅방 ID 추출
+router.get("/:clubId/messages", async (req, res) => {
+  const { clubId } = req.params; // 클럽 ID 추출
   const { skip = 0, limit = 30 } = req.query; // 페이지네이션 파라미터 추출
   try {
-    const messages = await Message.find({ chatRoom: id }) // 채팅방 ID로 메시지 조회
+    // 클럽 ID로 채팅방을 찾은 다음 해당 채팅방 ID로 메시지 조회
+    const chatRoom = await ChatRoom.findOne({ clubId });
+    if (!chatRoom) {
+      return res.status(404).json({ error: "Chat room not found" });
+    }
+    const messages = await Message.find({ chatRoom: chatRoom._id }) // 채팅방 ID로 메시지 조회
       .sort({ timestamp: -1 }) // 최신 메시지부터 정렬
       .skip(parseInt(skip)) // skip 적용 (해당 페이지의 시작점 느낌)
       .limit(parseInt(limit)); // limit 적용 (해당 페이지의 데이터 개수)
@@ -164,6 +188,10 @@ router.get("/:id/messages", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch messages" }); // 서버 오류 발생 시 응답
   }
 });
+
+
+
+
 
 
 
