@@ -3,8 +3,8 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const app = express();
 const path = require("path");
-const http = require("http");
-const socketIo = require("socket.io");
+const http = require("http"); // HTTP 서버를 생성하기 위한 모듈 로드
+const socketIo = require("socket.io"); // Socket.io를 사용하여 실시간 소켓 통신 설정
 const cookieParser = require('cookie-parser');
 require("dotenv").config();
 
@@ -25,8 +25,8 @@ app.use(
 
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000", // React 애플리케이션의 포트
-    methods: ["GET", "POST"],
+    origin: "http://localhost:3000", // 소켓 통신을 허용할 출처
+    methods: ["GET", "POST"], // 허용할 HTTP 메소드
   },
 });
 
