@@ -34,11 +34,30 @@ router.get('/auth', auth, async (req, res, next) => {
     }
 });
 
-
-
-
-
 // Email Check Route
+router.post('/check-nickname', async (req, res) => {
+    const { nickName } = req.body;
+    try {
+        // 이메일이 데이터베이스에 존재하는지 확인
+        const user = await User.findOne({ nickName });
+
+        if (user) {
+            return res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' });
+        }
+
+        return res.status(200).json({ message: '사용 가능한 닉네임입니다.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+});
+
+// 인증 이메일 보내기
+router.post('/email-auth', sendAuthEmail);
+// 인증 번호 확인
+router.post('/verifyAuth', verifyAuthCode);
+
+// 닉네임 Check Route
 router.post('/check-email', async (req, res) => {
     const { email } = req.body;
     try {
@@ -55,11 +74,6 @@ router.post('/check-email', async (req, res) => {
         return res.status(500).json({ message: '서버 오류' });
     }
 });
-
-// 인증 이메일 보내기
-router.post('/email-auth', sendAuthEmail);
-// 인증 번호 확인
-router.post('/verifyAuth', verifyAuthCode);
 
 router.post('/register', async (req, res, next) => {
     try {

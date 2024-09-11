@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Typography, Box, Modal, Grid, Snackbar, Alert } from '@mui/material';
 import { logoutUser } from '../../../../store/actions/userActions';
 import axiosInstance from '../../../../utils/axios';
+import CustomSnackbar from '../../../../components/auth/Snackbar';
 
 const MyCancelAccount = ({ view }) => {  
   const dispatch = useDispatch();
@@ -11,24 +12,42 @@ const MyCancelAccount = ({ view }) => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
+  // 스낵바 상태를 추가합니다.
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+    const handleSnackbarClose = () => {
+      setSnackbarOpen(false);
+    };
 
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
       const response = await axiosInstance.put('/users/myPage/delete');
       console.log('회원 탈퇴 요청이 전송되었습니다.', response.data);
-  
-      await axiosInstance.post('/users/logout');
-      dispatch(logoutUser());
       setSnackbarMessage('회원 탈퇴가 완료되었습니다.');
-      setOpenSnackbar(true);
-      navigate('/');
+      setSnackbarSeverity('success'); // 성공 상태로 변경
+      setSnackbarOpen(true);
+
+    // 스낵바가 표시된 후 3초 뒤에 로그아웃 및 페이지 이동
+    setTimeout(async () => {
+      try {
+        await axiosInstance.post('/users/logout');
+        dispatch(logoutUser());
+        navigate('/'); // 페이지 이동
+      } catch (logoutError) {
+        console.error('로그아웃 중 오류 발생:', logoutError);
+        setSnackbarMessage('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      }
+    }, 2000); // 2초 후 로그아웃 요청 및 페이지 이동
     } catch (error) {
       console.error('로그아웃 중 오류 발생:', error);
       setSnackbarMessage('로그아웃 중 오류가 발생했습니다. 다시 시도해주세요.');
-      setOpenSnackbar(true);
+      setSnackbarSeverity('error'); // 실패 상태로 변경
+      setSnackbarOpen(true);
     } finally {
       setIsDeleting(false);
       setIsModalOpen(false);
@@ -41,10 +60,6 @@ const MyCancelAccount = ({ view }) => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false); // 모달 닫기
-  };
-
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false); // 스낵바 닫기
   };
 
   return (
@@ -125,17 +140,13 @@ const MyCancelAccount = ({ view }) => {
             </Grid>
           </Box>
         </Modal>
-
-        {/* 스낵바 */}
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000} // 6초 후 자동으로 닫히는 시간
-        onClose={handleCloseSnackbar}
-      >
-        <Alert onClose={handleCloseSnackbar} severity={snackbarMessage.includes('실패') ? 'error' : 'success'}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      {/* 스낵바 컴포넌트 호출 */}
+      <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity="success"
+        onClose={handleSnackbarClose}
+      />
       </Box>
     </Box>
   );
