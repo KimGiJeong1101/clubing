@@ -40,20 +40,26 @@ router.get("/:clubNumber", async (req, res, next) => {
   }
 });
 
-router.get("/", async (req, res, next) => {
+router.get("", async (req, res, next) => {
   try {
+    let count = 0;
+    if (req.query.count) {
+      count = req.query.count * 4;
+    }
     const now = new Date(); // 현재 날짜와 시간
     const date = new Date(req.query.nowDate);
     date.setDate(date.getDate() - 1); //1일전 바꾸는거 -> 한국시간 utc시간이 다름
     const formattedDate = date.toISOString().split("T")[0];
     const targetDateStart = new Date(`${formattedDate}T15:00:00Z`); // UTC 기준
     const targetDateEnd = new Date(`${req.query.nowDate}T14:59:59Z`); // UTC 기준
-    const meetings = await Meeting.find({
+    let meetings = [];
+    meetings = await Meeting.find({
       $and: [{ dateTimeSort: { $gte: now } }, { dateTimeSort: { $gte: targetDateStart, $lte: targetDateEnd } }],
     })
       .sort({ date: 1 })
-      .limit(4); // 가까운 날짜 순으로 정렬
-    res.json(meetings);
+      .skip(count)
+      .limit(5); // 가까운 날짜 순으로 정렬
+    return res.status(200).json(meetings);
   } catch (error) {
     next(error);
   }
@@ -62,7 +68,6 @@ router.get("/", async (req, res, next) => {
 router.post("/create", auth, upload.single("img"), async (req, res, next) => {
   try {
     // Meeting 인스턴스 생성
-    console.log(req.body.dateTimeSort);
     const meeting = new Meeting(req.body);
     meeting.img = req.file.destination + req.file.filename;
     const copy = meeting.dateTime.split(" ");
@@ -178,6 +183,22 @@ router.get("/delete/:id", async (req, res, next) => {
     } else {
       return res.sendStatus(404).json(false);
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get("/category/:passCategory", async (req, res, next) => {
+  try {
+    let count = 0;
+    if (req.query.count) {
+      count = req.query.count * 4;
+    }
+    const meeting = await Meeting.find({ category: req.params.passCategory }).skip(count).limit(5);
+    console.log(`meeting`);
+    console.log(meeting);
+    console.log(`meeting`);
+    return res.status(200).json(meeting);
   } catch (error) {
     next(error);
   }

@@ -159,7 +159,6 @@ router.delete("/delete/:id", async (req, res, next) => {
 
 router.post("/update/:clubNumber", auth, upload.single("img"), async (req, res, next) => {
   try {
-
     req.body.img = req.file.destination + req.file.filename;
 
     const updatedClub = await Club.findByIdAndUpdate(
@@ -196,7 +195,7 @@ router.post("/addMember/:clubNumber", auth, async (req, res, next) => {
     await User.findOneAndUpdate(
       { email: req.user.email }, // 이메일로 유저를 찾음
       { $addToSet: { clubs: req.params.clubNumber } }, // 유저의 클럽 목록에 클럽 ID 추가
-      { new: true } // 업데이트된 문서를 반환하도록 설정
+      { new: true }, // 업데이트된 문서를 반환하도록 설정
     );
 
     return res.sendStatus(200);
@@ -244,34 +243,51 @@ router.post("/membersInfo", async (req, res, next) => {
     next(error);
   }
 });
+router.post("/deleteMember/:nickName/:clubNumber", async (req, res, next) => {
+  try {
+    let club = await Club.findById(req.params.clubNumber);
+    const userinfo = await User.findOne({ nickName: req.params.nickName });
 
+    const indexToRemove = club.members.indexOf(userinfo.email);
+    console.log(`indexToRemove`);
+    console.log(indexToRemove);
+    console.log(indexToRemove);
+    if (indexToRemove !== -1) {
+      club.members.splice(indexToRemove, 1);
+      await club.save();
+      return res.status(200).json("성공");
+    } else {
+      return res.status(500).json("실패");
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////
 //찜하기
 router.post("/addWish/:clubNumber", auth, async (req, res, next) => {
-  
   try {
     const user = req.user;
     if (!user) {
-      return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+      return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
     }
 
     const club = await Club.findById(req.params.clubNumber);
     if (!club) {
-      return res.status(404).json({ error: '클럽을 찾을 수 없습니다.' });
+      return res.status(404).json({ error: "클럽을 찾을 수 없습니다." });
     }
 
     // 클럽의 찜한 유저 목록에 유저 이메일 추가
     await Club.findOneAndUpdate(
       { _id: req.params.clubNumber },
-      { $addToSet: { wishHeart: req.user.email} }, // 유저 이메일 추가
-      { new: true }
+      { $addToSet: { wishHeart: req.user.email } }, // 유저 이메일 추가
+      { new: true },
     );
 
     // 유저의 찜 목록에도 클럽 ID 추가
-    await User.findOneAndUpdate(
-      { email: req.user.email },
-      { $addToSet: { wish: req.params.clubNumber } },
-      { new: true }
-    );
+    await User.findOneAndUpdate({ email: req.user.email }, { $addToSet: { wish: req.params.clubNumber } }, { new: true });
 
     return res.sendStatus(200);
   } catch (error) {
@@ -281,31 +297,23 @@ router.post("/addWish/:clubNumber", auth, async (req, res, next) => {
 
 //찜하기 해제
 router.post("/removeWish/:clubNumber", auth, async (req, res, next) => {
-  console.log('클럽 번호:', req.params.clubNumber);
+  console.log("클럽 번호:", req.params.clubNumber);
   try {
     const user = req.user;
     if (!user) {
-      return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
+      return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
     }
 
     const club = await Club.findById(req.params.clubNumber);
     if (!club) {
-      return res.status(404).json({ error: '클럽을 찾을 수 없습니다.' });
+      return res.status(404).json({ error: "클럽을 찾을 수 없습니다." });
     }
 
     // 클럽의 찜한 유저 목록에서 유저 이메일 제거
-    await Club.findOneAndUpdate(
-      { _id: req.params.clubNumber },
-      { $pull: { wishHeart: req.user.email } },
-      { new: true }
-    );
+    await Club.findOneAndUpdate({ _id: req.params.clubNumber }, { $pull: { wishHeart: req.user.email } }, { new: true });
 
     // 유저의 찜 목록에서도 클럽 ID 제거
-    await User.findOneAndUpdate(
-      { email: req.user.email },
-      { $pull: { wish: req.params.clubNumber } },
-      { new: true }
-    );
+    await User.findOneAndUpdate({ email: req.user.email }, { $pull: { wish: req.params.clubNumber } }, { new: true });
 
     return res.sendStatus(200);
   } catch (error) {
