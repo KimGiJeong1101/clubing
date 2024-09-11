@@ -37,6 +37,9 @@ const Clubs = () => {
     if (!category) {
       const response = await fetch(`http://localhost:4000/clubs?searchRegion=${searchRegion}`);
       const data = await response.json();
+      console.log(`data`);
+      console.log(data);
+      console.log(`data`);
       if (!data || data.length < 6) {
         window.removeEventListener("scroll", handleScroll);
       }
@@ -51,13 +54,15 @@ const Clubs = () => {
     }
   };
   const {
-    data: clubList,
+    data: clubList = [], // 기본값을 빈 배열로 설정
     error,
     isLoading,
     isError,
+    isFetching, // isFetching 사용
   } = useQuery({
     queryKey: ["clubList", category, searchRegion],
     queryFn: getClubList,
+    keepPreviousData: true,
   });
   //카테고리 바뀔 떄 마다 리스트를 불러옴 -> 어차피 3개씩 불러와서 빨리빨리 부르는데 헉 생각해보니...
   const navigate = useNavigate();
@@ -145,8 +150,8 @@ const Clubs = () => {
     };
   }, []);
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (isLoading && !isFetching) {
+    return <div>로딩 중...</div>; // 최초 로딩 시
   }
 
   if (isError) {
@@ -374,7 +379,7 @@ const Clubs = () => {
         </Grid>
 
         <Grid container spacing={3} sx={{ mb: 3 }}>
-            <ClubListCard clubList={clubList} />
+          <ClubListCard clubList={clubList} />
           {scrollData &&
             scrollData.map((club) => (
               <Grid item xs={12} sm={6} md={4} key={club._id} sx={{}}>
