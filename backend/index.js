@@ -5,7 +5,7 @@ const app = express();
 const path = require("path");
 const http = require("http");
 const socketIo = require("socket.io");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const jwt = require("jsonwebtoken"); // JWT 패키지 로드
@@ -21,7 +21,6 @@ app.use(
     //이 옵션은 클라이언트와 서버 간의 인증된 세션 유지에 중요한 역할을 합니다.
   }),
 );
-
 
 const io = socketIo(server, {
   cors: {
@@ -65,15 +64,10 @@ app.use((req, res, next) => {
       if (decodedAccessToken && decodedAccessToken.exp) {
         const accessTokenExp = decodedAccessToken.exp;
         const timeLeft = getTimeLeft(accessTokenExp);
-        console.log(`액세스 토큰 ${timeLeft}`);
       } else {
-        console.log("액세스 토큰에 만료 시간이 없습니다.");
       }
-    } catch (error) {
-      console.error("액세스 토큰 디코딩 오류:", error);
-    }
+    } catch (error) {}
   } else {
-    console.log("액세스 토큰이 없습니다.");
   }
 
   // 리프레시 토큰 만료 시간 체크
@@ -83,15 +77,10 @@ app.use((req, res, next) => {
       if (decodedRefreshToken && decodedRefreshToken.exp) {
         const refreshTokenExp = decodedRefreshToken.exp;
         const timeLeft = getTimeLeft(refreshTokenExp);
-        console.log(`리프레시 토큰 ${timeLeft}`);
       } else {
-        console.log("리프레시 토큰에 만료 시간이 없습니다.");
       }
-    } catch (error) {
-      console.error("리프레시 토큰 디코딩 오류:", error);
-    }
+    } catch (error) {}
   } else {
-    console.log("리프레시 토큰이 없습니다.");
   }
 
   next();

@@ -17,6 +17,7 @@ import ClubCreate from "./pages/club/ClubCreate";
 import MeetingList from "./pages/club/meeting/MeetingList";
 import Board from "./pages/club/board/Board";
 import Home from "./pages/home/Home"
+import Event from "./pages/event/Event";
 
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
         <Route path="/clublist" element={<Clubs />} />
         <Route path="/meetingList" element={<MeetingList />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/event" element={<Event/>}/>
 
         {/* 로그인한 사람만 갈 수 있는 경로 */}
         <Route element={<ProtectedRoutes isAuth={isAuth} />}>

@@ -10,6 +10,7 @@ import 'moment/locale/ko'; // 한국어 locale 불러오기
 import { useSelector } from 'react-redux';
 import MoreIcon from '@mui/icons-material/More';
 
+
 // moment의 locale을 한국어로 설정
 moment.locale('ko');
 
@@ -378,7 +379,7 @@ const Reply = ({ postType, postId }) => {
 
                                     <Button
                                         variant="text"
-                                        sx={{ marginTop: '2px' }}
+                                        sx={{ marginTop: '2px', color: '#A67153' }}
                                         onClick={() => setActiveReplyIndex(index)}
                                     >
                                         답글
