@@ -1,14 +1,14 @@
 import React from 'react'
 import { Typography, Box } from '@mui/material';
 
-const MyWish = () => {
+const MyChat = () => {
   return (
   <Box>
     <Typography>
-    MyWish
+      MyChat
     </Typography>
   </Box>
   )
 }
 
-export default MyWish
+export default MyChat

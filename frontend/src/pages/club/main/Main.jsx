@@ -1,5 +1,5 @@
 import { Avatar, AvatarGroup, Box, Container, Fab, Grid, Menu, MenuItem, Paper, Popover, Typography } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import WhereToVoteIcon from "@mui/icons-material/WhereToVote";
@@ -13,6 +13,7 @@ import "dayjs/locale/ko"; // 한국어 로케일 import
 import axiosInstance from "./../../../utils/axios";
 import { fetchCategoryClubList } from "../../../store/reducers/clubReducer.js";
 import CustomButton from "../../../components/club/CustomButton.jsx";
+import CustomButton2 from "../../../components/club/CustomButton2.jsx";
 import MeetingCreate1 from "../meeting/MeetingCreate1.jsx";
 import MeetingCreate2 from "../meeting/MeetingCreate2.jsx";
 import ClubCarousel from "../../../components/club/ClubCarousel.jsx";
@@ -20,11 +21,13 @@ import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MenuIcon from "@mui/icons-material/Menu";
 import MemberModal from "./MemberModal.jsx";
+import WishHearts from "../../../components/club/WishHearts.jsx";
 
 dayjs.locale("ko");
 
-const Main = () => {
+const Main = ( wishHeart ) => {
   const [memberModalOpen, setMemberModalOpen] = useState(false);
+  const [memberModalOpen2, setMemberModalOpen2] = useState(false);
   //리덕스 함수 부르기 위해서
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -116,7 +119,8 @@ const Main = () => {
 
   //로그인 정보 where redux
   const user = useSelector((state) => state.user);
-
+  const email = user.userData.user.email// 하트에 쓰려고
+  
   const [meetingList, setMeetingList] = useState([]);
   const [meeetingListBoolean, setMeeetingListBoolean] = useState([]);
 
@@ -144,7 +148,7 @@ const Main = () => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["readClub", clubNumber, memberModalOpen],
+    queryKey: ["readClub", clubNumber, memberModalOpen, memberModalOpen2],
     queryFn: getReadClub,
     enabled: !!clubNumber, //
   });
@@ -236,6 +240,36 @@ const Main = () => {
     setMemberModalOpen(false);
   };
 
+  const memberModalHandleropen2 = () => {
+    setMemberModalOpen2(true);
+  };
+  const memberModalHandlerClose2 = () => {
+    setMemberModalOpen2(false);
+  };
+
+//초대하기
+const queryClient = useQueryClient();
+
+const handleInvite = async (email) => {
+  try {
+    const response = await axiosInstance.post(`/clubs/invite/${clubNumber}`, {
+      email: email,  // 이메일을 서버에 전송
+    });
+
+    if (response.status === 200) {
+      alert("초대를 했습니다.");
+      queryClient.invalidateQueries(["readClub", clubNumber, memberModalOpen, memberModalOpen2]);
+    } else {
+      console.error("초대 전송 실패:", response.statusText);
+      alert("초대 실패: " + response.statusText);
+    }
+  } catch (error) {
+    console.error("Error inviting to the club:", error);
+    alert("초대 중 오류가 발생했습니다.");
+  }
+};
+//초대하기 끝
+
   if (isLoading) {
     return <div>로딩 중...</div>; // 최초 로딩 시
   }
@@ -243,7 +277,6 @@ const Main = () => {
   if (isError) {
     return <div>Error: {error.message}</div>;
   }
-
   return (
     <Box sx={{ backgroundColor: "#F4F4F4" }}>
       {/* 모달창 */}
@@ -338,16 +371,7 @@ const Main = () => {
                   호스트 <b> {readClub.adminNickName}</b>
                 </Grid>
                 <Grid item xs={6} sx={{ color: "#555555", display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-                  <FavoriteIcon
-                    onClick={() => {}}
-                    sx={{
-                      padding: "7px",
-                      color: "lightcoral",
-                      ":hover": {
-                        cursor: "pointer",
-                      },
-                    }}
-                  />
+                <WishHearts /> {/* WishHeart 컴포넌트를 추가합니다. */}
                   <ShareOutlinedIcon sx={{ padding: "7px", color: "black" }} />
                   <MenuIcon onClick={handleClick2} variant="contained" sx={{ padding: "7px", color: "black" }} />
                 </Grid>
@@ -681,6 +705,76 @@ const Main = () => {
               </CustomButton>
             )}
           </Grid>
+          {/* 찜하기 목록 */}
+          <Box sx={{ fontSize: "18px", fontWeight: "600", mt:2 }}>찜하기 한 사람들  ({readClub.wishHeart.length})</Box>
+          {adminEmail === user.userData.user.email && (
+          <Grid
+            item
+            xs={12}
+            sx={{
+              height: isExpanded ? "auto" : "200px",
+              overflow: "hidden",
+              borderRadius: "20px",
+              transition: "height 0.3s ease",
+              position: "relative", // For absolute positioning of the button
+              backgroundColor: "#f2f2f2",
+            }}
+          >
+            {readClub.wishmembers &&
+              readClub.wishmembers.map((member, index) => (
+                <Grid container sx={{ cursor: "pointer", padding: "5px" }} key={index}>
+                  <Grid item xs={1}>
+                    <Avatar sx={{ width: 50, height: 50 }} src={member?.thumbnailImage || ""} />
+                  </Grid>
+                  <Grid item xs={4} sx={{ marginTop: "8px" }}>
+                    <Typography variant="h6">{member.name}</Typography>
+                  </Grid>
+                   {/* 클럽 멤버인 경우에만 이메일을 표시 */}
+                  <Grid item xs={7} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
+                  {!getClub?.clubs?.members.includes(member.email) && 
+                     !member.invite.includes(getClub?.clubs?._id) && (
+                    <Grid item xs={3} sx={{ marginTop: "8px" }}>
+                     <CustomButton2 variant="contained" 
+                     onClick={() => handleInvite(member.email)} 
+                     sx={{ color: "white", marginRight: "2px", borderRadius: "10px" }}>
+                      초대하기</CustomButton2>
+                    </Grid>
+                  )}
+                  {user.userData.user.email === adminEmail && index === 0 && (
+                    <Grid item xs={4} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
+                      <CustomButton variant="contained" onClick={memberModalHandleropen2} sx={{ color: "white", backgroundColor: "#DBC7B5", marginRight: "10px", borderRadius: "10px" }}>
+                        멤버 관리
+                      </CustomButton>
+                    </Grid>
+                  )}
+                  {!(user.userData.user.email === adminEmail) && index === 0 && (
+                    <Grid item xs={7} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
+                      <CustomButton variant="contained" sx={{ color: "white", backgroundColor: "#DBC7B5", marginRight: "10px", borderRadius: "10px" }}>
+                        1:1 문의하기
+                      </CustomButton>
+                    </Grid>
+                  )}
+                </Grid>
+                </Grid>
+              ))}
+            {readClub?.clubmembers?.length > 3 && (
+              <CustomButton
+                onClick={toggleExpand}
+                sx={{
+                  position: "absolute",
+                  bottom: "10px",
+                  right: "10px",
+                  backgroundColor: "#DBC7B5",
+                  color: "white",
+                  borderRadius: "10px",
+                }}
+              >
+                {isExpanded ? "멤버 숨기기" : "멤버 전부보기"}
+              </CustomButton>
+            )}
+          </Grid>
+           )}
+           {/* 찜하기 목록 */}
           <Typography
             sx={{
               fontSize: "14px",
@@ -740,6 +834,7 @@ const Main = () => {
           {/* 비슷한 클럽.end */}
         </Grid>
         {memberModalOpen && <MemberModal clubNumber={clubNumber} members={readClub.clubmembers} open={memberModalOpen} onClose={memberModalHandlerClose} />}
+        {memberModalOpen2 && <MemberModal clubNumber={clubNumber} members={readClub.wishmembers} open={memberModalOpen2} onClose={memberModalHandlerClose2} />}
       </Container>
     </Box>
   );
