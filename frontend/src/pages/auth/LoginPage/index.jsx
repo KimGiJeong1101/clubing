@@ -164,7 +164,7 @@ const LoginPage = () => {
         }}
       >
         <img
-          src="/logo_string02.png"
+          src="/logo/khaki_long_h.png"
           style={{
             display: "block",
             margin: "auto auto 40px auto",
