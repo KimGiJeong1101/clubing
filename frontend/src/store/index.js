@@ -9,11 +9,7 @@ import chatReducer from "./reducers/chatSlice.js";
 const persistConfig = {
   key: "root",
   storage: storage,
-<<<<<<< HEAD
-  whitelist: ["user","club", "getClub", "meetingList","categoryClub"], 
-=======
   whitelist: ["user", "club", "getClub", "meetingList", "categoryClub", "getClubMember", "chat", 'wish'],
->>>>>>> 76705d41ed1cc77e5d993a50757957c4d66b1e1e
 };
 
 const rootReducer = combineReducers({

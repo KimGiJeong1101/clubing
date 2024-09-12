@@ -202,7 +202,6 @@ router.post('/logout', (req, res, next) => {
 
 // 클럽 ID 배열의 길이를 반환
 const getMyGroupsCount = async (clubIds) => {
-    console.log('가입한 클럽', clubIds)
     return clubIds.length; // clubIds 배열의 길이를 반환
 };
 
