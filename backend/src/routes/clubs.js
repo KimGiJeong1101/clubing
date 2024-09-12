@@ -104,7 +104,14 @@ router.post("/create", auth, upload.single("img"), async (req, res, next) => {
 
     // 클럽 생성
     const club = new Club(req.body);
-    await club.save();
+    const savedClub = await club.save(); // 저장된 클럽을 변수에 저장
+
+    // 클럽 생성 시 유저에 클럽넘버 추가
+    await User.findOneAndUpdate(
+      { email: req.user.email }, // 이메일로 유저를 찾음
+      { $addToSet: { clubs: savedClub._id } }, // 유저의 클럽 목록에 클럽 ID 추가
+      { new: true }, // 업데이트된 문서를 반환하도록 설정
+    );
 
     res.status(200).json({ message: "클럽 생성 완료" });
   } catch (error) {
@@ -140,8 +147,22 @@ router.get("/read2/:id", async (req, res, next) => {
       copymember.thumbnailImage = userinfo.profilePic.thumbnailImage;
       memberInfo.push(copymember);
     }
+    //찜하기 회원 목록
+    const wishInfo = [];
+      for (let i = 0; i < clubs.wishHeart.length; i++) {
+          let copymember = { email: "", name: "", nickName: "", thumbnailImage: "", wish: "", invite: "",};
+          // 이메일로 사용자 정보 조회
+          const userinfo = await User.findOne({ email: clubs.wishHeart[i] });
+          copymember.email = userinfo.email;
+          copymember.name = userinfo.name;
+          copymember.nickName = userinfo.nickName;
+          copymember.thumbnailImage = userinfo.profilePic.thumbnailImage;
+          copymember.wish = userinfo.wish;
+          copymember.invite = userinfo.invite;
+          wishInfo.push(copymember);
+      }
 
-    let copy = { ...clubs._doc, clubmembers: memberInfo };
+    let copy = { ...clubs._doc, clubmembers: memberInfo, wishmembers: wishInfo };
     res.status(200).json(copy);
   } catch (error) {
     next(error);
@@ -151,6 +172,14 @@ router.get("/read2/:id", async (req, res, next) => {
 router.delete("/delete/:id", async (req, res, next) => {
   try {
     const clubs = await Club.findByIdAndDelete({ _id: req.params.id });
+
+    //클럽 삭제 시 유저에 저장된 정보도 지움 
+    const clubId = req.params.id;
+    await User.updateMany(
+      { clubs: clubId }, // 클럽 목록에 삭제된 클럽 ID가 포함된 유저를 찾음
+      { $pull: { clubs: clubId } } // 유저의 클럽 목록에서 클럽 ID 제거
+    );
+
     return res.sendStatus(200);
   } catch (error) {
     next(error);
@@ -314,6 +343,35 @@ router.post("/removeWish/:clubNumber", auth, async (req, res, next) => {
 
     // 유저의 찜 목록에서도 클럽 ID 제거
     await User.findOneAndUpdate({ email: req.user.email }, { $pull: { wish: req.params.clubNumber } }, { new: true });
+
+    return res.sendStatus(200);
+  } catch (error) {
+    next(error);
+  }
+});
+
+//초대하기
+router.post("/invite/:clubNumber", auth, async (req, res, next) => {
+  console.log("클럽 번호:", req.params.clubNumber);
+  console.log("초대할 이메일:", req.body.email); 
+
+  try {
+    const user = req.user;
+    if (!user) {
+      return res.status(404).json({ error: "사용자를 찾을 수 없습니다." });
+    }
+
+    const club = await Club.findById(req.params.clubNumber);
+    if (!club) {
+      return res.status(404).json({ error: "클럽을 찾을 수 없습니다." });
+    }
+
+    // 유저의 초대 목록에 클럽 ID 추가
+    await User.findOneAndUpdate(
+      { email: req.body.email }, 
+      { $addToSet: { invite: req.params.clubNumber } }, 
+      { new: true }
+    );
 
     return res.sendStatus(200);
   } catch (error) {

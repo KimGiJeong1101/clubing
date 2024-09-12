@@ -38,65 +38,6 @@ app.use(express.json());
 // 쿠키 파서 미들웨어
 app.use(cookieParser());
 
-app.use((req, res, next) => {
-  const accessToken = req.cookies.accessToken;
-  const refreshToken = req.cookies.refreshToken;
-
-  // 남은 시간 계산 함수
-  function getTimeLeft(exp) {
-    const currentTime = Math.floor(Date.now() / 1000); // 현재 시간 (초 단위)
-    const timeLeft = exp - currentTime;
-
-    if (timeLeft <= 0) {
-      return "만료됨";
-    }
-
-    const hours = Math.floor(timeLeft / 3600); // 남은 시간을 시간 단위로 계산
-    const minutes = Math.floor((timeLeft % 3600) / 60); // 남은 시간에서 시간 부분을 제외하고 분 계산
-    const seconds = timeLeft % 60; // 남은 시간에서 시간, 분 부분을 제외하고 초 계산
-
-    return `${hours}시간 ${minutes}분 ${seconds}초 남음`;
-  }
-
-  // 액세스 토큰 만료 시간 체크
-  if (accessToken) {
-    try {
-      const decodedAccessToken = jwt.decode(accessToken);
-      if (decodedAccessToken && decodedAccessToken.exp) {
-        const accessTokenExp = decodedAccessToken.exp;
-        const timeLeft = getTimeLeft(accessTokenExp);
-        console.log(`액세스 토큰 ${timeLeft}`);
-      } else {
-        console.log("액세스 토큰에 만료 시간이 없습니다.");
-      }
-    } catch (error) {
-      console.error("액세스 토큰 디코딩 오류:", error);
-    }
-  } else {
-    console.log("액세스 토큰이 없습니다.");
-  }
-
-  // 리프레시 토큰 만료 시간 체크
-  if (refreshToken) {
-    try {
-      const decodedRefreshToken = jwt.decode(refreshToken);
-      if (decodedRefreshToken && decodedRefreshToken.exp) {
-        const refreshTokenExp = decodedRefreshToken.exp;
-        const timeLeft = getTimeLeft(refreshTokenExp);
-        console.log(`리프레시 토큰 ${timeLeft}`);
-      } else {
-        console.log("리프레시 토큰에 만료 시간이 없습니다.");
-      }
-    } catch (error) {
-      console.error("리프레시 토큰 디코딩 오류:", error);
-    }
-  } else {
-    console.log("리프레시 토큰이 없습니다.");
-  }
-
-  next();
-});
-
 // 정적 파일 제공을 위해 uploads 폴더를 공개
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 

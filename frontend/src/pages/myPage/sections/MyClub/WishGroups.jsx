@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Typography, Box, CircularProgress } from '@mui/material';
 import { useSelector } from 'react-redux';
 import axiosInstance from '../../../../utils/axios';
-import ClubCarousel from '../../../../components/club/ClubCarousel';
+import ClubCarousel2 from '../../../../components/club/ClubCarousel2';
 
 const WishGroups = () => {
   const user = useSelector((state) => state.user?.userData?.user || {});
@@ -35,15 +35,12 @@ const WishGroups = () => {
   }, [user.email]); // 의존성 배열에 user.email 추가
   return (
       <Box>
-          <Typography variant="h6" align="center" sx={{ p: 3 }}>
-              찜한 모임 목록
-          </Typography>
           {loading ? (
               <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
                   <CircularProgress />
               </Box>
           ) : (
-              <ClubCarousel clubList={clubs} /> // 클럽 리스트를 ClubCarousel 컴포넌트에 전달
+              <ClubCarousel2 clubList={clubs} /> // 클럽 리스트를 ClubCarousel2 컴포넌트에 전달
           )}
       </Box>
   );

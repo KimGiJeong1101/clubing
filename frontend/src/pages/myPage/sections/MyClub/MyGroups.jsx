@@ -3,7 +3,7 @@ import { Typography, Box, CircularProgress } from '@mui/material';
 import { useSelector } from 'react-redux';
 import axiosInstance from '../../../../utils/axios';
 import ClubCard from '../../../../components/club/ClubCard'; // ClubCard 컴포넌트 경로를 맞추세요
-import ClubCarousel from '../../../../components/club/ClubCarousel'; 
+import ClubCarousel2 from '../../../../components/club/ClubCarousel2'; 
 
 const MyGroups = () => {
     const user = useSelector((state) => state.user?.userData?.user || {});
@@ -37,21 +37,13 @@ const MyGroups = () => {
 
     return (
         <Box>
-        <Typography variant="h6" align="center"
-         sx={{
-            p: 3,
-            mt: -1, // 콘텐츠 영역이 버튼 영역에 붙도록 조정
-          }}
-        >
-            뭐라고 적냐
-        </Typography>
-        {loading ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
-                <CircularProgress />
-            </Box>
-        ) : (
-            <ClubCarousel clubList={clubs} /> // 클럽 리스트를 ClubCarousel 컴포넌트에 전달
-            )}
+          {loading ? (
+              <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
+                  <CircularProgress />
+              </Box>
+          ) : (
+              <ClubCarousel2 clubList={clubs} /> // 클럽 리스트를 ClubCarousel2 컴포넌트에 전달
+              )}
         </Box>
     );
 };

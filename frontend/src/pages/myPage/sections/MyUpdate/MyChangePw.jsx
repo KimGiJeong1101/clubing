@@ -8,6 +8,7 @@ import { TextField, Typography, Box,  IconButton, InputAdornment, FormControlLab
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import '../../../../assets/styles/LoginCss.css'
 import CustomButton2 from '../../../../components/club/CustomButton2.jsx'
+import CustomSnackbar from '../../../../components/auth/Snackbar';
 
 const MyChangePw = ({ view }) => {
   const email = useSelector((state) => state.user?.userData?.user.email || {});
@@ -50,6 +51,15 @@ const userPasswordCheck = {
   validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
 };
 
+// 스낵바 상태를 추가합니다.
+const [snackbarOpen, setSnackbarOpen] = useState(false);
+const [snackbarMessage, setSnackbarMessage] = useState('');
+const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+const handleSnackbarClose = () => {
+  setSnackbarOpen(false);
+};
+
 const onSubmit = async (data) => {
   console.log("요청 데이터:", data); // 데이터 확인
   try {
@@ -59,14 +69,24 @@ const onSubmit = async (data) => {
     });
 
     if (response.data.ok) {
-      alert('비밀번호가 성공적으로 변경되었습니다.');
-      navigate('/'); // 비밀번호 변경 후 페이지 이동
+      setSnackbarMessage('비밀번호가 변경되었습니다.');
+      setSnackbarSeverity('success'); // 성공 상태로 변경
+      setSnackbarOpen(true);
+      setTimeout(() => {
+        navigate('/'); // 비밀번호 변경 후 페이지 이동
+      }, 2000); // 2초 후 이동
     } else {
       setPasswordError('비밀번호 변경 중 오류가 발생했습니다.');
+      setSnackbarMessage('비밀번호 변경 중 오류가 발생했습니다.');
+      setSnackbarSeverity('error'); // 실패 상태로 변경
+      setSnackbarOpen(true);
     }
   } catch (error) {
     console.error('비밀번호 변경 오류:', error);
     setPasswordError('비밀번호 변경 중 오류가 발생했습니다.');
+    setSnackbarMessage('비밀번호 변경 중 오류가 발생했습니다.');
+    setSnackbarSeverity('error'); // 실패 상태로 변경
+    setSnackbarOpen(true);
   }
 };
 
@@ -169,6 +189,13 @@ const onSubmit = async (data) => {
       </>
     )}
   </Box>
+   {/* 스낵바 컴포넌트 호출 */}
+   <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity="success"
+        onClose={handleSnackbarClose}
+      />
 </Box>
   );
 };

@@ -22,10 +22,11 @@ import '../../../../assets/styles/LoginCss.css'
 import CustomButton from '../../../../components/club/CustomButton.jsx'
 import CustomButton2 from '../../../../components/club/CustomButton2.jsx'
 import CustomCheckbox from '../../../../components/club/CustomCheckbox.jsx'
+import CustomSnackbar from '../../../../components/auth/Snackbar';
 
 const MyUpdate = () => {
   const user = useSelector((state) => state.user?.userData?.user || {});
-  const { register, handleSubmit, formState: { errors }, watch, setValue, control  } = 
+  const { register, handleSubmit, formState: { errors }, watch, setValue, control, reset } = 
   useForm({  
             defaultValues: {
               name: user.name || '',
@@ -82,13 +83,26 @@ const MyUpdate = () => {
   
     dispatch(updateUser(body))
       .then(() => {
-        // 회원가입 성공 후 리다이렉트 처리
-        navigate('/'); // 성공 페이지로 리다이렉트
+        setSnackbarMessage('정보 수정 완료되었습니다.');
+        setSnackbarSeverity('success'); // 성공 상태로 변경
+        setSnackbarOpen(true);
+        setTimeout(() => {
+          navigate('/'); // 비밀번호 변경 후 페이지 이동
+        }, 2000); // 2초 후 이동
       })
       .catch((error) => {
         console.error('정보수정 실패:', error);
         // 에러 처리 로직
       });
+  };
+
+  // 스낵바 상태를 추가합니다.
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   // 성별 값 설정 함수 // 무이로 바꿔서 잠시 보류
@@ -126,6 +140,50 @@ const MyUpdate = () => {
     }
   };
 
+  const nickNameValue = watch('nickName');
+  const [isNickNameChecked, setIsNickNameChecked] = useState(true);
+  const [isNickNameReset, setIsNickNameReset] = useState(true); // 수정 버튼 상태
+
+  const handleCheckNickName = async () => {
+    if (!nickNameValue || nickNameValue.trim() === '') {
+      setSnackbarMessage('닉네임을 입력해주세요.');
+      setSnackbarOpen(true); // 닫지 말고 열어야 함
+      return;
+    }
+  
+    if (errors.nickName) {
+      setSnackbarMessage('유효한 닉네임을 입력하세요.');
+      setSnackbarOpen(true); // 닫지 말고 열어야 함
+      return;
+    }
+  
+    const nickName = nickNameValue;
+    try {
+      const response = await axiosInstance.post(`/users/check-nickname`, { nickName });
+      setSnackbarMessage(response.data.message);
+      setSnackbarSeverity('success'); // 성공 메시지
+      setSnackbarOpen(true);
+      setIsNickNameChecked(true);  // 닉네임 확인 후 버튼 상태 변경
+      setIsNickNameReset(true); // 수정 버튼 상태로 변경
+    } catch (err) {
+      setSnackbarMessage(err.response ? err.response.data.message : '서버 오류');
+      setSnackbarSeverity('error'); // 오류 메시지
+      setSnackbarOpen(true);
+      setIsNickNameChecked(false);  // 오류 발생 시 버튼 상태 유지
+      setIsNickNameReset(false);
+    }
+  };
+
+  const handleNickNameReset = () => {
+    setIsNickNameChecked(false);
+    setIsNickNameReset(false); // 상태 초기화
+  };
+
+  const handleNickNameCancel = () => {
+    setIsNickNameChecked(true); // 닉네임 수정 상태 해제
+    setIsNickNameReset(true);   // 수정 상태 초기화
+    reset({ nickName: user.nickName || '' });
+  };
   // 연도, 월, 일을 위한 옵션 생성
   const generateOptions = (start, end) => {
     const options = [];
@@ -374,7 +432,9 @@ const handleDeleteAccount = () => {
           flexDirection: 'column', 
           justifyContent: 'center',
           maxWidth: 600, 
-          mx: 'auto' }}>
+          mx: 'auto', 
+          pb: 5  // 풋터의 높이를 고려해 여유 공간 추가
+          }}>
     {/* 상태 버튼  */}
     <Box sx={{ display: 'flex', flexDirection: 'column', }}>
       <CustomButton
@@ -460,9 +520,15 @@ const handleDeleteAccount = () => {
       </Box>
 {/*닉네임 */}          
   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-    <Typography variant="body2" component="label" htmlFor="nickName" sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100 }}>
+  <Typography 
+      variant="body2" 
+      component="label" 
+      htmlFor="nickName"
+      sx={{ fontWeight: 'bold', color: 'text.secondary', minWidth: 100  }}
+      >
       닉네임
-    </Typography>
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, width: 500 }}>
       <TextField
         id='nickName'
         label="닉네임"
@@ -470,10 +536,73 @@ const handleDeleteAccount = () => {
         fullWidth
         variant="outlined"
         {...register('nickName', nickName)}
-        error={!!errors.nickName}
-        helperText={errors.nickName ? errors.nickName.message : ''}
-        sx={{ flex: 1 }} // 남은 공간을 채우도록 설정
+        InputProps={{
+          readOnly: isNickNameChecked,
+          sx: {
+            bgcolor: isNickNameChecked ? 'grey.200' : 'white',
+            '& .MuiInputBase-input': {
+              color: isNickNameChecked ? 'text.disabled' : 'text.primary',
+            },
+          },
+        }}
+        sx={{
+          flex: 1, mr: 1,
+        }}
         />
+       <Stack direction="row" spacing={2}>
+      {!isNickNameChecked ? (
+        <>
+          <CustomButton2 
+            variant="contained" 
+            color="primary" 
+            className="buttonMain"
+            sx={{ height: '50px',
+              borderColor: 'transparent', // 무색 테두리
+              '&:hover': {
+               borderColor: 'transparent', // 무색 테두리
+              },
+             }}
+            onClick={handleCheckNickName}
+          >
+            중복검사
+          </CustomButton2>
+          <CustomButton  
+            variant="outlined"  
+            className="buttonSub2"
+            sx={{ height: '50px',
+              borderColor: 'transparent', // 무색 테두리
+              '&:hover': {
+               borderColor: 'transparent', // 무색 테두리
+              },
+             }}
+            onClick={handleNickNameCancel}
+          >
+            취소하기
+          </CustomButton>
+        </>
+      ) : (
+        <CustomButton2  
+          variant="outlined"  
+          className="buttonSub1"
+          sx={{ 
+            height: '50px',
+            borderColor: 'transparent', // 무색 테두리
+            '&:hover': {
+             borderColor: 'transparent', // 무색 테두리
+            },
+           }}
+          onClick={handleNickNameReset}
+        >
+          닉네임 수정
+        </CustomButton2>
+      )}
+    </Stack>
+      </Box>
+        {errors?.nickName && (
+      <Typography color="error" sx={{ mt: 1 }}>
+        {errors.nickName.message}
+      </Typography>
+      )}
     </Box>         
 {/*생년월일 */}
 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -930,6 +1059,14 @@ const handleDeleteAccount = () => {
       </Button>
       {/* 회원 탈퇴 폼 (추가할 부분) */}
       {isAccountDeleteVisible && <MyCancelAccount view={view} />}
+
+       {/* 스낵바 컴포넌트 호출 */}
+       <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity="success"
+        onClose={handleSnackbarClose}
+      />
 </Box>
   );
 };

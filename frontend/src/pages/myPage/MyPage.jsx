@@ -2,7 +2,7 @@ import MyUpdate from './sections/MyUpdate/MyUpdate'; // MyUpdate 컴포넌트를
 import MyChat from './sections/MyChat';
 import MyClub from './sections/MyClub/MyClub.jsx';
 import MySetting from './sections/MySetting';
-import MyWish from './sections/MyWish';
+import MyWish from './sections/MyMessage';
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import EditIcon from '@mui/icons-material/Edit';
@@ -239,16 +239,19 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
     },
   });
 
+
+
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column', // 열 방향으로 정렬
-        justifyContent: 'center',
+        justifyContent: 'flex-start', // 상단에 붙게 설정
         alignItems: 'center',
         width: 'auto',           // 자식 요소에 맞춰 너비 자동 조정
-        height: 'auto',          // 자식 요소 높이 자동 조정
-        p: 2,                   // 패딩 추가
+        minHeight: '170vh', //여기 수정해야됌요
+        height: 'auto', // 자식 요소 높이에 따라 자동 조정
+        p: 2, // 패딩 추가
         position: 'relative', // 상위 요소에 상대적인 위치
       }}
     >
@@ -585,7 +588,7 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
                 sx={getButtonStyles('wish')}
                 onClick={() => handleSectionClick('wish')}
               >
-                뭘 더 넣을깡
+                메시지 함
                 </CustomButton>
                 <CustomButton
                 variant="contained"
