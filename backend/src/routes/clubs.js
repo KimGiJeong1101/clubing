@@ -9,6 +9,45 @@ const fs = require("fs");
 const { v4: uuidv4 } = require("uuid"); // uuid v4 방식 사용
 const User = require("../models/User");
 
+// ======================================연코드=========================================================================
+router.get("/card", async (req, res, next) => {
+  try {
+    console.log("클럽 목록 가져오기 시작");
+    const clubs = await Club.find().sort({ _id: -1 }); // 오름차순으로 정렬
+    console.log("클럽 목록 가져오기 완료", clubs);
+
+    const clubsWithImages = await Promise.all(
+      clubs.map(async (club) => {
+        // 관리자 이미지 가져오기
+        const admin = club.admin; // 클럽의 admin 필드를 가져옴
+        const adminData = await User.findOne({ email: admin });
+        const adminImage = adminData?.profilePic?.thumbnailImage || null;
+
+        // 멤버 이미지 가져오기
+        const memberImages = await Promise.all(
+          club.members.map(async (memberEmail) => {
+            const memberData = await User.findOne({ email: memberEmail });
+            return memberData?.profilePic?.thumbnailImage || null;
+          }),
+        );
+
+        // 클럽 데이터에 adminImage와 memberImages 추가
+        return {
+          ...club.toObject(), // 클럽 데이터를 객체로 변환
+          adminImage,
+          memberImages,
+        };
+      }),
+    );
+
+    // 클럽 데이터와 관리자/멤버 이미지 데이터를 함께 응답
+    res.status(200).json(clubsWithImages);
+  } catch (error) {
+    console.error("클럽 목록 가져오기 실패", error);
+    next(error);
+  }
+});
+// ======================================연코드.end=========================================================================
 //리스트 보여주기
 router.get("/", async (req, res, next) => {
   try {
@@ -349,6 +388,7 @@ router.post("/removeWish/:clubNumber", auth, async (req, res, next) => {
     next(error);
   }
 });
+//=============================================================================================================================
 
 //초대하기
 router.post("/invite/:clubNumber", auth, async (req, res, next) => {

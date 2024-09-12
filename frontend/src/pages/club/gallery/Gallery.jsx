@@ -293,7 +293,7 @@ const Gallery = () => {
           sx={{
             width: '100%',
             maxWidth: '1400px',
-            backgroundColor: 'white',
+            backgroundColor: '#F0F0F0',
             paddingTop: 5,
             paddingLeft: 10,
             paddingRight: 10,
@@ -360,7 +360,7 @@ const Gallery = () => {
       <Button
         sx={{
           position: 'fixed',
-          top: 120,
+          top: 200,
           right: 16,
           zIndex: 1000,
           backgroundColor: 'white.main',
@@ -371,13 +371,18 @@ const Gallery = () => {
         }}
         onClick={handleRegisterOpen}
       >
-        <AddToPhotosIcon />
+        <AddToPhotosIcon sx={{
+          color: '#DBC7B5',
+          '&:hover': {
+            color: '#A67153'
+          }
+        }} />
       </Button>
 
       <Button
         sx={{
           position: 'fixed',
-          top: 160,
+          top: 240,
           right: 16,
           zIndex: 1000,
           backgroundColor: 'white.main',
@@ -388,7 +393,12 @@ const Gallery = () => {
         }}
         onClick={handleSelectModeToggle}
       >
-        <CheckCircleSharpIcon />
+        <CheckCircleSharpIcon sx={{
+          color: '#DBC7B5',
+          '&:hover': {
+            color: '#A67153'
+          }
+        }} />
       </Button>
 
       {selectMode && (
@@ -396,13 +406,13 @@ const Gallery = () => {
           <Button
             sx={{
               position: 'fixed',
-              top: 200,
+              top: 270,
               right: 16,
               zIndex: 1000,
               backgroundColor: 'white.main',
-              color: 'primary.main',
+              color: '#DBC7B5',
               '&:hover': {
-                backgroundColor: 'white.main',
+                color: '#A67153',
               },
             }}
             onClick={handleDeleteSelectedImages}
@@ -412,13 +422,13 @@ const Gallery = () => {
           <Button
             sx={{
               position: 'fixed',
-              top: 240,
+              top: 300,
               right: 16,
               zIndex: 1000,
               backgroundColor: 'white.main',
-              color: 'primary.main',
+              color: '#DBC7B5',
               '&:hover': {
-                backgroundColor: 'white.main',
+                color: '#A67153',
               },
             }}
             onClick={handleDeleteAllImages}
@@ -428,13 +438,13 @@ const Gallery = () => {
           <Button
             sx={{
               position: 'fixed',
-              top: 280,
+              top: 330,
               right: 16,
               zIndex: 1000,
               backgroundColor: 'white.main',
-              color: 'primary.main',
+              color: '#DBC7B5',
               '&:hover': {
-                backgroundColor: 'white.main',
+                color: '#A67153',
               },
             }}
             onClick={handleEditOpen}
