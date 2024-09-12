@@ -106,7 +106,7 @@ function ClubLayout() {
           </Box>
         )}
       </main>
-      <Footer />
+      {/* <Footer /> */}
       <MainFooter/>
     </Box>
   );
