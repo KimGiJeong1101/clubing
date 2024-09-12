@@ -137,7 +137,7 @@ function uploadPlugin(editor) {
         'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
         'bold', 'italic', 'underline', 'strikethrough', 'code', '|',
         'specialCharacters', 'horizontalLine', 'link', 'insertImage',
-        'mediaEmbed', 'insertTable', 'blockQuote', 'codeBlock', '|',
+        'insertTable', 'blockQuote', 'codeBlock', '|',
         'alignment', '|', 'bulletedList', 'numberedList', 'todoList',
         'outdent', 'indent', '|', 'accessibilityHelp'
       ],
