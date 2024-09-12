@@ -17,6 +17,7 @@ import {
 import ChatIcon from '@mui/icons-material/Chat';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { fetchVote, fetchVoteSummary, voteForOption, removeVote, deleteVote } from '../../../api/ClubBoardApi';
+import Reply from './Reply'; // 댓글 컴포넌트 추가
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
   display: 'flex',
@@ -42,6 +43,7 @@ const ReadVote = ({ voteId, onDelete }) => {
   const [isAuthor, setIsAuthor] = useState(false);
   const [votedOptions, setVotedOptions] = useState([]);
   const [isVoteEnded, setIsVoteEnded] = useState(false);
+  const [openReply, setOpenReply] = useState(false); // 댓글 컴포넌트 열기 상태
   const queryClient = useQueryClient();
 
   const email = useSelector(state => state.user?.userData?.user?.email || null);
@@ -161,6 +163,8 @@ const ReadVote = ({ voteId, onDelete }) => {
     const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
     return localDate.toISOString().slice(0, 16);
   };
+
+  const handleToggleReply = () => setOpenReply(prev => !prev); // 댓글 컴포넌트 열기/닫기
 
   return (
     <Container>
@@ -286,33 +290,43 @@ const ReadVote = ({ voteId, onDelete }) => {
               sx={{
                 color: '#999999',
                 fontSize: '30px',
-                marginRight: '15px'
+                marginRight: '15px',
+                cursor: 'pointer'
               }}
+              onClick={handleToggleReply} // 댓글 컴포넌트 열기/닫기
             />
           </Box>
+
+          {/* 댓글 컴포넌트를 ReadVote 위치에 렌더링 */}
+          {openReply && (
+            <Box sx={{ padding: 2 }}>
+              <Reply postType="Board" postId={voteId} />
+            </Box>
+          )}
+
+          <Dialog open={openSummary} onClose={handleSummaryClose} fullWidth maxWidth="lg">
+            <DialogTitle>투표 결과</DialogTitle>
+            <DialogContent>
+              <List>
+                {summary.map((item, index) => (
+                  <ListItem key={index}>
+                    <ListItemText primary={item.option} />
+                    <ListItemText secondary={`선택 수: ${item.count}`} />
+                    {!vote.anonymous && (
+                      <ListItemText secondary={`투표한 사람: ${item.emails}`} />
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleSummaryClose} color="primary">
+                닫기
+              </Button>
+            </DialogActions>
+          </Dialog>
         </>
       )}
-      <Dialog open={openSummary} onClose={handleSummaryClose} fullWidth maxWidth="md">
-        <DialogTitle>투표 결과</DialogTitle>
-        <DialogContent>
-          <List>
-            {summary.map((item, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={item.option} />
-                <ListItemText secondary={`선택 수: ${item.count}`} />
-                {!vote.anonymous && (
-                  <ListItemText secondary={`투표한 사람: ${item.emails}`} />
-                )}
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleSummaryClose} color="primary">
-            닫기
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };

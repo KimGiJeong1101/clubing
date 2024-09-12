@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Container, List, ListItem, ListItemText, Box, Button, Dialog, DialogTitle, DialogContent, Pagination } from '@mui/material';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchPosts } from '../../../api/ClubBoardApi';
 import Read from './BoardRead';
 import ReadVote from './BoardReadVote';
@@ -17,6 +18,7 @@ const ListPosts = () => {
   const limit = 12; // 페이지당 게시물 수
 
   const location = useLocation();
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
@@ -56,6 +58,15 @@ const ListPosts = () => {
     setCurrentPage(page);
   };
 
+  // 화살표 아이콘 클릭 핸들러
+  const handleArrowClick = (id, category) => {
+    if (category === '투표') {
+      navigate(`vote/${id}?clubNumber=${clubNumber}`); // 투표 페이지로 이동
+    } else {
+      navigate(`read/${id}?clubNumber=${clubNumber}`); // 게시물 페이지로 이동
+    }
+  };
+
   if (isLoading) return <p>로딩 중...</p>;
   if (error) return <p>데이터를 가져오는 중 오류 발생: {error.message}</p>;
 
@@ -64,8 +75,8 @@ const ListPosts = () => {
   );
 
   return (
-    <Container>
-      <Box sx={{ '& button': { m: 1 } }}>
+    <Container fullWidth maxWidth="md">
+      <Box mt={1} sx={{ '& button': { m: 1 } }}>
         {['전체', '공지사항(전체알림)', '자유글', '관심사공유', '모임후기', '가입인사', '투표'].map(category => (
           <Button
             key={category}
@@ -92,12 +103,16 @@ const ListPosts = () => {
           <React.Fragment key={item._id}>
             <ListItem
               button
-              onClick={() => handleSelect(item._id, item.options && item.options.length > 0 ? '투표' : '게시물', item.title)}
-              sx={{ borderBottom: '1px solid #ddd' }}
+              onClick={() => handleSelect(item._id, item.category, item.title)} // 모달 열기
+              sx={{ borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
             >
               <ListItemText
                 primary={item.title}
                 secondary={`${item.category || ' 투표 '} ${item.endTime ? `종료시간: ${new Date(item.endTime).toLocaleString()}` : ''}`}
+              />
+              <ArrowForwardIcon 
+                onClick={() => handleArrowClick(item._id, item.category)} // 페이지 이동
+                sx={{ cursor: 'pointer' }} 
               />
             </ListItem>
           </React.Fragment>
@@ -134,7 +149,7 @@ const ListPosts = () => {
         <DialogTitle>{selectedItemCategory === '투표' ? null : dialogTitle}</DialogTitle>
         <DialogContent>
           {selectedItemCategory === '투표' && <ReadVote voteId={selectedItemId} title={dialogTitle} onDelete={() => handleClose()} />}
-          {selectedItemCategory === '게시물' && <Read postId={selectedItemId} title={dialogTitle} onClose={() => handleClose()} />}
+          {selectedItemCategory !== '투표' && <Read postId={selectedItemId} title={dialogTitle} onClose={() => handleClose()} />}
         </DialogContent>
       </Dialog>
     </Container>

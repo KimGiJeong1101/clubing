@@ -14,8 +14,10 @@ export const GlobalStyle = () => (
   <GlobalStyles
     styles={{
       body: {
-        fontFamily: 'KCC-Hanbit', 
-        backgroundColor: '#f0f0f0',  /* 페이지 배경 색상 설정 */
+        margin: "0px !important",
+        padding: "0px !important",
+        fontFamily: "KCC-Hanbit",
+        backgroundColor: "#F0F0F0" /* 페이지 배경 색상 설정 */,
       },
     }}
   />

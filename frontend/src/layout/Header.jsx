@@ -62,9 +62,9 @@ function Header() {
 
   const navItems = [
     // { name: "발견", path: `/home` },  //이거 생략 어떠신지
-    { name: "추천모임", path: `/clubList` },
+    { name: "모임찾기", path: `/clubList` },
     { name: "정모일정", path: `/meetingList` },
-    { name: "신규모임", path: `/newClubList` },
+    { name: "추천모임", path: `/newClubList` },
     // { name: "클래스", path: `/class` }, // 이거 생략
     { name: "이벤트", path: `/event` }
   ];
