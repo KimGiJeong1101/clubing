@@ -1,7 +1,7 @@
 // frontend/src/components/Club/editorComponent.js
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
   DecoupledEditor,
   AccessibilityHelp,
@@ -65,14 +65,14 @@ import {
   TextTransformation,
   TodoList,
   Underline,
-  Undo
-} from 'ckeditor5';
-import translations from 'ckeditor5/translations/ko.js';
-import 'ckeditor5/ckeditor5.css';
-import '../../assets/styles/ClubBoard.css';
-import { TextField, MenuItem, FormControl, InputLabel, Select, Box } from '@mui/material';
+  Undo,
+} from "ckeditor5";
+import translations from "ckeditor5/translations/ko.js";
+import "ckeditor5/ckeditor5.css";
+import "../../assets/styles/ClubBoard.css";
+import { TextField, MenuItem, FormControl, InputLabel, Select, Box } from "@mui/material";
 
-const categories = ['자유글', '관심사공유', '모임후기', '가입인사','공지사항(전체알림)','투표']; // 카테고리 옵션
+const categories = ["자유글", "관심사공유", "모임후기", "가입인사", "공지사항(전체알림)", "투표"]; // 카테고리 옵션
 
 export default function CKEditor5Editor({ onChange, title, setTitle, category, setCategory, content, setImage }) {
   const editorContainerRef = useRef(null);
@@ -84,7 +84,6 @@ export default function CKEditor5Editor({ onChange, title, setTitle, category, s
   // 서버에서 받은 데이터를 기준으로 이미지 링크를 생성할 수 있도록 수정합니다.
   const imgLink = "http://localhost:4000/upload";
 
-  
   const customUploadAdapter = (loader) => {
     return {
       upload() {
@@ -92,7 +91,8 @@ export default function CKEditor5Editor({ onChange, title, setTitle, category, s
           const data = new FormData();
           loader.file.then((file) => {
             data.append("file", file);
-            axios.post('http://localhost:4000/clubs/boards/upload', data)
+            axios
+              .post("http://localhost:4000/clubs/boards/upload", data)
               .then((res) => {
                 setImage(res.data.filename); // 업로드된 이미지의 파일명 저장
                 // dateFolder와 filename을 서버에서 받아오는 것이므로, 여기서 설정할 수 있어야 합니다.
@@ -103,26 +103,23 @@ export default function CKEditor5Editor({ onChange, title, setTitle, category, s
               .catch((err) => reject(err));
           });
         });
-      }
+      },
     };
   };
-
 
   function getFormattedDate() {
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 
-function uploadPlugin(editor) {
-  editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
-    return customUploadAdapter(loader);
-  };
-}
-
-
+  function uploadPlugin(editor) {
+    editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
+      return customUploadAdapter(loader);
+    };
+  }
 
   useEffect(() => {
     setIsLayoutReady(true);
@@ -131,17 +128,8 @@ function uploadPlugin(editor) {
 
   const editorConfig = {
     toolbar: {
-      items: [
-        'undo', 'redo', '|',
-        'selectAll', '|', 'heading', '|',
-        'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-        'bold', 'italic', 'underline', 'strikethrough', 'code', '|',
-        'specialCharacters', 'horizontalLine', 'link', 'insertImage',
-        'mediaEmbed', 'insertTable', 'blockQuote', 'codeBlock', '|',
-        'alignment', '|', 'bulletedList', 'numberedList', 'todoList',
-        'outdent', 'indent', '|', 'accessibilityHelp'
-      ],
-      shouldNotGroupWhenFull: false
+      items: ["undo", "redo", "|", "selectAll", "|", "heading", "|", "fontSize", "fontFamily", "fontColor", "fontBackgroundColor", "|", "bold", "italic", "underline", "strikethrough", "code", "|", "specialCharacters", "horizontalLine", "link", "insertImage", "mediaEmbed", "insertTable", "blockQuote", "codeBlock", "|", "alignment", "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|", "accessibilityHelp"],
+      shouldNotGroupWhenFull: false,
     },
     plugins: [
       AccessibilityHelp,
@@ -205,72 +193,64 @@ function uploadPlugin(editor) {
       TodoList,
       Underline,
       Undo,
-      uploadPlugin 
+      uploadPlugin,
     ],
-    balloonToolbar: ['bold', 'italic', '|', 'link', 'insertImage', '|', 'bulletedList', 'numberedList'],
-    blockToolbar: [
-      'fontSize','fontColor','fontBackgroundColor','|',
-      'bold','italic','|','link','insertImage','insertTable',
-      '|','bulletedList','numberedList','outdent','indent'
-    ],
+    balloonToolbar: ["bold", "italic", "|", "link", "insertImage", "|", "bulletedList", "numberedList"],
+    blockToolbar: ["fontSize", "fontColor", "fontBackgroundColor", "|", "bold", "italic", "|", "link", "insertImage", "insertTable", "|", "bulletedList", "numberedList", "outdent", "indent"],
     fontFamily: {
-      supportAllValues: true
+      supportAllValues: true,
     },
     fontSize: {
-      options: [10, 12, 14, 'default', 18, 20, 22],
-      supportAllValues: true
+      options: [10, 12, 14, "default", 18, 20, 22],
+      supportAllValues: true,
     },
     heading: {
       options: [
-        {model: 'paragraph',title: 'Paragraph',class: 'ck-heading_paragraph'},
-        {model: 'heading1',view: 'h1',title: 'Heading 1',class: 'ck-heading_heading1'},
-        {model: 'heading2',view: 'h2',title: 'Heading 2',class: 'ck-heading_heading2'},
-        {model: 'heading3',view: 'h3',title: 'Heading 3',class: 'ck-heading_heading3'},
-        {model: 'heading4',view: 'h4',title: 'Heading 4',class: 'ck-heading_heading4'},
-        {model: 'heading5',view: 'h5',title: 'Heading 5',class: 'ck-heading_heading5'},
-        {model: 'heading6',view: 'h6',title: 'Heading 6',class: 'ck-heading_heading6'}
-      ]
+        { model: "paragraph", title: "Paragraph", class: "ck-heading_paragraph" },
+        { model: "heading1", view: "h1", title: "Heading 1", class: "ck-heading_heading1" },
+        { model: "heading2", view: "h2", title: "Heading 2", class: "ck-heading_heading2" },
+        { model: "heading3", view: "h3", title: "Heading 3", class: "ck-heading_heading3" },
+        { model: "heading4", view: "h4", title: "Heading 4", class: "ck-heading_heading4" },
+        { model: "heading5", view: "h5", title: "Heading 5", class: "ck-heading_heading5" },
+        { model: "heading6", view: "h6", title: "Heading 6", class: "ck-heading_heading6" },
+      ],
     },
 
     image: {
-      toolbar: [
-        'toggleImageCaption','imageTextAlternative','|',
-        'imageStyle:inline','imageStyle:wrapText','imageStyle:breakText',
-        '|','resizeImage'
-      ]
+      toolbar: ["toggleImageCaption", "imageTextAlternative", "|", "imageStyle:inline", "imageStyle:wrapText", "imageStyle:breakText", "|", "resizeImage"],
     },
-    initialData: content || '', // 기본값을 빈 문자열로 설정
-    language: 'ko',
+    initialData: content || "", // 기본값을 빈 문자열로 설정
+    language: "ko",
     link: {
       addTargetToExternalLinks: true,
-      defaultProtocol: 'https://',
+      defaultProtocol: "https://",
       decorators: {
         toggleDownloadable: {
-          mode: 'manual',
-          label: 'Downloadable',
+          mode: "manual",
+          label: "Downloadable",
           attributes: {
-            download: 'file'
-          }
-        }
-      }
+            download: "file",
+          },
+        },
+      },
     },
     list: {
       properties: {
         styles: true,
         startIndex: true,
-        reversed: true
-      }
+        reversed: true,
+      },
     },
-    placeholder: '내용을 입력해주세요😆',
+    placeholder: "내용을 입력해주세요😆",
     table: {
-      contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells', 'tableProperties', 'tableCellProperties']
+      contentToolbar: ["tableColumn", "tableRow", "mergeTableCells", "tableProperties", "tableCellProperties"],
     },
-    translations: [translations]
+    translations: [translations],
   };
 
   useEffect(() => {
     if (editorInstance) {
-      editorInstance.model.document.on('change:data', () => {
+      editorInstance.model.document.on("change:data", () => {
         const data = editorInstance.getData();
         onChange(data);
       });
@@ -279,23 +259,14 @@ function uploadPlugin(editor) {
 
   return (
     <Box mb={2}>
-      <TextField
-        label="Title"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
+      <TextField label="Title" variant="outlined" fullWidth margin="normal" value={title} onChange={(e) => setTitle(e.target.value)} />
       <FormControl fullWidth margin="normal">
         <InputLabel>Category</InputLabel>
-        <Select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          label="Category"
-        >
+        <Select value={category} onChange={(e) => setCategory(e.target.value)} label="Category">
           {categories.map((cat) => (
-            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+            <MenuItem key={cat} value={cat}>
+              {cat}
+            </MenuItem>
           ))}
         </Select>
       </FormControl>
@@ -307,31 +278,31 @@ function uploadPlugin(editor) {
               <div ref={editorRef}>
                 {isLayoutReady && (
                   <CKEditor
-                  onReady={editor => {
-                    editorToolbarRef.current.appendChild(editor.ui.view.toolbar.element);
-                    setEditorInstance(editor);
-                  }}
-                  onAfterDestroy={() => {
-                    if (editorToolbarRef.current) {
-                      Array.from(editorToolbarRef.current.children).forEach(child => child.remove());
-                    }
-                  }}
-                  onChange={(event, editor) => {
-                    const data = editor.getData();
-                    onChange(data);
-                  }}
-                  onBlur={(event, editor) => {
-                    console.log('Blur.', editor);
-                  }}
-                  onFocus={(event, editor) => {
-                    console.log('Focus.', editor);
-                  }}
-                  editor={DecoupledEditor}
-                  config={{
-                    ...editorConfig,
-                    extraPlugins: [uploadPlugin] // 수정된 부분
-                  }}
-                />
+                    onReady={(editor) => {
+                      editorToolbarRef.current.appendChild(editor.ui.view.toolbar.element);
+                      setEditorInstance(editor);
+                    }}
+                    onAfterDestroy={() => {
+                      if (editorToolbarRef.current) {
+                        Array.from(editorToolbarRef.current.children).forEach((child) => child.remove());
+                      }
+                    }}
+                    onChange={(event, editor) => {
+                      const data = editor.getData();
+                      onChange(data);
+                    }}
+                    onBlur={(event, editor) => {
+                      console.log("Blur.", editor);
+                    }}
+                    onFocus={(event, editor) => {
+                      console.log("Focus.", editor);
+                    }}
+                    editor={DecoupledEditor}
+                    config={{
+                      ...editorConfig,
+                      extraPlugins: [uploadPlugin], // 수정된 부분
+                    }}
+                  />
                 )}
               </div>
             </div>

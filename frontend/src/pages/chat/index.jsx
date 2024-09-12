@@ -9,6 +9,7 @@ import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
 import axios from "axios";
 import ImageModal from "./ImageModal";
+import Cookies from "js-cookie"; // js-cookie 패키지 임포트
 
 const ChatPage = () => {
   console.log("ChatPage 컴포넌트 렌더링됨");
@@ -16,14 +17,9 @@ const ChatPage = () => {
   // useLocation 사용하여 URL 쿼리 파라미터 추출
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
-  const clubNumber = searchParams.get('clubNumber');
-  
-  console.log("쿼리 파라미터 clubNumber:", clubNumber);
+  const clubNumber = searchParams.get("clubNumber");
 
-  const { id } = useParams();  // 이 부분은 경로 파라미터가 있을 경우 사용
-  console.log("-----------------------");
-  console.log("경로 파라미터 id:", id);
-  console.log("--------------------------");
+  console.log("쿼리 파라미터 clubNumber:", clubNumber);
 
   const dispatch = useDispatch();
   const [title, setTitle] = useState("");
@@ -45,12 +41,12 @@ const ChatPage = () => {
   useEffect(() => {
     console.log("useEffect 호출됨");
     console.log("현재 clubNumber 값:", clubNumber);
-    
+
     if (!clubNumber) {
       console.error("Club number is not defined");
       return;
     }
-    
+
     const fetchData = async () => {
       try {
         console.log("fetchData 함수 호출됨");
@@ -58,33 +54,74 @@ const ChatPage = () => {
         const actionResult = await dispatch(fetchClubDetailByClubId(clubNumber));
         console.log("dispatch 후, 결과:", actionResult);
         const clubDetail = actionResult.payload;
-        setTitle(clubDetail.title);
+
+        console.log(clubDetail);
+
+        console.log(clubDetail.title);
+
+        console.log(clubDetail.club.title);
+
+        setTitle(clubDetail.club.title);
+
+        // 초기 메시지 가져오기
+        const initialMessagesAction = await dispatch(fetchInitialMessages(clubNumber));
+        // 배열의 복사본을 만들어서 reverse() 적용
+        const initialMessages = [...initialMessagesAction.payload].reverse();
+        setMessages(initialMessages);
+        setSkip(initialMessages.length);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-    
+
     fetchData();
   }, [clubNumber, dispatch]);
 
-  // 소켓 연결
+  console.log("유즈이펙트전에");
+
   useEffect(() => {
-    const newSocket = io("http://localhost:4000");
-    setSocket(newSocket);
-
-    newSocket.emit("joinRoom", { roomId: clubNumber });
-
-    newSocket.on("message", (msg) => {
-      setMessages((prevMessages) => [...prevMessages, msg]);
-
-      fetch(`http://localhost:4000/clubs/chatrooms/${msg._id}/read`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      }).catch(console.error);
+    const newSocket = io("http://localhost:4000", {
+      transports: ["websocket"],
+      auth: {
+        token: Cookies.get("accessToken"),
+      },
     });
 
-    return () => newSocket.close();
+    setSocket(newSocket);
+
+    // 소켓 연결이 완료되었을 때 실행되는 콜백
+    newSocket.on("connect", () => {
+      console.log("소켓 연결됨");
+
+      // 방에 입장
+      newSocket.emit("joinRoom", { clubId: clubNumber }); // clubId로 통일
+
+      // 메시지를 수신했을 때 실행되는 콜백
+      newSocket.on("message", (msg) => {
+        // 받은 메시지를 상태에 추가
+        setMessages((prevMessages) => [...prevMessages, msg]);
+
+        // `clubNumber` 값을 확인
+        console.log("진짜...." + clubNumber);
+
+        // 메시지 읽음 상태 업데이트 요청
+        // fetch(`http://localhost:4000/clubs/chatrooms/${clubNumber}/messages`, {
+        //   method: "POST",
+        //   headers: { "Content-Type": "application/json" },
+        //   body: JSON.stringify({ userId }),
+        // }).catch((error) => {
+        //   console.error("메시지 읽음 상태 업데이트 중 오류 발생:", error);
+        // });
+      });
+    });
+
+    // 소켓 클린업
+    return () => {
+      if (newSocket) {
+        newSocket.off("message");
+        newSocket.close();
+      }
+    };
   }, [clubNumber, userId]);
 
   // 이전 메시지 가져오기 (스크롤 시)
@@ -96,7 +133,7 @@ const ChatPage = () => {
       setLoading(true);
       const currentHeight = scrollHeight;
       try {
-        const olderMessagesAction = await dispatch(fetchOlderMessages({ roomId: clubNumber, skip }));
+        const olderMessagesAction = await dispatch(fetchOlderMessages({ clubId: clubNumber, skip }));
         const olderMessages = olderMessagesAction.payload;
         if (olderMessages.length === 0) {
           setHasMore(false);
@@ -118,16 +155,24 @@ const ChatPage = () => {
     setIsAtBottom(scrollTop + clientHeight === scrollHeight);
   };
 
-  // 메시지 전송
   const handleSendMessage = () => {
+    // 변수의 상태 확인
+    console.log("소켓 상태:", socket);
+    console.log("메시지 내용:", message.trim());
+    console.log("이미지 파일:", imageFiles);
+    console.log("클럽 번호:", clubNumber);
+    console.log("유저 ID:", userId);
+
+    // 메시지 전송 처리
     if (socket && (message.trim() || imageFiles.length > 0)) {
       const newMessage = {
-        roomId: clubNumber,
+        clubId: clubNumber, // 메시지 전송에 필요한 데이터
         senderId: userId,
         content: message.trim(),
         images: imageFiles,
       };
 
+      // 메시지 전송
       socket.emit("message", newMessage);
       setMessage("");
       setImageFiles([]);
@@ -156,7 +201,7 @@ const ChatPage = () => {
       const imageUrls = res.data.urls;
 
       const newMessage = {
-        roomId: clubNumber,
+        clubId: clubNumber,
         senderId: userId,
         content: "",
         images: imageUrls,

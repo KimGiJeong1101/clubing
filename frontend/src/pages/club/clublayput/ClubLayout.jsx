@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import MainHeader from "../../../layout/Header"
-import MainFooter from "../../../layout/Footer"
+import MainHeader from "../../../layout/Header";
+import MainFooter from "../../../layout/Footer";
 import Header from "./Header";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
@@ -68,11 +68,11 @@ function ClubLayout() {
       navigate("/login");
       return;
     }
-  
+
     const url = isFavorite
       ? `/clubs/removeWish/${clubNumber}` // 찜 해제 API (추가 필요)
       : `/clubs/addWish/${clubNumber}`;
-  
+
     axiosInstance
       .post(url)
       .then(() => {
@@ -84,12 +84,11 @@ function ClubLayout() {
       });
   };
 
-
   return (
     <Box>
-      <MainHeader/>
+      <MainHeader />
       {/* <Header />  */}
-      <NavBar /> 
+      <NavBar />
       <main>
         <Outlet />
         {joinHandler && (
@@ -148,7 +147,7 @@ function ClubLayout() {
         )}
       </main>
       <Footer />
-      <MainFooter/>
+      <MainFooter />
     </Box>
   );
 }

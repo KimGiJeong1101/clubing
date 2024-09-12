@@ -33,9 +33,7 @@ function Header() {
 
   const handleDelete = async () => {
     try {
-      await axiosInstance.delete(
-        `http://localhost:4000/clubs/delete/${clubNumber}`
-      );
+      await axiosInstance.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
       // 삭제 후 원하는 페이지로 이동
       navigate("/clublist");
       alert("삭제 완료");
@@ -85,7 +83,7 @@ function Header() {
   const id = open ? "simple-popover" : undefined;
   //hyk 추가 언디파인에 대한 에러 값을 설정
   const clubs = getClub.clubs || {};
-  const adminEmail = clubs.admin || '';
+  const adminEmail = clubs.admin || "";
   const members = Array.isArray(clubs.members) ? clubs.members : [];
 
   return (
@@ -120,11 +118,7 @@ function Header() {
                 navigate("/clublist");
               }}
             ></ArrowBackIosIcon>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{ flexGrow: 1, color: "black" }}
-            >
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: "black" }}>
               {getClub.clubs.title}
             </Typography>
             <FavoriteIcon
@@ -140,12 +134,7 @@ function Header() {
               }}
             />
             <ShareOutlinedIcon sx={{ padding: "7px", color: "black" }} />
-            <MenuIcon
-              aria-describedby={id}
-              variant="contained"
-              onClick={handleClick}
-              sx={{ padding: "7px", color: "black" }}
-            />
+            <MenuIcon aria-describedby={id} variant="contained" onClick={handleClick} sx={{ padding: "7px", color: "black" }} />
           </Toolbar>
         </Box>
         <Popover
@@ -169,22 +158,20 @@ function Header() {
             </Box>
           )}
 
-          {user.email !== getClub.clubs.admin &&
-            getClub?.clubs?.members?.includes(user.email) && (
-
-              <Box
-                onClick={() => {
-                  cancellClub();
-                }}
-                sx={{ padding: "10px" }}
-              >
-                클럽 탈퇴하기
-              </Box>
-            )} 
+          {user.email !== getClub.clubs.admin && getClub?.clubs?.members?.includes(user.email) && (
+            <Box
+              onClick={() => {
+                cancellClub();
+              }}
+              sx={{ padding: "10px" }}
+            >
+              클럽 탈퇴하기
+            </Box>
+          )}
           <Box onClick={() => {}} sx={{ padding: "10px" }}>
             모임 url 공유하기
           </Box>
-          <Box onClick={() => { }} sx={{ padding: "10px" }}>
+          <Box onClick={() => {}} sx={{ padding: "10px" }}>
             모임 신고하기
           </Box>
         </Popover>

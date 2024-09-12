@@ -126,8 +126,9 @@ function NavBar() {
             {navItems.map((item) => (
               <Grid
               item
-              xs={3}
-              key={item.name}
+                xs={3}
+                mt={2.5}
+                key={item.name}
               component={Link} // 기본 Link 컴포넌트 사용
               to={item.path}
               onClick={(e) => {

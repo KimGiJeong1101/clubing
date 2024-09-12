@@ -36,9 +36,7 @@ const upload = multer({
     // 허용된 파일 형식을 정의
     const filetypes = /jpeg|jpg|png|gif|webp|bmp|tiff|ico/;
     const mimetype = filetypes.test(file.mimetype); // 파일의 MIME 타입 확인
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    ); // 파일 확장자 확인
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase()); // 파일 확장자 확인
 
     // 파일 형식이 허용된 형식이면 업로드 허용
     if (mimetype && extname) {

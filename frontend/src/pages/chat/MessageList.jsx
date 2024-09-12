@@ -37,13 +37,7 @@ const fetchUserById = async (userId) => {
   }
 };
 
-const MessageList = ({
-  messages,
-  userId,
-  handleScroll,
-  isAtBottom,
-  onImageClick,
-}) => {
+const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick }) => {
   const containerRef = useRef(null);
   const [userNames, setUserNames] = useState({});
   const [open, setOpen] = useState(false);
@@ -68,10 +62,7 @@ const MessageList = ({
   // 사용자 정보를 비동기적으로 가져오는 함수
   useEffect(() => {
     const fetchUsers = async () => {
-      const uniqueUserIds = [
-        ...new Set(messages.map((msg) => msg.sender)),
-        userId,
-      ];
+      const uniqueUserIds = [...new Set(messages.map((msg) => msg.sender)), userId];
       const userData = await Promise.all(uniqueUserIds.map(fetchUserById));
 
       const userMap = uniqueUserIds.reduce((acc, id, index) => {
@@ -110,20 +101,11 @@ const MessageList = ({
     >
       {Object.keys(groupedMessages).map((date, dateIndex) => (
         <Box key={dateIndex} sx={{ marginBottom: 2 }}>
-          <Typography
-            variant="caption"
-            sx={{ color: "#888", textAlign: "center", marginBottom: 1 }}
-          >
+          <Typography variant="caption" sx={{ color: "#888", textAlign: "center", marginBottom: 1 }}>
             {date}
           </Typography>
           {groupedMessages[date].map((msg, index) => (
-            <Grid
-              container
-              key={msg._id || index}
-              sx={{ marginBottom: 1 }}
-              justifyContent={msg.sender === userId ? "flex-end" : "flex-start"}
-              alignItems="flex-start"
-            >
+            <Grid container key={msg._id || index} sx={{ marginBottom: 1 }} justifyContent={msg.sender === userId ? "flex-end" : "flex-start"} alignItems="flex-start">
               <Box
                 sx={{
                   display: "flex",
@@ -160,8 +142,7 @@ const MessageList = ({
                       display: "flex",
                       flexDirection: "column",
                       flex: 1, // 채팅 내용이 가능한 한 많은 공간을 차지하도록 설정
-                      backgroundColor:
-                        msg.sender === userId ? "#03e3c5" : "#e1e1e1",
+                      backgroundColor: msg.sender === userId ? "#03e3c5" : "#e1e1e1",
                       color: msg.sender === userId ? "#ffffff" : "#000000",
                       borderRadius: "16px",
                       padding: "6px 12px",
@@ -228,12 +209,7 @@ const MessageList = ({
             alignItems: "center",
           }}
         >
-          <img
-            src={currentImage}
-            alt="Full size"
-            style={{ maxWidth: "90%", maxHeight: "90%", cursor: "default" }}
-            onClick={(e) => e.stopPropagation()}
-          />
+          <img src={currentImage} alt="Full size" style={{ maxWidth: "90%", maxHeight: "90%", cursor: "default" }} onClick={(e) => e.stopPropagation()} />
         </Box>
       </Modal>
     </Box>

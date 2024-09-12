@@ -5,7 +5,7 @@ const app = express();
 const path = require("path");
 const http = require("http"); // HTTP 서버를 생성하기 위한 모듈 로드
 const socketIo = require("socket.io"); // Socket.io를 사용하여 실시간 소켓 통신 설정
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const jwt = require("jsonwebtoken"); // JWT 패키지 로드
@@ -21,7 +21,6 @@ app.use(
     //이 옵션은 클라이언트와 서버 간의 인증된 세션 유지에 중요한 역할을 합니다.
   }),
 );
-
 
 const io = socketIo(server, {
   cors: {
