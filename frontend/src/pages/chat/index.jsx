@@ -80,49 +80,52 @@ const ChatPage = () => {
   console.log("유즈이펙트전에");
 
   useEffect(() => {
-    const newSocket = io("http://localhost:4000", {
-      transports: ["websocket"],
-      auth: {
-        token: Cookies.get("accessToken"),
-      },
-    });
-
-    setSocket(newSocket);
+    // 소켓 클라이언트 초기화
+    const newSocket = io("http://localhost:4000"); // 서버 주소로 소켓을 초기화. "http://localhost:4000"은 서버의 주소.
+    setSocket(newSocket); // 새로 만든 소켓을 상태로 설정하여, 다른 컴포넌트에서도 접근할 수 있게 함.
 
     // 소켓 연결이 완료되었을 때 실행되는 콜백
     newSocket.on("connect", () => {
-      console.log("소켓 연결됨");
+      // 소켓이 서버와 연결되었을 때 실행되는 이벤트 리스너.
+      console.log("소켓 연결됨"); // 소켓이 성공적으로 연결되었을 때 콘솔에 메시지를 출력.
 
       // 방에 입장
-      newSocket.emit("joinRoom", { clubId: clubNumber }); // clubId로 통일
+      newSocket.emit("joinRoom", { clubId: clubNumber }); // 서버에 "joinRoom" 이벤트를 발생시키며, 방에 입장.
+      // 예: clubNumber가 "12345"라면, 클라이언트는 서버에 방 "12345"에 들어가겠다고 요청.
 
       // 메시지를 수신했을 때 실행되는 콜백
       newSocket.on("message", (msg) => {
+        // 서버에서 "message" 이벤트를 통해 메시지를 받았을 때 실행되는 콜백 함수.
         // 받은 메시지를 상태에 추가
-        setMessages((prevMessages) => [...prevMessages, msg]);
+        setMessages((prevMessages) => [...prevMessages, msg]); // 이전에 받았던 메시지들(prevMessages)에 새로운 메시지(msg)를 추가.
+        // 예: 이전에 5개의 메시지가 있었으면, 6번째 메시지를 추가하는 식으로 상태 업데이트.
 
         // `clubNumber` 값을 확인
-        console.log("진짜...." + clubNumber);
+        console.log("진짜...." + clubNumber); // 현재 클럽 번호를 콘솔에 출력 (디버깅용). 예: "진짜....12345" 같은 형태로 출력.
 
         // 메시지 읽음 상태 업데이트 요청
-        // fetch(`http://localhost:4000/clubs/chatrooms/${clubNumber}/messages`, {
-        //   method: "POST",
-        //   headers: { "Content-Type": "application/json" },
-        //   body: JSON.stringify({ userId }),
-        // }).catch((error) => {
-        //   console.error("메시지 읽음 상태 업데이트 중 오류 발생:", error);
-        // });
+        // 메시지를 읽었다는 정보를 서버에 전송해 읽음 상태를 업데이트.
+        // 이 코드는 주석 처리되어 실행되지 않지만, 만약 활성화하면 클라이언트가 메시지를 읽었다는 정보를 서버로 전송할 수 있음.
+        /*
+        fetch(`http://localhost:4000/clubs/chatrooms/${clubNumber}/messages`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId }), // 읽은 사용자 ID를 서버로 전달.
+        }).catch((error) => {
+          console.error("메시지 읽음 상태 업데이트 중 오류 발생:", error); // 오류가 발생하면 콘솔에 오류 메시지를 출력.
+        });
+        */
       });
     });
 
     // 소켓 클린업
     return () => {
       if (newSocket) {
-        newSocket.off("message");
-        newSocket.close();
+        newSocket.off("message"); // 소켓에서 "message" 이벤트 리스너를 제거해 메시지를 더 이상 받지 않도록 함.
+        newSocket.close(); // 소켓 연결을 종료. 컴포넌트가 언마운트될 때 실행됨.
       }
     };
-  }, [clubNumber, userId]);
+  }, [clubNumber, userId]); // 의존성 배열: clubNumber나 userId가 변경될 때마다 이 useEffect가 실행됨.
 
   // 이전 메시지 가져오기 (스크롤 시)
   const handleScroll = async (event) => {

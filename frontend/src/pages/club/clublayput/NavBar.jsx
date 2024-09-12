@@ -81,11 +81,7 @@ function NavBar() {
     { name: "홈", path: `/clubs/main?clubNumber=${clubNumber}` },
     { name: "게시판", path: `/clubs/board?clubNumber=${clubNumber}` },
     { name: "사진첩", path: `/clubs/gallery?clubNumber=${clubNumber}` },
-    {
-      name: "채팅",
-      path: "#", // 링크가 아닌 버튼 역할
-      onClick: handleClickChat,
-    },
+    { name: "채팅", onClick: handleClickChat },
   ];
 
   return (
