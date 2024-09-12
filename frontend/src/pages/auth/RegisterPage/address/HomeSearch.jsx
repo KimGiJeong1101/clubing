@@ -90,7 +90,7 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
         }}
         placeholder="*읍면동 중 하나 입력해주세요 예) 상도동"
         sx={{
-          bgcolor: '#F2F2F2',
+          bgcolor: 'white',
         }}
         error={!!errors.searchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
         helperText={errors.searchTerm ? errors.searchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.

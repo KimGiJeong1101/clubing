@@ -23,8 +23,6 @@ const MyClub = () => {
       try {
         const response = await axiosInstance.get('/users/myPage'); 
         const { counts } = response.data; // 서버 응답에서 counts를 추출
-        console.log('상태11:', response.data.user);
-        console.log('상태:', response.data);
         setCounts(counts); // 상태 업데이트
       } catch (error) {
         console.error('Error fetching group counts:', error);
@@ -50,6 +48,7 @@ const MyClub = () => {
           borderBottom: '1px solid #ddd', // 버튼과 콘텐츠 사이에 경계선 추가 (선택 사항)
         }}
       >
+        {/* 컨텐츠 순서 */}
         {['myGroups', 'wishGroups', 'recentGroups', 'invitedGroups'].map((item) => (
           <Box
             key={item}
@@ -89,8 +88,8 @@ const MyClub = () => {
             <Typography variant="body2">
               {item === 'myGroups' && counts.myGroups}
               {item === 'wishGroups' && counts.wishGroups}
-              {item === 'recentGroups' && '4'}
-              {item === 'invitedGroups' && '0'}
+              {item === 'recentGroups' && '0'}
+              {item === 'invitedGroups' && counts.inviteGroups}
             </Typography>
           </Box>
         ))}
@@ -113,11 +112,11 @@ const MyClub = () => {
         {activeItem === 'wishGroups' && (
          <WishGroups />
         )}
+         {activeItem === 'invitedGroups' && (
+          <InvitedGroups />
+        )}
         {activeItem === 'recentGroups' && (
          <RecentGroups />
-        )}
-        {activeItem === 'invitedGroups' && (
-          <InvitedGroups />
         )}
       </Box>
     </Box>

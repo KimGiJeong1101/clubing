@@ -33,18 +33,47 @@ export const saveVote = async (data) => {
   }
 };
 
-// 게시물 목록을 가져오는 API 호출
-export const fetchPosts = async (clubNumber) => {
+
+
+// 게시물 목록을 가져오는 API 호출 (페이징 처리 전 )
+// export const fetchPosts = async (clubNumber, page = 1) => {
+//   try {
+//     const response = await axiosInstance.get('http://localhost:4000/clubs/boards/all', {
+//       params: { clubNumber, page, limit: 12 } // 페이지와 limit을 쿼리로 전달
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error('게시물 목록 조회 오류:', error);
+//     throw error;
+//   }
+// };
+
+// 게시물 목록을 가져오는 API 호출 (페이징 처리 후 )
+export const fetchPosts = async (clubNumber, page = 1, limit = 12, category = '') => {
   try {
-    const response = await axiosInstance.get("http://localhost:4000/clubs/boards/all", {
-      params: { clubNumber },
+
+    const response = await axiosInstance.get('http://localhost:4000/clubs/boards/all', {
+      params: { clubNumber, page, limit, category }
+
     });
-    return response.data;
+
+    const { boards, totalBoards, totalPages } = response.data;
+
+    if (!boards || typeof totalBoards !== 'number' || typeof totalPages !== 'number') {
+      throw new Error('Invalid response data');
+    }
+
+    return { boards, totalBoards, totalPages };
   } catch (error) {
     console.error("게시물 목록 조회 오류:", error);
     throw error;
   }
 };
+
+
+
+
+
 
 // 게시물 조회
 export const fetchPost = async (postId) => {
@@ -56,6 +85,7 @@ export const fetchPost = async (postId) => {
     throw error;
   }
 };
+
 
 // 게시물 삭제
 export const deletePost = async (postId) => {

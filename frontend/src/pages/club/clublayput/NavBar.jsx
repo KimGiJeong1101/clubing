@@ -17,56 +17,51 @@ function NavBar() {
 
   const userId = useSelector((state) => state.user?.userData?.user?._id);
 
-  console.log("유저아이디 뭐찍힘" + userId);
- console.log(userId);
+  //  console.log("유저아이디 뭐찍힘" + userId);
+  //  console.log(userId);
+  //  console.log("클럽아이디 뭐찍힘" + clubNumber)
+  //  console.log(clubNumber)
 
+  const handleClickChat = async () => {
+    // 채팅방을 구성하려면 최소한의 유저와 해당 모임의 번호나 제목이 필요해서 최초에 userId, clubNumber 여부로 에러를 체크한다
+    try {
+      // userId가 없다면 콘솔에 에러 메시지 출력 후 종료
+      if (!userId) {
+        console.error("User ID is missing.");
+        return; // 유저 ID가 없으면 채팅방 생성하지 않음
+      }
 
- console.log("클럽아이디 뭐찍힘" + clubNumber)
- console.log(clubNumber)
+      // clubNumber가 없다면 에러를 던짐
+      if (!clubNumber) {
+        throw new Error("클럽 번호가 없습니다."); // 필수 정보 체크
+      }
 
- const handleClickChat = async () => {
+      // 실제 참여자 ID 리스트 (밑에 선언되어 있는 enterChatRoom 함수를 정상적으로 실행하기 위해 필요한 파라미터 값을 선언해서 세팅해준다)
+      // 그리고 참여자는 여러명이고, 스키마에 배열로 되어 있어서 const participants = [userId]; 이렇게 선언해줬다
+      const participants = [userId];
+      console.log("Participants array before sending:", participants);
 
-  // 채팅방을 구성하려면 최소한의 유저와 해당 모임의 번호나 제목이 필요해서 최초에 userId, clubNumber 여부로 에러를 체크한다
-  try {
-    // userId가 없다면 콘솔에 에러 메시지 출력 후 종료
-    if (!userId) {
-      console.error("User ID is missing.");
-      return; // 유저 ID가 없으면 채팅방 생성하지 않음
+      // 채팅방 생성
+      const actionResult = await dispatch(enterChatRoom({ clubId: clubNumber, participants })); // 이제 여기서 함수가 실행된다.
+      console.log("Action result:", actionResult);
+
+      // 서버로부터 받은 응답 처리
+      const chatRoom = actionResult.payload; // 위의 함수가 성공적으로 실행이 되었다면 서버에서 받은 데이터가 있을텐데 payload안에 담긴다
+
+      // 채팅방 정보가 없다면 에러를 던짐
+      // 이건 말 그대로 채팅방이 없거나 에러가 나면 에러를 던짐
+      if (!chatRoom) {
+        throw new Error("채팅방 정보를 불러오는 데 실패했습니다.");
+      }
+
+      // 채팅방으로 이동 (chatRoom._id는 필요 없으므로 clubNumber만 사용)
+      console.log("Chat room data:", chatRoom);
+      navigate(`/clubs/chat?clubNumber=${clubNumber}`); // 위에 모든 로직이 이루어진뒤에 해당 URL로 이동
+    } catch (error) {
+      // 에러 메시지 출력
+      console.error("Error entering chat room:", error.message || error);
     }
-
-    // clubNumber가 없다면 에러를 던짐
-    if (!clubNumber) {
-      throw new Error("클럽 번호가 없습니다."); // 필수 정보 체크
-    }
-
-     // 실제 참여자 ID 리스트 (밑에 선언되어 있는 enterChatRoom 함수를 정상적으로 실행하기 위해 필요한 파라미터 값을 선언해서 세팅해준다)
-     // 그리고 참여자는 여러명이고, 스키마에 배열로 되어 있어서 const participants = [userId]; 이렇게 선언해줬다
-    const participants = [userId];
-    console.log("Participants array before sending:", participants);
-
-    // 채팅방 생성
-    const actionResult = await dispatch(enterChatRoom({ clubId: clubNumber, participants })); // 이제 여기서 함수가 실행된다.
-    console.log("Action result:", actionResult);
-
-    // 서버로부터 받은 응답 처리
-    const chatRoom = actionResult.payload; // 위의 함수가 성공적으로 실행이 되었다면 서버에서 받은 데이터가 있을텐데 payload안에 담긴다
-
-    // 채팅방 정보가 없다면 에러를 던짐
-    // 이건 말 그대로 채팅방이 없거나 에러가 나면 에러를 던짐
-    if (!chatRoom) {
-      throw new Error("채팅방 정보를 불러오는 데 실패했습니다.");
-    }
-
-    // 채팅방으로 이동 (chatRoom._id는 필요 없으므로 clubNumber만 사용)
-    console.log("Chat room data:", chatRoom);
-    navigate(`/clubs/chat?clubNumber=${clubNumber}`);  // 위에 모든 로직이 이루어진뒤에 해당 URL로 이동
-  } catch (error) {
-    // 에러 메시지 출력
-    console.error("Error entering chat room:", error.message || error);
-  }
-};
-
-
+  };
 
   // 현재 URL을 기준으로 선택된 항목을 결정
   const getSelected = () => {
@@ -125,18 +120,18 @@ function NavBar() {
           >
             {navItems.map((item) => (
               <Grid
-              item
+                item
                 xs={3}
                 mt={2.5}
                 key={item.name}
-              component={Link} // 기본 Link 컴포넌트 사용
-              to={item.path}
-              onClick={(e) => {
-                if (item.onClick) {
-                  e.preventDefault(); // 기본 링크 동작 방지
-                  item.onClick(); // onClick 핸들러 호출
-                }
-              }}
+                component={Link} // 기본 Link 컴포넌트 사용
+                to={item.path}
+                onClick={(e) => {
+                  if (item.onClick) {
+                    e.preventDefault(); // 기본 링크 동작 방지
+                    item.onClick(); // onClick 핸들러 호출
+                  }
+                }}
                 sx={{
                   height: "50px",
                   position: "relative",
