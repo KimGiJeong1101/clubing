@@ -1,5 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
+import { Box,Grid, Paper, Typography } from "@mui/material";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import Avatar from "@mui/material/Avatar";
@@ -9,7 +8,12 @@ import ModeNightIcon from "@mui/icons-material/ModeNight";
 import { useNavigate } from "react-router-dom";
 
 const ClubListCard = ({ clubList }) => {
+  
   const navigate = useNavigate();
+    // clubList가 undefined인 경우를 처리
+    if (!clubList || clubList.length === 0) {
+      return <div>No clubs available</div>;
+    }
   return (
     <>
       {clubList.map((club) => (

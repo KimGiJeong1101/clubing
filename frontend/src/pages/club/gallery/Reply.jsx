@@ -47,15 +47,6 @@ const Reply = ({ postType, postId }) => {
     const mutation = useMutation({
         mutationFn: (newComment) => {
             return axiosInstance.post(`http://localhost:4000/replies/add/${newComment.postId}`, newComment);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries(['replies', postType, postId]);
-            setComment('');
-            setReplyContent('');
-            handleSnackbarOpen('댓글이 성공적으로 등록되었습니다.', 'success');
-        },
-        onError: (error) => {
-            handleSnackbarOpen(`댓글 등록 중 에러 발생: ${error.message}`, 'error');
         }
     });
 
@@ -65,13 +56,6 @@ const Reply = ({ postType, postId }) => {
             return axiosInstance.delete(`http://localhost:4000/replies/delete/${replyId}`, {
                 data: { writer }  // 삭제 요청 시 삭제하는 사용자의 정보를 함께 보냄
             });
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries(['replies', postType, postId]); // 댓글 목록을 다시 가져옴
-            handleSnackbarOpen('댓글이 성공적으로 삭제되었습니다.', 'success');
-        },
-        onError: (error) => {
-            handleSnackbarOpen(`댓글 삭제 중 에러 발생: ${error.message}`, 'error');
         }
     });
 
@@ -82,17 +66,6 @@ const Reply = ({ postType, postId }) => {
                 writer,
                 comment
             });
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries(['replies', postType, postId]); // 댓글 목록을 다시 가져옴
-            handleSnackbarOpen('댓글이 성공적으로 수정되었습니다.', 'success');
-            setEditMode(null);  // 수정 모드를 종료
-            setEditComment('');
-            setEditChildMode(null); // 대댓글 수정 모드 종료
-            setEditChildComment('');
-        },
-        onError: (error) => {
-            handleSnackbarOpen(`댓글 수정 중 에러 발생: ${error.message}`, 'error');
         }
     });
 
@@ -114,25 +87,53 @@ const Reply = ({ postType, postId }) => {
     // 댓글 등록
     const handleCommentSubmit = () => {
         if (comment.trim() === '') return;
-        mutation.mutate({
-            postType,
-            postId,
-            writer: userNickName,
-            comment,
-        });
+
+        mutation.mutate(
+            {
+                postType,
+                postId,
+                writer: userNickName,
+                comment,
+            },
+            {
+                onSettled: (data, error) => {
+                    if (!error) {
+                        queryClient.invalidateQueries(['replies', postType, postId]);
+                        setComment('');
+                        setReplyContent('');
+                        handleSnackbarOpen('댓글이 성공적으로 등록되었습니다.', 'success');
+                    } else {
+                        handleSnackbarOpen(`댓글 등록 중 에러 발생: ${error.message}`, 'error');
+                    }
+                }
+            }
+        );
     };
 
     // 대댓글 등록
     const handleReplySubmit = (parentReplyId) => {
         if (replyContent.trim() === '') return;
-        mutation.mutate({
-            postType,
-            postId,
-            writer: userNickName,
-            comment: replyContent,
-            parentReplyId, // 부모 댓글의 ID를 전달
-        });
-        setActiveReplyIndex(null); // 답글 입력 후 입력창 닫기
+
+        mutation.mutate(
+            {
+                postType,
+                postId,
+                writer: userNickName,
+                comment: replyContent,
+                parentReplyId, // 부모 댓글의 ID를 전달
+            },
+            {
+                onSettled: (data, error) => {
+                    if (!error) {
+                        queryClient.invalidateQueries(['replies', postType, postId]);
+                        setActiveReplyIndex(null);
+                        handleSnackbarOpen('답글이 성공적으로 등록되었습니다.', 'success');
+                    } else {
+                        handleSnackbarOpen(`답글 등록 중 에러 발생: ${error.message}`, 'error');
+                    }
+                }
+            }
+        );
     };
 
     const handleSnackbarOpen = (message, severity) => {
@@ -163,17 +164,25 @@ const Reply = ({ postType, postId }) => {
     };
 
     const handleDeleteReply = () => {
-        if (selectedReply) {
-            deleteMutation.mutate({
-                replyId: selectedReply._id,  // 삭제할 댓글의 ID
-                writer: userNickName,  // 현재 로그인한 사용자의 닉네임
-            });
-        } else if (selectedChildReply) {
-            deleteMutation.mutate({
-                replyId: selectedChildReply._id,  // 삭제할 대댓글의 ID
-                writer: userNickName,  // 현재 로그인한 사용자의 닉네임
-            });
-        }
+        const selected = selectedReply ? selectedReply : selectedChildReply;
+        if (!selected) return;
+
+        deleteMutation.mutate(
+            {
+                replyId: selected._id,
+                writer: userNickName,
+            },
+            {
+                onSettled: (data, error) => {
+                    if (!error) {
+                        queryClient.invalidateQueries(['replies', postType, postId]);
+                        handleSnackbarOpen('댓글이 성공적으로 삭제되었습니다.', 'success');
+                    } else {
+                        handleSnackbarOpen(`댓글 삭제 중 에러 발생: ${error.message}`, 'error');
+                    }
+                }
+            }
+        );
         handleMenuClose();
     };
 
@@ -192,21 +201,51 @@ const Reply = ({ postType, postId }) => {
     // 댓글 수정 제출
     const handleEditSubmit = () => {
         if (editComment.trim() === '') return;
-        editMutation.mutate({
-            replyId: editMode, // 수정할 댓글의 ID
-            writer: userNickName,
-            comment: editComment
-        });
+
+        editMutation.mutate(
+            {
+                replyId: editMode, // 수정할 댓글의 ID
+                writer: userNickName,
+                comment: editComment
+            },
+            {
+                onSettled: (data, error) => {
+                    if (!error) {
+                        queryClient.invalidateQueries(['replies', postType, postId]);
+                        setEditMode(null);
+                        setEditComment('');
+                        handleSnackbarOpen('댓글이 성공적으로 수정되었습니다.', 'success');
+                    } else {
+                        handleSnackbarOpen(`댓글 수정 중 에러 발생: ${error.message}`, 'error');
+                    }
+                }
+            }
+        );
     };
 
     // 대댓글 수정 제출
     const handleEditChildSubmit = () => {
         if (editChildComment.trim() === '') return;
-        editMutation.mutate({
-            replyId: editChildMode, // 수정할 대댓글의 ID
-            writer: userNickName,
-            comment: editChildComment
-        });
+
+        editMutation.mutate(
+            {
+                replyId: editChildMode, // 수정할 대댓글의 ID
+                writer: userNickName,
+                comment: editChildComment
+            },
+            {
+                onSettled: (data, error) => {
+                    if (!error) {
+                        queryClient.invalidateQueries(['replies', postType, postId]);
+                        setEditChildMode(null);
+                        setEditChildComment('');
+                        handleSnackbarOpen('대댓글이 성공적으로 수정되었습니다.', 'success');
+                    } else {
+                        handleSnackbarOpen(`대댓글 수정 중 에러 발생: ${error.message}`, 'error');
+                    }
+                }
+            }
+        );
     };
 
     return (
@@ -378,7 +417,7 @@ const Reply = ({ postType, postId }) => {
 
                                     <Button
                                         variant="text"
-                                        sx={{ marginTop: '2px' }}
+                                        sx={{ marginTop: '2px', color: '#A67153' }}
                                         onClick={() => setActiveReplyIndex(index)}
                                     >
                                         답글

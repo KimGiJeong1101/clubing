@@ -21,7 +21,6 @@ const boardSchema = mongoose.Schema({
             emails: [{ type: String }] // 배열을 추가하여 회원 아이디 저장
         }
     ]
-  
 });
 
 // save 훅을 사용하여 _id를 자동으로 증가시키기
