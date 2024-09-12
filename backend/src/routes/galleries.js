@@ -8,6 +8,7 @@ const fs = require("fs");
 const Gallery = require("../models/ClubGallery");
 const moment = require("moment-timezone"); // moment-timezone 패키지를 사용하여 시간대 변환
 const User = require("../models/User");
+const auth = require("../middleware/auth");
 
 // 날짜별 폴더 생성 함수 (갤러리용)
 const createDailyFolder = () => {
@@ -62,7 +63,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).array("files", 8);
 // 클럽별 갤러리 이미지 등록
-router.post("/:clubNumber/images", upload, async (req, res) => {
+router.post("/:clubNumber/images", auth,upload, async (req, res) => {
   try {
     const { originPath, thumbnailPath } = createDailyFolder();
     const files = req.files;
@@ -121,7 +122,7 @@ router.post("/:clubNumber/images", upload, async (req, res) => {
 });
 
 // 클럽별 이미지 수정 라우트
-router.put("/:clubNumber/images/:id", upload, async (req, res) => {
+router.put("/:clubNumber/images/:id", auth,upload, async (req, res) => {
   try {
     const { clubNumber, id } = req.params;
     const { writer, title, content, sortedImages } = req.body;
@@ -240,7 +241,7 @@ router.get("/:clubNumber/images/:id", async (req, res) => {
   }
 });
 // 클럽별 이미지 삭제 라우트
-router.delete("/:clubNumber/images", async (req, res) => {
+router.delete("/:clubNumber/images", auth,async (req, res) => {
   const { imageIds, writer } = req.body;
   const { clubNumber } = req.params;
   console.log("권한 있는사람 : ", writer);
@@ -301,7 +302,7 @@ router.delete("/:clubNumber/images", async (req, res) => {
 });
 
 // 클럽별 전체 이미지 삭제 라우트
-router.delete("/:clubNumber/images/all", async (req, res) => {
+router.delete("/:clubNumber/images/all",auth, async (req, res) => {
   const { clubNumber } = req.params;
   const { writer } = req.body;
   console.log("권한 있는사람 : ", writer);

@@ -22,7 +22,9 @@ function NavBar() {
   //  console.log("클럽아이디 뭐찍힘" + clubNumber)
   //  console.log(clubNumber)
 
+  
   const handleClickChat = async () => {
+
     // 채팅방을 구성하려면 최소한의 유저와 해당 모임의 번호나 제목이 필요해서 최초에 userId, clubNumber 여부로 에러를 체크한다
     try {
       // userId가 없다면 콘솔에 에러 메시지 출력 후 종료
@@ -56,12 +58,15 @@ function NavBar() {
 
       // 채팅방으로 이동 (chatRoom._id는 필요 없으므로 clubNumber만 사용)
       console.log("Chat room data:", chatRoom);
-      navigate(`/clubs/chat?clubNumber=${clubNumber}`); // 위에 모든 로직이 이루어진뒤에 해당 URL로 이동
+
+      navigate(`/clubs/chat?clubNumber=${clubNumber}`);  // 위에 모든 로직이 이루어진뒤에 해당 URL로 이동
+
     } catch (error) {
       // 에러 메시지 출력
       console.error("Error entering chat room:", error.message || error);
     }
   };
+
 
   // 현재 URL을 기준으로 선택된 항목을 결정
   const getSelected = () => {

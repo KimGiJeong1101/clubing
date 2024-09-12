@@ -131,6 +131,7 @@ router.post("/room", auth, async (req, res) => {
 
 router.get("/room/:clubId", auth, async (req, res) => {
   try {
+
     console.log("하하하하하하");
     console.log(req.query.clubNumber);
     console.log(req.params.clubNumber);
@@ -139,6 +140,7 @@ router.get("/room/:clubId", auth, async (req, res) => {
     const clubId = req.params.clubId;
     // URL에서 clubNumber를 가져옴
     console.log(clubId);
+
     console.log("Fetching chat room with clubId:", clubId);
 
     // clubId로 채팅방 조회
