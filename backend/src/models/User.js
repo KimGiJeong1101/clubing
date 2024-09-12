@@ -140,6 +140,10 @@ const userSchema = mongoose.Schema({
     type: [Number], // 클럽 ID들을 저장하는 배열
     default: [], // 기본값은 빈 배열
   },
+  invite: {
+    type: [Number], // 클럽 ID들을 저장하는 배열
+    default: [], // 기본값은 빈 배열
+  },
 });
 
 userSchema.pre("save", async function (next) {

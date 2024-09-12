@@ -16,7 +16,7 @@ import PrivacyPopup from './consent/Privacy';
 import MarketingPopup from './consent/Marketing';
 import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, FormControlLabel,
           FormControl, InputLabel, Select, MenuItem, FormHelperText, DialogActions,
-          Chip, Checkbox, Paper, Link
+          Chip, Checkbox, Paper, Link,
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import color from '../../../color'; // 색상를 정의한 파일
@@ -24,12 +24,13 @@ import '../../../assets/styles/LoginCss.css'
 import CustomCheckbox from '../../../components/club/CustomCheckbox'
 import CustomButton from '../../../components/club/CustomButton'
 import CustomButton2 from '../../../components/club/CustomButton2'
+import CustomSnackbar from '../../../components/auth/Snackbar';
 
 const RegisterPage = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
   useForm({  
             defaultValues: {
-              age: { year: '1990', month: '9', day: '10' },
+              age: { year: '', month: '', day: '' },
               gender: '',
               homeLocation: { sido: '', sigoon: '', dong: '' },
               workplace: { w_sido: '', w_sigoon: '', w_dong: '' },
@@ -56,28 +57,68 @@ const RegisterPage = () => {
 
     // 체크박스 상태를 직접 가져옵니다
   const { terms, privacy, marketing } = checkboxState;
+  const { year = '', month = '', day = '' } = age;
+  const { sido = '', sigoon = '', dong = '' } = homeLocation;
+  const { w_sido = '', w_sigoon = '', w_dong = '' } = workplace;
+  const { i_sido = '', i_sigoon = '', i_dong = '' } = interestLocation;
   // 온서밋에 안 넣어도 되네 얘 때문에 몇시간을 버린거야 ㅠㅠ
 
     if (!isVerified) {
-      alert('이메일 인증이 완료되지 않았습니다.');
-      return; // 인증이 완료되지 않았으면 폼 제출을 중지합니다.
+      // 이메일 인증이 완료되지 않았을 때
+      setSnackbarMessage('이메일 인증이 완료되지 않았습니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
-    // 약관 동의 확인
+
+    if (!isNickNameChecked) {
+      // 닉네임 중복 검사를 하지 않았을 때
+      setSnackbarMessage('닉네임 중복 검사를 해야 합니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (!sido || !sigoon || !dong) {
+      // 필수 입력이 비어 있을 때
+      setSnackbarMessage('집 주소를 설정해 주세요.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (selectedJobs.length === 0) {
+      // 카테고리 배열이 비어 있을 때
+      setSnackbarMessage('직종을 설정해 주세요');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (category.length === 0) {
+      // 카테고리 배열이 비어 있을 때
+      setSnackbarMessage('카테고리를 설정해 주세요');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
     if (!terms) {
-      alert('clubing 이용약관에 동의해야 합니다.');
-      return; // 이용약관에 동의하지 않았으면 폼 제출을 중지합니다.
+      // 이용약관 동의가 없을 때
+      setSnackbarMessage('Clubing 이용약관에 동의해야 합니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
-    
+
     if (!privacy) {
-      alert('개인정보 수집 및 이용에 동의해야 합니다.');
-      return; // 개인정보 수집 및 이용에 동의하지 않았으면 폼 제출을 중지합니다.
+      // 개인정보 수집 및 이용에 동의하지 않았을 때
+      setSnackbarMessage('개인정보 수집 및 이용에 동의해야 합니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
-    
-    const { year = '', month = '', day = '' } = age;
-    const { sido = '', sigoon = '', dong = '' } = homeLocation;
-    const { w_sido = '', w_sigoon = '', w_dong = '' } = workplace;
-    const { i_sido = '', i_sigoon = '', i_dong = '' } = interestLocation;
-  
+
      const categoryObject = category.reduce((acc, cat) => {
       if (cat.main && Array.isArray(cat.sub)) {
         acc.push({
@@ -133,12 +174,20 @@ const RegisterPage = () => {
 
     dispatch(registerUser(body))
       .then(() => {
-        // 회원가입 성공 후 리다이렉트 처리
-        navigate('/'); // 성공 페이지로 리다이렉트
+       setSnackbarMessage('회원가입에 성공하셨습니다.');
+        setSnackbarSeverity('success'); // 성공 상태로 변경
+        setSnackbarOpen(true);
+
+        // 스낵바가 표시된 후 페이지를 이동하도록 타이머를 설정합니다.
+        setTimeout(() => {
+          navigate('/'); // 성공 페이지로 리다이렉트
+        }, 1000); // 스낵바 표시 시간과 일치하도록 설정
       })
       .catch((error) => {
         console.error('회원가입 실패:', error);
-        // 에러 처리 로직
+        setSnackbarMessage('회원가입에 실패하였습니다.');
+        setSnackbarSeverity('error'); // 에러 상태로 변경
+        setSnackbarOpen(true);
       });
 
     // registerUser(body) thunk함수
@@ -150,6 +199,16 @@ const RegisterPage = () => {
   
   //api
   const apiUrl = process.env.REACT_APP_API_URL;
+
+  // 스낵바 상태를 추가합니다.
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+  
 
   // 상태 정의
    const [homeLocation, setHomeLocation] = useState({ sido: '', sigoon: '', dong: '' });
@@ -195,6 +254,7 @@ const RegisterPage = () => {
 
   // 닉네임
   const nickName = {
+    required: "필수 필드입니다.",
     maxLength: {
       value: 20,
       message: "닉네임은 최대 20자까지 입력할 수 있습니다."
@@ -203,27 +263,27 @@ const RegisterPage = () => {
 
   // 비밀번호 유효성 검사 규칙
   const userPassword = {
-    // required: "필수 필드입니다.",
-    // minLength: {
-    //   value: 8,
-    //   message: "최소 8자입니다."
-    // },validate: value => {
-    //   // 비밀번호 유효성 검사 정규 표현식
-    //    const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
-    //    if (!regex.test(value)) {
-    //      return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
-    //    }
-    //    return true; // 유효성 검사 통과
-    // }
+    required: "필수 필드입니다.",
+    minLength: {
+      value: 8,
+      message: "최소 8자입니다."
+    },validate: value => {
+      // 비밀번호 유효성 검사 정규 표현식
+       const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
+       if (!regex.test(value)) {
+         return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
+       }
+       return true; // 유효성 검사 통과
+    }
   };
 
   const userPasswordCheck = {
-    // required: 0,
-    // minLength: {
-    //   value: 8,
-    //   message: "최소 8자입니다."
-    // },
-    // validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
+    required: 0,
+    minLength: {
+      value: 8,
+      message: "최소 8자입니다."
+    },
+    validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
   };
 
   // 연도, 월, 일을 위한 옵션 생성
@@ -350,13 +410,15 @@ useEffect(() => {
   const handleCheckDuplicate = async () => {
      // 이메일 주소가 null이거나 빈 문자열인 경우 처리
     if (!emailValue || emailValue.trim() === '') {
-      alert('이메일 주소를 입력해주세요.'); // 사용자에게 이메일 입력을 요청하는 얼럿 표시
+      setSnackbarMessage('이메일 주소를 입력해주세요.');
+      setSnackbarOpen(true); // 스낵바 열기
       return; // 오류가 있을 경우 함수 실행 중지
     }
 
     if (errors.email) {
       // 이메일 필드에 오류가 있을 경우 얼럿을 띄움
-      alert('유효한 이메일 주소를 입력하세요.');
+      setSnackbarMessage('유효한 이메일 주소를 입력하세요.');
+      setSnackbarOpen(true); // 스낵바 열기
       return; // 오류가 있을 경우 함수 실행 중지
     }
     const email = emailValue;
@@ -452,9 +514,7 @@ const [verifyError, setVerifyError] = useState('');
             if (response.data.ok) {
                 // 인증 성공
                 setIsVerified(true); 
-                alert('인증에 성공하였습니다.');
                 setVerifyError(''); // 인증 성공 시 에러 메시지 초기화
-                //추가
                 setMessage(''); // 인증 성공 시 메시지 초기화
                 setTimer(0); // 타이머를 0으로 설정
                 setHasExpired(false); // 만료 상태 초기화
@@ -462,6 +522,10 @@ const [verifyError, setVerifyError] = useState('');
                   clearInterval(intervalId); // 인터벌 클리어
                   setIntervalId(null);
                 }
+
+                // 스낵바 메시지 설정
+                setSnackbarMessage('인증에 성공하였습니다.');
+                setSnackbarOpen(true); // 스낵바 열기
             } else {
                 // 인증 실패
                 setVerifyError(response.data.msg);
@@ -471,6 +535,45 @@ const [verifyError, setVerifyError] = useState('');
             setVerifyError('인증번호가 틀렸습니다.');
         }
     }
+
+    const nickNameValue = watch('nickName');
+    const [isNickNameChecked, setIsNickNameChecked] = useState(false);
+    const [isNickNameReset, setIsNickNameReset] = useState(false); // 수정 버튼 상태
+
+    const handleCheckNickName = async () => {
+      if (!nickNameValue || nickNameValue.trim() === '') {
+        setSnackbarMessage('닉네임을 입력해주세요.');
+        setSnackbarOpen(true); // 닫지 말고 열어야 함
+        return;
+      }
+    
+      if (errors.nickName) {
+        setSnackbarMessage('유효한 닉네임을 입력하세요.');
+        setSnackbarOpen(true); // 닫지 말고 열어야 함
+        return;
+      }
+    
+      const nickName = nickNameValue;
+      try {
+        const response = await axios.post(`${apiUrl}/users/check-nickname`, { nickName });
+        setSnackbarMessage(response.data.message);
+        setSnackbarSeverity('success'); // 성공 메시지
+        setSnackbarOpen(true);
+        setIsNickNameChecked(true);  // 닉네임 확인 후 버튼 상태 변경
+        setIsNickNameReset(true); // 수정 버튼 상태로 변경
+      } catch (err) {
+        setSnackbarMessage(err.response ? err.response.data.message : '서버 오류');
+        setSnackbarSeverity('error'); // 오류 메시지
+        setSnackbarOpen(true);
+        setIsNickNameChecked(false);  // 오류 발생 시 버튼 상태 유지
+        setIsNickNameReset(false);
+      }
+    };
+
+    const handleNickNameReset = () => {
+      setIsNickNameChecked(false);
+      setIsNickNameReset(false); // 상태 초기화
+    };
 
 // 전화번호 하이픈  자동생성
 const formatPhoneNumber = (value) => {
@@ -541,7 +644,6 @@ const consentPopupClose = (type) => {
 
 
   return (
-
     <Box 
       sx={{ 
           display: 'flex', 
@@ -566,7 +668,7 @@ const consentPopupClose = (type) => {
         }}
       >
         <img
-          src="/logo_string02.png"
+          src="/logo/khaki_long_h.png"
           style={{
             display: "block",
             margin: "auto auto 40px auto",
@@ -789,7 +891,10 @@ const consentPopupClose = (type) => {
             type="text"
             fullWidth
             variant="outlined"
-            {...register('name', userName)}
+            {...register('name', {
+              required: "필수 필드입니다.",
+              validate: userName
+            })}
             sx={{
               bgcolor: 'white',
             }}
@@ -808,7 +913,7 @@ const consentPopupClose = (type) => {
       >
       닉네임
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, }}>
       <TextField
         id='nickName'
         label="닉네임"
@@ -816,13 +921,52 @@ const consentPopupClose = (type) => {
         fullWidth
         variant="outlined"
         {...register('nickName', nickName)}
-        sx={{
-          bgcolor: 'white',
+        InputProps={{
+          readOnly: isNickNameChecked,
+          sx: {
+            bgcolor: isNickNameChecked ? 'grey.200' : 'white',
+            '& .MuiInputBase-input': {
+              color: isNickNameChecked ? 'text.disabled' : 'text.primary',
+            },
+          },
         }}
-        error={!!errors.nickName}
-        helperText={errors.nickName ? errors.nickName.message : ''}
+        sx={{
+          flex: 1,
+          mr: 1,
+        }}
         />
+       <Stack direction="row" spacing={2}>
+        {!isNickNameReset ? (
+          !isNickNameChecked && (
+            <CustomButton2 
+              variant="contained" 
+              color="primary" 
+              className="buttonMain"
+              sx={{ height: '50px' }}
+              onClick={handleCheckNickName}
+            >
+              중복검사
+            </CustomButton2>
+          )
+        ) : (
+          <>
+            <CustomButton2  
+              variant="outlined"  
+              className="buttonSub1"
+              sx={{ height: '50px' }}
+              onClick={handleNickNameReset}
+            >
+              닉네임 수정
+            </CustomButton2>
+            </>
+        )}
+      </Stack>
       </Box>
+        {errors?.nickName && (
+      <Typography color="error" sx={{ mt: 1 }}>
+        {errors.nickName.message}
+      </Typography>
+      )}
     </Box>         
 {/*생년월일 */}
 <Box mb={2}>
@@ -1316,14 +1460,13 @@ const consentPopupClose = (type) => {
       )}
 {/*회원가입 버튼 */}
           <Box mt={6}>
-            <Button
+            <CustomButton2
               type="submit"
               variant="contained"
-              color="primary"
-              sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px', backgroundColor: 'black', '&:hover': { backgroundColor: 'gray.700' } }}
+              sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px' }}
             >
               회원가입
-            </Button>
+            </CustomButton2>
 
             <Typography
               mt={8}
@@ -1340,6 +1483,13 @@ const consentPopupClose = (type) => {
           </Box>
         </form>
       </Box>
+       {/* 스낵바 컴포넌트 호출 */}
+       <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity="success"
+        onClose={handleSnackbarClose}
+      />
       </Box>
   );
 };

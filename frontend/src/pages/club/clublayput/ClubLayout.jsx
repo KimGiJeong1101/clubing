@@ -10,6 +10,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import axiosInstance from "../../../utils/axios";
 import { fetchGetClub } from "../../../store/reducers/clubReducer";
 import { useDispatch, useSelector } from "react-redux";
+import WishHearts from "../../../components/club/WishHearts.jsx";
 
 function ClubLayout() {
   const location = useLocation();
@@ -32,7 +33,6 @@ function ClubLayout() {
   useEffect(() => {
     if (getClub.clubs && user.email) {
       setJoinHandler(!getClub.clubs.members.includes(user.email));
-      setIsFavorite(getClub.clubs.wishHeart.includes(user.email));
     }
   }, [getClub, user.email, clubNumber]);
 
@@ -53,37 +53,6 @@ function ClubLayout() {
         });
     }
   };
-  // 찜하기
-
-  useEffect(() => {
-    if (getClub.clubs && user.email) {
-      // 클럽의 찜 목록(wishHeart)에 유저 이메일이 포함되어 있는지 확인
-      setIsFavorite(getClub.clubs.wishHeart.includes(user.email));
-    }
-  }, [getClub, user.email]);
-
-  const handleFavoriteToggle = () => {
-    if (user.email === "") {
-      alert("로그인이 필요한 서비스입니다.");
-      navigate("/login");
-      return;
-    }
-  
-    const url = isFavorite
-      ? `/clubs/removeWish/${clubNumber}` // 찜 해제 API (추가 필요)
-      : `/clubs/addWish/${clubNumber}`;
-  
-    axiosInstance
-      .post(url)
-      .then(() => {
-        setIsFavorite(!isFavorite); // 찜 상태 토글
-      })
-      .catch((err) => {
-        console.log(err);
-        alert("찜하기에 실패했습니다.");
-      });
-  };
-
 
   return (
     <Box>
@@ -117,17 +86,7 @@ function ClubLayout() {
                     borderRadius: "20px 0px 0px 20px",
                   }}
                 >
-                  <FavoriteIcon
-                    onClick={handleFavoriteToggle}
-                    sx={{
-                      fontSize: "26px",
-                      padding: "7px",
-                      color: isFavorite ? "lightcoral" : "gray",
-                      ":hover": {
-                        cursor: "pointer",
-                      },
-                    }}
-                  />
+                   <WishHearts />
                 </Grid>
                 <Grid item xs={11} sx={{ textAlign: "center" }}>
                   <Button
@@ -147,7 +106,7 @@ function ClubLayout() {
           </Box>
         )}
       </main>
-      <Footer />
+      {/* <Footer /> */}
       <MainFooter/>
     </Box>
   );

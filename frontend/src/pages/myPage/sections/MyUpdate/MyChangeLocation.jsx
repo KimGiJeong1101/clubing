@@ -11,6 +11,7 @@ import { Typography, Box,
         } from '@mui/material';
 import '../../../../assets/styles/LoginCss.css'
 import CustomButton2 from '../../../../components/club/CustomButton2.jsx'
+import CustomSnackbar from '../../../../components/auth/Snackbar';
 
 const MyChangeLocation = ({ view }) => {
   const user = useSelector((state) => state.user?.userData?.user || {});
@@ -25,6 +26,16 @@ const MyChangeLocation = ({ view }) => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+// 스낵바 상태를 추가합니다.
+const [snackbarOpen, setSnackbarOpen] = useState(false);
+const [snackbarMessage, setSnackbarMessage] = useState('');
+const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+const handleSnackbarClose = () => {
+  setSnackbarOpen(false);
+};
+
 
   // 정보수정 폼 제출 시 실행되는 함수
   const onSubmit = async (data) => {
@@ -54,14 +65,22 @@ const MyChangeLocation = ({ view }) => {
     try {
       const response = await axiosInstance.post('/users/update-location', body);
       if (response.data.ok) {
-        alert('위치 정보가 업데이트되었습니다.');
-        navigate('/'); // 성공 페이지로 리다이렉트
+        setSnackbarMessage('위치 정보가 업데이트되었습니다.');
+        setSnackbarSeverity('success'); // 성공 상태로 변경
+        setSnackbarOpen(true);
+        setTimeout(() => {
+          navigate('/'); // 비밀번호 변경 후 페이지 이동
+        }, 2000); // 2초 후 이동
       } else {
-        alert('업데이트 중 오류가 발생했습니다.');
+        setSnackbarMessage('업데이트 중 오류가 발생했습니다.');
+        setSnackbarSeverity('error'); // 실패 상태로 변경
+        setSnackbarOpen(true);
       }
     } catch (error) {
       console.error('위치 정보 업데이트 오류:', error);
-      alert('위치 정보 업데이트 중 오류가 발생했습니다.');
+      setSnackbarMessage('위치 정보 업데이트 중 오류가 발생했습니다.');
+      setSnackbarSeverity('error'); // 실패 상태로 변경
+      setSnackbarOpen(true);
     }
   };
 
@@ -179,6 +198,12 @@ const MyChangeLocation = ({ view }) => {
           </CustomButton2>
       </Box>
       )}  
+       <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity="success"
+        onClose={handleSnackbarClose}
+      />
     </Box>
   );
 };

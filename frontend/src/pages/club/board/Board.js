@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
+import { Container, Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert, Box } from '@mui/material';
 import AddIcon from "@mui/icons-material/Add";
 import CKEditor5Editor from '../../../components/club/ClubBoardEditor';
 import VoteCreationForm from '../../../components/club/ClubVote';
@@ -13,7 +13,7 @@ const Board = () => {
   const [editorData, setEditorData] = useState('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
-  const [showList, setShowList] = useState(true);
+  const [image, setImage] = useState('');
   const [options, setOptions] = useState(['', '']);
   const [allowMultiple, setAllowMultiple] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
@@ -86,12 +86,10 @@ const Board = () => {
 
   const handleClickOpen = () => {
     setOpen(true);
-    setShowList(false);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setShowList(true);
     category === '투표' ? resetVoteState() : resetEditorState();
   };
 
@@ -133,11 +131,25 @@ const Board = () => {
         </Fab>
       )}
 
-      {showList && <ListPosts />}
+      <ListPosts />
 
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="lg"
+        PaperProps={{
+          style: {
+            height: '80%', // 전체 높이를 80%로 설정
+            maxHeight: '80%', // 최대 높이 설정
+          },
+        }}
+      >
         <DialogTitle>글쓰기</DialogTitle>
-        <DialogContent>
+        <DialogContent
+          dividers // 내용에 구분선 추가
+          sx={{ maxHeight: 'calc(80vh - 100px)', overflowY: 'auto' }} // 내용 영역의 최대 높이 설정
+        >
           {category === '투표' ? (
             <VoteCreationForm
               title={title}
@@ -160,6 +172,7 @@ const Board = () => {
               setTitle={setTitle}
               category={category}
               setCategory={setCategory}
+              setImage={setImage} 
             />
           )}
         </DialogContent>
@@ -179,6 +192,7 @@ const Board = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+      <Box m={5}></Box>
     </Container>
   );
 };

@@ -6,6 +6,7 @@ import axios from 'axios';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import CustomButton from '../../../components/club/CustomButton'
 import CustomButton2 from '../../../components/club/CustomButton2'
+import CustomSnackbar from '../../../components/auth/Snackbar';
 
 const FindPasswordPage = ({ open, onClose }) => {
   const { register, handleSubmit, watch, setError, reset, formState: { errors }, getValues } = useForm({
@@ -131,7 +132,9 @@ const [verificationCode, setVerificationCode] = useState('');
       if (response.data.ok) {
         // 인증 성공
         setIsVerified(true); 
-        alert('인증에 성공하였습니다.');
+        setSnackbarMessage('인증에 성공하였습니다.');
+        setSnackbarSeverity('success'); // 성공 상태로 변경
+        setSnackbarOpen(true);
         setVerifyError(''); // 인증 성공 시 에러 메시지 초기화
         //추가
         setTimer(0); // 타이머를 0으로 설정
@@ -143,10 +146,16 @@ const [verificationCode, setVerificationCode] = useState('');
     } else {
         // 인증 실패
         setVerifyError(response.data.msg);
+        setSnackbarMessage('인증에 실패하였습니다.');
+        setSnackbarSeverity('error'); // 실패 상태로 변경
+        setSnackbarOpen(true);
     }
 } catch (err) {
   console.error('인증 번호 확인 에러:', err); // 에러 확인
     setVerifyError('인증번호가 틀렸습니다.');
+    setSnackbarMessage('인증번호가 틀렸습니다.');
+    setSnackbarSeverity('error'); // 실패 상태로 변경
+    setSnackbarOpen(true);
 }
 }
 
@@ -205,8 +214,13 @@ const userPasswordCheck = {
       });
 
       if (response.data.ok) {
-        alert('비밀번호가 성공적으로 변경되었습니다.');
-        onClose();
+        setSnackbarMessage('비밀번호가 성공적으로 변경되었습니다.');
+        setSnackbarSeverity('success'); // 성공 상태로 변경
+        setSnackbarOpen(true);
+        setTimeout(() => {
+          onClose(); // 창 닫기
+          handleReset(); // 폼 필드 리셋
+        }, 1000); // 스낵바 표시 시간과 일치하도록 설정
       } else {
         setPasswordError('비밀번호 변경 중 오류가 발생했습니다.');
       }
@@ -246,6 +260,15 @@ const userPasswordCheck = {
     clearInterval(intervalId); // 타이머 클리어
     setIntervalId(null);
   }
+  };
+
+  // 스낵바 상태를 추가합니다.
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -460,6 +483,14 @@ const userPasswordCheck = {
           취소
         </CustomButton>
       </DialogActions>
+
+      <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity="success"
+        onClose={handleSnackbarClose}
+      />
+
     </Dialog>
   );
 };

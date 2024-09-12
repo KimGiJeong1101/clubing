@@ -61,7 +61,6 @@ function App() {
         {/* 로그인한 사람만 갈 수 있는 경로 */}
         <Route element={<ProtectedRoutes isAuth={isAuth} />}>
           <Route path="/clubs/create" element={<ClubCreate />} />
-          <Route path="/clubs/board" element={<Board />} />
           <Route path="/mypage/*" element={<MyPageRoutes />} />
         </Route>
 

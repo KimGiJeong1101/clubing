@@ -17,12 +17,11 @@ function NavBar() {
 
   const userId = useSelector((state) => state.user?.userData?.user?._id);
 
-  console.log("유저아이디 뭐찍힘" + userId);
-  console.log(userId);
+  //  console.log("유저아이디 뭐찍힘" + userId);
+  //  console.log(userId);
+  //  console.log("클럽아이디 뭐찍힘" + clubNumber)
+  //  console.log(clubNumber)
 
-
-  console.log("클럽아이디 뭐찍힘" + clubNumber)
-  console.log(clubNumber)
 
   const handleClickChat = async () => {
 
@@ -127,6 +126,7 @@ function NavBar() {
               <Grid
                 item
                 xs={3}
+                mt={2.5}
                 key={item.name}
                 component={Link} // 기본 Link 컴포넌트 사용
                 to={item.path}
