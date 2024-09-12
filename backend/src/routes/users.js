@@ -14,7 +14,6 @@ const fs = require('fs');
 //sns
 const passport = require('passport');
 
-
 router.get('/auth', auth, async (req, res, next) => {
     try {
         const user = req.user; // 로그인된 사용자 정보
@@ -35,6 +34,29 @@ router.get('/auth', auth, async (req, res, next) => {
 });
 
 // Email Check Route
+router.post('/check-nickname', async (req, res) => {
+    const { nickName } = req.body;
+    try {
+        // 이메일이 데이터베이스에 존재하는지 확인
+        const user = await User.findOne({ nickName });
+
+        if (user) {
+            return res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' });
+        }
+
+        return res.status(200).json({ message: '사용 가능한 닉네임입니다.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+});
+
+// 인증 이메일 보내기
+router.post('/email-auth', sendAuthEmail);
+// 인증 번호 확인
+router.post('/verifyAuth', verifyAuthCode);
+
+// 닉네임 Check Route
 router.post('/check-email', async (req, res) => {
     const { email } = req.body;
     try {
@@ -51,11 +73,6 @@ router.post('/check-email', async (req, res) => {
         return res.status(500).json({ message: '서버 오류' });
     }
 });
-
-// 인증 이메일 보내기
-router.post('/email-auth', sendAuthEmail);
-// 인증 번호 확인
-router.post('/verifyAuth', verifyAuthCode);
 
 router.post('/register', async (req, res, next) => {
     try {
@@ -156,7 +173,7 @@ router.post('/refresh-token', async (req, res, next) => {
     }
 });
 
-//8.22 쿠키랑 세션 삭제
+//8.22 쿠키랑 jwt 삭제
 router.post('/logout', (req, res, next) => {
     try {
         // 클라이언트 측에서 쿠키 삭제
@@ -183,6 +200,12 @@ router.post('/logout', (req, res, next) => {
     }
 });
 
+// 클럽 ID 배열의 길이를 반환
+const getMyGroupsCount = async (clubIds) => {
+    console.log('가입한 클럽', clubIds)
+    return clubIds.length; // clubIds 배열의 길이를 반환
+};
+
 // src/routes/users.js
 router.get('/myPage', auth, async (req, res, next) => {
     try {
@@ -202,8 +225,19 @@ router.get('/myPage', auth, async (req, res, next) => {
                 user.profilePic.thumbnailImage = `${user.profilePic.thumbnailImage.replace(/\\/g, '/')}`;
             }
         }
+        const myGroupsCount = await getMyGroupsCount(user.clubs); // 사용자의 '내 모임' 클럽 개수
+        const wishGroupsCount = await getMyGroupsCount(user.wish); // 사용자의 '내 모임' 클럽 개수
+        const inviteGroupsCount = await getMyGroupsCount(user.invite); // 사용자의 '초대' 클럽 개수
+
+        return res.json({ 
+            user,
+            counts: {
+                myGroups: myGroupsCount,
+                wishGroups: wishGroupsCount,
+                inviteGroups: inviteGroupsCount,
+            } 
         
-        return res.json({ user }); // user 객체를 그대로 반환
+        }); // user 객체를 그대로 반환
     } catch (error) {
         next(error);
     }
@@ -461,6 +495,88 @@ router.put('/introduction', auth, async (req, res, next) => {
 
     } catch (error) {
         next(error);
+    }
+});
+
+// 특정 ID를 가진 사용자의 정보를 가져오는 라우트 핸들러
+router.get("/:id", async (req, res) => {
+    try {
+      // 요청 URL에서 사용자 ID를 추출하고, 데이터베이스에서 해당 ID로 사용자 검색
+      const user = await User.findById(req.params.id);
+  
+      console.log("--------1244----------------");
+      console.log(user._id);
+      console.log("-------------1251251251-----------");
+      // 콘솔에 디버깅 메시지 출력 (필요에 따라 삭제 가능)
+      console.log("uuuuuuuuuusssssssseeeeeeerrrrrrrrrr");
+      // 사용자가 존재하지 않는 경우, 404 상태 코드와 함께 오류 메시지 반환
+      if (!user) {
+        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      }
+      // 사용자가 존재하는 경우, 사용자 이름만 포함된 JSON 응답 반환
+      res.json({ name: user.name });
+    } catch (error) {
+      // 예외 발생 시, 콘솔에 오류 로그 출력 및 500 상태 코드와 함께 오류 메시지 반환
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "서버 오류" });
+    }
+  });
+  
+  router.post('/update-location', async (req, res) => {
+    try {
+        const { homeLocation, workplace, interestLocation } = req.body;
+        const { email } = req.body; // 인증된 사용자의 이메일을 가져옵니다.
+
+        // 필수 데이터 확인
+        if (!email) {
+            return res.status(400).json({ ok: false, msg: '이메일이 누락되었습니다.' });
+        }
+
+        // 사용자 조회
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ ok: false, msg: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 위치 정보가 요청된 경우에만 업데이트
+        if (homeLocation && (homeLocation.city || homeLocation.district || homeLocation.neighborhood)) {
+        user.homeLocation = homeLocation;
+        }
+        if (workplace && (workplace.city || workplace.district || workplace.neighborhood)) {
+            user.workplace = workplace;
+        }
+        if (interestLocation && (interestLocation.city || interestLocation.district || interestLocation.neighborhood)) {
+            user.interestLocation = interestLocation;
+        }
+
+        await user.save();
+
+        return res.json({ ok: true, msg: '위치 정보가 성공적으로 업데이트되었습니다.' });
+    } catch (error) {
+        console.error('서버 오류:', error);
+        return res.status(500).json({ ok: false, msg: '서버 오류가 발생했습니다.' });
+    }
+});
+
+  // 초대 거절 라우트
+  router.post('/reject-invite', auth, async (req, res) => {
+    try {
+        const user = req.user;
+        const { clubId } = req.body; // 클럽 ID를 요청 본문에서 받음
+    
+        if (!user) {
+            return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+        }
+        if (!clubId) {
+            return res.status(400).json({ success: false, message: '클럽 ID가 제공되지 않았습니다.' });
+        }
+        // 초대 목록에서 clubId를 제거
+        user.invite = user.invite.filter(id => id !== clubId);
+        await user.save(); // 사용자 정보 저장
+        
+        res.json({ success: true, message: '초대를 거절했습니다.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: '초대를 거절 중 오류가 발생했습니다.', error });
     }
 });
 

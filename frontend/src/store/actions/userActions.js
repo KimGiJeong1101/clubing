@@ -1,5 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../utils/axios";
+import { setFavoriteList } from '../reducers/wishSlice';
 // Redux Toolkit에서 createAsyncThunk를 가져옴
 
 // 비동기 회원가입 액션 생성
@@ -25,7 +26,10 @@ export const loginUser = createAsyncThunk(
   async (body, thunkAPI) => {
     try {
       const response = await axiosInstance.post(`/users/login`, body);
-      // 백엔드로 데이터 보내는
+      const userData = response.data; // 서버 응답에서 userData 추출
+      // 찜목록
+      thunkAPI.dispatch(setFavoriteList(userData.user.wish));
+
       return response.data;
       // 액션 페이로드 부분
     } catch (error) {

@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import MainHeader from "../../../layout/Header"
+import MainFooter from "../../../layout/Footer"
 import Header from "./Header";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
@@ -8,6 +10,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import axiosInstance from "../../../utils/axios";
 import { fetchGetClub } from "../../../store/reducers/clubReducer";
 import { useDispatch, useSelector } from "react-redux";
+import WishHearts from "../../../components/club/WishHearts.jsx";
 
 function ClubLayout() {
   const location = useLocation();
@@ -21,6 +24,18 @@ function ClubLayout() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [joinHandler, setJoinHandler] = useState(false);
 
+  useEffect(() => {
+    if (clubNumber) {
+      dispatch(fetchGetClub(clubNumber));
+    }
+  }, [dispatch, clubNumber]);
+
+  useEffect(() => {
+    if (getClub.clubs && user.email) {
+      setJoinHandler(!getClub.clubs.members.includes(user.email));
+    }
+  }, [getClub, user.email, clubNumber]);
+
   const handleOpen = () => {
     if (user.email === "") {
       alert("로그인이 필요한 서비스입니다.");
@@ -29,7 +44,6 @@ function ClubLayout() {
       axiosInstance
         .post(`http://localhost:4000/clubs/addMember/${clubNumber}`)
         .then((response) => {
-          // console.log(response.data);
           alert("모임 가입성공");
           navigate(`/mypage/wish`);
         })
@@ -40,25 +54,11 @@ function ClubLayout() {
     }
   };
 
-  useEffect(() => {
-    if (clubNumber) {
-      dispatch(fetchGetClub(clubNumber));
-    }
-  }, [dispatch, clubNumber]);
-
-  useEffect(() => {
-    if (getClub.clubs && user.email) {
-      // console.log('user.email');
-      // console.log(user.email);
-      // console.log('user.email');
-      setJoinHandler(!getClub.clubs.members.includes(user.email));
-    }
-  }, [getClub, user.email]);
-
   return (
     <Box>
-      <Header />
-      <NavBar />
+      <MainHeader/>
+      {/* <Header />  */}
+      <NavBar /> 
       <main>
         <Outlet />
         {joinHandler && (
@@ -86,17 +86,7 @@ function ClubLayout() {
                     borderRadius: "20px 0px 0px 20px",
                   }}
                 >
-                  <FavoriteIcon
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    sx={{
-                      fontSize: "26px",
-                      padding: "7px",
-                      color: isFavorite ? "lightcoral" : "gray",
-                      ":hover": {
-                        cursor: "pointer",
-                      },
-                    }}
-                  />
+                   <WishHearts />
                 </Grid>
                 <Grid item xs={11} sx={{ textAlign: "center" }}>
                   <Button
@@ -117,6 +107,7 @@ function ClubLayout() {
         )}
       </main>
       <Footer />
+      <MainFooter/>
     </Box>
   );
 }
