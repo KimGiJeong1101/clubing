@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { useSelector } from 'react-redux';
 import axiosInstance from '../../../../utils/axios';
-import ClubCard from '../../../../components/club/ClubCard'; // ClubCard 컴포넌트 경로를 맞추세요
 import ClubCarousel2 from '../../../../components/club/ClubCarousel2'; 
 
 const MyGroups = () => {

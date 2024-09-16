@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import React, { useState, } from 'react';
+import { useForm,} from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import axiosInstance from '../../../../utils/axios'
 import { useSelector } from 'react-redux';
-import { TextField, Typography, Box,  IconButton, InputAdornment, FormControlLabel,
+import { TextField, Typography, Box,  IconButton, InputAdornment,
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import '../../../../assets/styles/LoginCss.css'

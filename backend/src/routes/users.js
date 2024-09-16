@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
+const MyMessage = require('../models/MyMessage');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 //const sessionAuth = require('../middleware/sessionAuth');
@@ -200,7 +201,6 @@ router.post('/logout', (req, res, next) => {
 
 // 클럽 ID 배열의 길이를 반환
 const getMyGroupsCount = async (clubIds) => {
-    console.log('가입한 클럽', clubIds)
     return clubIds.length; // clubIds 배열의 길이를 반환
 };
 
@@ -577,5 +577,139 @@ router.get("/:id", async (req, res) => {
         res.status(500).json({ success: false, message: '초대를 거절 중 오류가 발생했습니다.', error });
     }
 });
+
+// 유저 ID로 메시지 조회
+router.get('/messages/:email', async (req, res) => {
+    try {
+      const messages = await MyMessage.find({ recipient: req.params.email })
+      .sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+      console.log("뭐가 안넘어온거야", messages)
+      res.status(200).json(
+        messages
+    );
+    } catch (error) {
+        res.status(500).json({ error: error.message }); // 수정된 부분
+    }
+  });
+
+  // Express 서버 측 라우트 예시
+router.get('/messages/counts/:email', async (req, res) => {
+    try {
+        const readCount = await MyMessage.countDocuments({ recipient: req.params.email, isRead: true });
+        const unreadCount = await MyMessage.countDocuments({ recipient: req.params.email, isRead: false });
+        
+        res.status(200).json({
+            readCount,
+            unreadCount
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+  // 유저 ID로 읽지 않은 메시지 조회
+router.get('/messages/:email/false', async (req, res) => {
+    try {
+      const messages = await MyMessage.find({
+        recipient: req.params.email,
+        isRead: false
+      });
+      res.status(200).json(messages);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // 유저 ID로 읽지 읽은 메시지 조회
+  router.get('/messages/:email/true', async (req, res) => {
+    try {
+        const messages = await MyMessage.find({
+            recipient: req.params.email,
+            isRead: true
+        }).sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+      res.status(200).json(messages);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+   // 모달창 열엇을 때 false > true로
+   router.put('/messages/:id', async (req, res) => {
+    try {
+      const messageId = req.params.id;
+      const updatedMessage = await MyMessage.findByIdAndUpdate(
+        messageId,
+        { isRead: true },
+        { new: true } // 업데이트된 문서를 반환
+      );
+  
+      if (!updatedMessage) {
+        return res.status(404).json({ error: 'Message not found' });
+      }
+  
+      res.status(200).json(updatedMessage);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+// 메시지 삭제
+router.post('/messages/delete', async (req, res) => {
+    try {
+    const { ids, email } = req.body;
+  
+      // IDs 배열이 제공되지 않았거나 비어있는 경우 오류 반환
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Invalid message IDs' });
+      }
+  
+      // IDs가 올바른 형식인지 확인 (MongoDB ObjectId 형식 체크)
+      if (!ids.every(id => typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/))) {
+        return res.status(400).json({ error: 'Invalid ID format' });
+      }
+  
+      // 여러 메시지 삭제
+      const result = await MyMessage.deleteMany({ _id: { $in: ids } });
+  
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: 'No messages found to delete' });
+      }
+  
+    // 삭제 후 안 읽음 메시지 재조회
+    const updatedMessages = await MyMessage.find({
+        recipient: email,
+        isRead: false
+    });
+
+    res.status(200).json({ message: 'Messages deleted successfully', messages: updatedMessages });
+    } catch (error) {
+      console.error('Error deleting messages:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+
+//메시지 보내기
+router.post("/messages", async (req, res) => {
+    console.log("Received request body:", req.body); // 요청 본문 로그 출력
+
+    const { club, recipient, sender, content, title } = req.body;
+  
+    try {
+      const newMessage = new MyMessage({
+        club,
+        recipient,
+        sender,
+        content,
+        title,
+      });
+  
+      await newMessage.save();
+  
+      res.status(201).json(newMessage);
+    } catch (err) {
+      res.status(500).json({ message: "메시지 저장에 실패했습니다." });
+    }
+  });
 
 module.exports = router; // 올바르게 내보내기

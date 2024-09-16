@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
-import { useDispatch, useSelector } from 'react-redux';
-import { updateUser, logoutUser } from '../../../../store/actions/userActions'
+import { useSelector } from 'react-redux';
 import HomeSearch from '../../../auth/RegisterPage/address/HomeSearch';
 import WorkplaceSearch from '../../../auth/RegisterPage/address/WorkplaceSearch';
 import InterestSearch from '../../../auth/RegisterPage/address/InterestSearch';
@@ -15,7 +14,7 @@ import CustomSnackbar from '../../../../components/auth/Snackbar';
 
 const MyChangeLocation = ({ view }) => {
   const user = useSelector((state) => state.user?.userData?.user || {});
-  const { register, handleSubmit, formState: { errors }, setValue  } = 
+  const { handleSubmit, formState: { errors }, setValue  } = 
   useForm({  
             defaultValues: {
               homeLocation: user.homeLocation || { city: '', district: '', neighborhood: '' },
@@ -24,7 +23,6 @@ const MyChangeLocation = ({ view }) => {
             },
             mode: 'onChange'});
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
 // 스낵바 상태를 추가합니다.

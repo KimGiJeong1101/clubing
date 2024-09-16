@@ -7,7 +7,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import CloseIcon from '@mui/icons-material/Close';
-import {  Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../src/store/actions/userActions'
@@ -18,8 +18,9 @@ import GroupAdd from '@mui/icons-material/GroupAdd';
 import MessageIcon from '@mui/icons-material/Message'; //채팅 아이콘
 import NotificationsIcon from '@mui/icons-material/Notifications'; //알람 아이콘
 import SearchIcon from '@mui/icons-material/Search'; //검색 아이콘
+import Badge from '@mui/material/Badge';// 알림 뱃지
 
-function Header() {
+function Header( ) {
 
   const location = useLocation();
   const [selected, setSelected] = useState("추천모임");
@@ -39,7 +40,20 @@ function Header() {
     if (path.includes("event")) return "이벤트";
     return "추천모임"; // 기본값
   };
+  const myMessage = useSelector((state) => state.myMessage?.messages || {});
+  const [unreadCount, setUnreadCount] = useState(0);
+  //console.log('안 읽음만 들어가나?',myMessage)
+  //console.log('메시지 카운트',unreadCount)
 
+  useEffect(() => {
+    if (!myMessage) {
+      setUnreadCount(0);
+      return;
+    }
+    // unreadCount 계산
+    const count = myMessage.filter(message => !message.isRead).length;
+  setUnreadCount(count);
+  }, [myMessage]); // myMessage가 변경될 때마다 실행
 
   // 선택된 항목을 현재 URL과 비교하여 상태를 설정
   useEffect(() => {
@@ -122,6 +136,10 @@ function Header() {
 
     const handleInputChange = (event) => {
       setSearchTerm(event.target.value);
+    };
+
+    const handleMymessage = () => {
+      navigate('/mypage/mymessage'); // 클릭 시 이동할 경로
     };
 
   return (
@@ -250,10 +268,31 @@ function Header() {
 
   
               <Tooltip title="알림" arrow>
-                <NotificationsIcon
-                  onClick={() => {}}
-                  sx={{ padding: "7px", color: "gray", ":hover": { cursor: 'pointer' }, fontSize: 24 }}
-                />
+                <Badge
+                  badgeContent={unreadCount > 0 ? unreadCount : null} // unreadCount가 0보다 클 때만 표시
+                  color="error"
+                  sx={{
+                    '& .MuiBadge-dot': {
+                      backgroundColor: 'red',
+                      width: 20, // 배지의 가로 크기
+                      height: 20, // 배지의 세로 크기
+                      top: 5, // 배지의 위쪽 위치 조정
+                      right: 5, // 배지의 오른쪽 위치 조정
+                      borderRadius: '50%', // 배지를 원형으로 만듭니다
+                    },
+                    '.MuiBadge-root': {
+                      '& .MuiBadge-dot': {
+                        top: 0, // 배지의 상단 위치 조정
+                        right: 0, // 배지의 우측 위치 조정
+                      },
+                    },
+                  }}
+                >
+                  <NotificationsIcon
+                     onClick={handleMymessage}
+                    sx={{ padding: "7px", color: "gray", ":hover": { cursor: 'pointer' }, fontSize: 24 }}
+                  />
+                </Badge>
               </Tooltip>
   
               <Tooltip title="채팅" arrow>
