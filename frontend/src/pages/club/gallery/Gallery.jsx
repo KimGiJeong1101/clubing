@@ -315,7 +315,7 @@ const Gallery = () => {
                 position: 'relative',
                 overflow: 'hidden',
                 height: 0,
-                paddingBottom: '100%'
+                paddingBottom: '100%',
               }}
               onClick={(event) => {
                 if (event.target.type !== 'checkbox') {
