@@ -36,6 +36,7 @@ const ChatPage = () => {
   const [imageFiles, setImageFiles] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newMessageReceived, setNewMessageReceived] = useState(false); // 새로운 메시지가 왔는지 확인하는 상태 추가
 
   // 클럽 데이터 가져오기
   useEffect(() => {
@@ -179,6 +180,7 @@ const ChatPage = () => {
       socket.emit("message", newMessage);
       setMessage("");
       setImageFiles([]);
+      setNewMessageReceived(true); // 메시지 전송 시에도 포커싱 처리
     } else {
       console.error("메시지 내용이 필요합니다.");
     }
@@ -228,30 +230,33 @@ const ChatPage = () => {
 
   return (
     <Container
-      maxWidth="lg"
+      maxWidth="md"
       sx={{
-        paddingTop: 4,
-        paddingBottom: 4,
-        height: "100vh",
+        marginBottom: 10,
+        backgroundColor: "#F0F0F0",
+        borderRadius: 7,
+        paddingBottom: 10,
+        height: "118vh",
         display: "flex",
         flexDirection: "column",
       }}
     >
       <ChatHeader title={title} onFileUpload={handleFileUpload} />
       <Paper
-        elevation={3}
+        elevation={0}
         sx={{
           padding: 2,
-          height: "calc(100% - 100px)",
+          height: "calc(100% - 95px)",
           display: "flex",
           flexDirection: "column",
-          marginBottom: 2,
-          backgroundColor: "#fafafa",
+          marginBottom: 0,
+          backgroundColor: "#a67153",
+          borderRadius: "0px 0px 0px 0px",
         }}
       >
-        <MessageList messages={messages} userId={userId} handleScroll={handleScroll} isAtBottom={isAtBottom} onImageClick={handleImageClick} />
-        <MessageInput message={message} setMessage={setMessage} handleSendMessage={handleSendMessage} handleKeyPress={handleKeyPress} />
+        <MessageList messages={messages} userId={userId} handleScroll={handleScroll} isAtBottom={isAtBottom} onImageClick={handleImageClick} newMessageReceived={newMessageReceived} />
       </Paper>
+      <MessageInput message={message} setMessage={setMessage} handleSendMessage={handleSendMessage} handleKeyPress={handleKeyPress} />
       <ImageModal open={isModalOpen} onClose={handleCloseModal} imageUrl={selectedImage} />
     </Container>
   );

@@ -33,13 +33,13 @@ const fetchUserById = async (userId) => {
     return response.data;
   } catch (error) {
     console.error("Error fetching user data:", error);
-    return { name: "Unknown" };
+    return { name: "Unknown", profilePic: "" }; // 프로필 사진 기본값 추가
   }
 };
 
-const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick }) => {
+const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick, newMessageReceived }) => {
   const containerRef = useRef(null);
-  const [userNames, setUserNames] = useState({});
+  const [userProfiles, setUserProfiles] = useState({});
   const [open, setOpen] = useState(false);
   const [currentImage, setCurrentImage] = useState("");
 
@@ -66,11 +66,11 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick 
       const userData = await Promise.all(uniqueUserIds.map(fetchUserById));
 
       const userMap = uniqueUserIds.reduce((acc, id, index) => {
-        acc[id] = userData[index].name;
+        acc[id] = userData[index];
         return acc;
       }, {});
 
-      setUserNames(userMap);
+      setUserProfiles(userMap);
     };
 
     fetchUsers();
@@ -78,21 +78,42 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick 
 
   // 스크롤 위치 업데이트
   useEffect(() => {
-    const container = containerRef.current;
-    if (container && isAtBottom) {
-      container.scrollTop = container.scrollHeight;
+    if (isAtBottom && newMessageReceived) {
+      const container = containerRef.current;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
-  }, [messages, isAtBottom]);
+  }, [messages, isAtBottom, newMessageReceived]);
 
   // 날짜별로 그룹화된 메시지
   const groupedMessages = groupMessagesByDate(messages);
 
+  // 가장 최근 메시지의 ref
+  const latestMessageRef = useRef(null);
+
+  // 메시지를 전송한 후 최신 메시지로 스크롤
+  const scrollToLatestMessage = () => {
+    const container = containerRef.current;
+    if (latestMessageRef.current && container) {
+      container.scrollTo({
+        top: latestMessageRef.current.offsetTop,
+        behavior: "auto",
+      });
+    }
+  };
+
+  useEffect(() => {
+    scrollToLatestMessage();
+  }, [messages]);
+
   return (
     <Box
+      className="custom-scrollbar" // 스크롤바 커스터마이징 클래스 추가
       sx={{
         flexGrow: 1,
         overflowY: "auto",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#a67153",
         padding: 2,
         position: "relative",
       }}
@@ -101,9 +122,31 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick 
     >
       {Object.keys(groupedMessages).map((date, dateIndex) => (
         <Box key={dateIndex} sx={{ marginBottom: 2 }}>
-          <Typography variant="caption" sx={{ color: "#888", textAlign: "center", marginBottom: 1 }}>
-            {date}
-          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center", // 수평 가운데 정렬
+              marginBottom: 1,
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: "#40190b",
+                opacity: 0.5,
+                borderRadius: "15px",
+                height: 28,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "45%",
+                margin: "6px 0",
+              }}
+            >
+              <Typography variant="caption" sx={{ color: "#ffffff", margin: 0, opacity: 1 }}>
+                {date}
+              </Typography>
+            </Box>
+          </Box>
           {groupedMessages[date].map((msg, index) => (
             <Grid container key={msg._id || index} sx={{ marginBottom: 1 }} justifyContent={msg.sender === userId ? "flex-end" : "flex-start"} alignItems="flex-start">
               <Box
@@ -115,26 +158,36 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick 
                   position: "relative",
                 }}
               >
-                {/* 사용자 이름을 메시지 위에 배치 */}
+                {/* 사용자 이름과 프로필 사진을 메시지 위에 배치 */}
                 {msg.sender !== userId && (
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontSize: "0.75rem",
-                      color: "#888",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {userNames[msg.sender] || "Unknown"}
-                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "flex-end", marginBottom: "4px" }}>
+                    <img
+                      src={userProfiles[msg.sender]?.profilePic || ""} // 프로필 사진 표시
+                      alt="Profile"
+                      style={{
+                        width: 35,
+                        height: 35,
+                        borderRadius: "50%",
+                        marginRight: "6px",
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "0.85rem",
+                        color: "#000000",
+                      }}
+                    >
+                      {userProfiles[msg.sender]?.name || "Unknown"}
+                    </Typography>
+                  </Box>
                 )}
 
                 <Box
                   sx={{
                     display: "flex",
-                    alignItems: "flex-start",
-                    marginBottom: "4px",
-                    flexDirection: "row",
+                    alignItems: "flex-end", // 시간 표시를 하단에 정렬
+                    flexDirection: msg.sender === userId ? "row-reverse" : "row",
                   }}
                 >
                   <Box
@@ -142,10 +195,11 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick 
                       display: "flex",
                       flexDirection: "column",
                       flex: 1, // 채팅 내용이 가능한 한 많은 공간을 차지하도록 설정
-                      backgroundColor: msg.sender === userId ? "#03e3c5" : "#e1e1e1",
-                      color: msg.sender === userId ? "#ffffff" : "#000000",
-                      borderRadius: "16px",
-                      padding: "6px 12px",
+                      backgroundColor: msg.sender === userId ? "#dbc7b5" : "#f5f5f5",
+                      color: msg.sender === userId ? "#000000" : "#000000",
+                      borderRadius: "10px",
+                      padding: "8px 10px 0px 8px", // 상단, 우측, 하단, 좌측
+                      marginLeft: msg.sender === userId ? "0px" : "22px",
                     }}
                   >
                     <Typography variant="body2" sx={{ fontSize: "0.9rem" }}>
@@ -175,15 +229,15 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick 
                   <Box
                     sx={{
                       display: "flex",
-                      alignItems: "flex-end",
-                      marginLeft: "8px",
+                      alignItems: "flex-end", // 시간 표시를 하단에 정렬
+                      ...(msg.sender === userId ? { marginRight: "8px" } : { marginLeft: "8px" }),
                     }}
                   >
                     <Typography
                       variant="caption"
                       sx={{
                         fontSize: "0.75rem",
-                        color: "#aaaaaa",
+                        color: "#000000",
                       }}
                     >
                       {formatTime(msg.timestamp)}
@@ -193,6 +247,8 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, onImageClick 
               </Box>
             </Grid>
           ))}
+          {/* 가장 최근 메시지를 참조하는 요소 */}
+          <div ref={latestMessageRef} />
         </Box>
       ))}
 

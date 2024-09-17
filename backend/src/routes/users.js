@@ -513,7 +513,10 @@ router.get("/:id", async (req, res) => {
         return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
       }
       // 사용자가 존재하는 경우, 사용자 이름만 포함된 JSON 응답 반환
-      res.json({ name: user.name });
+      console.log("안녕하세요요요요요요요요")
+      console.log(user.name)
+      console.log(user.profilePic)
+      res.json({ name: user.name, profilePic: user.profilePic.thumbnailImage });
     } catch (error) {
       // 예외 발생 시, 콘솔에 오류 로그 출력 및 500 상태 코드와 함께 오류 메시지 반환
       console.error("Error fetching user:", error);
