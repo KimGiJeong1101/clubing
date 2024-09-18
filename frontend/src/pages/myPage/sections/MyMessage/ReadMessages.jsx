@@ -9,12 +9,14 @@ import { useSelector } from 'react-redux';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import RowsPerPageSelector from '../../../../components/auth/RowsPerPageSelector'
+import CustomCheckbox from '../../../../components/club/CustomCheckbox'; // CustomCheckbox 컴포넌트 경로
 
 const ReadMessages = () => {
   const [messages, setMessages] = useState([]);
   const [selectedMessages, setSelectedMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null); // 선택된 메시지 상태
   const [openModal, setOpenModal] = useState(false); // 모달 열림/닫힘 상태
+  const [isAllSelected, setIsAllSelected] = useState(false); // 전체 선택 상태
 
   const user = useSelector((state) => state.user?.userData?.user || {});
 
@@ -22,18 +24,9 @@ const ReadMessages = () => {
   const [page, setPage] = useState(0); // 현재 페이지
   const [rowsPerPage, setRowsPerPage] = useState(3); // 페이지당 항목 수
 
-  // 페이지 변경 핸들러
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
   const totalPages = Math.ceil(messages.length / rowsPerPage);
 
+  //정보 리드
   useEffect(() => {
     if (user.email) { // user.email이 있을 경우에만 요청
       axiosInstance.get(`/users/messages/${user.email}/true`)
@@ -52,6 +45,7 @@ const ReadMessages = () => {
     );
   };
 
+    //정보 삭제
   const handleDelete = () => {
     // 선택한 메시지를 삭제하는 API 호출
     axiosInstance.post('/users/messages/delete', { ids: selectedMessages })
@@ -79,11 +73,45 @@ const ReadMessages = () => {
     setSelectedMessage(null);
   };
 
+    // 전체 선택 체크박스 클릭 핸들러
+    const handleSelectAll = () => {
+      setIsAllSelected(!isAllSelected);
+  
+      // 현재 페이지에서 보여지는 메시지들만 전체 선택
+      const currentMessages = messages.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+      if (!isAllSelected) {
+        setSelectedMessages(currentMessages.map(message => message._id));
+      } else {
+        setSelectedMessages([]);
+      }
+    };
+
   return (
     <Box>
-      {/* 메시지 보이고 싶은 량 */}
-      <Box sx={{ mt: 2, mb: 3, display: 'flex', justifyContent: 'center' }}>
-        <RowsPerPageSelector rowsPerPage={rowsPerPage} setRowsPerPage={setRowsPerPage} />
+      {/* 메시지 보이고 싶은 량 및 체크박스 전체 선택*/}
+      <Box 
+      sx={{
+        mt: 2,
+        mb: 3,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        backgroundColor: 'white', // 흰색 배경
+        borderRadius: '8px', // 모서리를 둥글게
+        padding: '16px', // 내부 여백
+        boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)' // 약간의 그림자 효과 (선택 사항)
+      }}
+      >
+        <Box sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+        <CustomCheckbox
+            checked={isAllSelected}
+            onChange={handleSelectAll} // onChange 사용
+          />
+          전체선택 
+        </Box>
+        <Box>
+          <RowsPerPageSelector rowsPerPage={rowsPerPage} setRowsPerPage={setRowsPerPage} />
+        </Box>
       </Box>
       <TableContainer component={Paper}>
       <Table>

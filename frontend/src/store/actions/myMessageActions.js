@@ -37,7 +37,7 @@ export const markMessageAsRead = createAsyncThunk(
   async (messageId, thunkAPI) => {
     try {
       // 서버에 메시지 상태 업데이트 요청
-      await axiosInstance.put(`/users/messages/${messageId}`, { isRead: true });
+      await axiosInstance.put(`/users/messages/changestate`, { ids: [messageId] });
       return messageId; // 성공 시 메시지 ID 반환
     } catch (error) {
       console.log(error);

@@ -56,8 +56,8 @@ const MessageRow = ({ message, selectedMessages, handleReadMessage  }) => {
                 fontSize: '1rem',
                 mt: 1,
                 whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                overflow: 'hidden',// 텍스트가 넘칠 때 숨기기
+                textOverflow: 'ellipsis' // 넘치는 텍스트에 줄임표 추가
               }}
             >
               {message.content}

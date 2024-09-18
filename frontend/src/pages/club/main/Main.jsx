@@ -84,10 +84,10 @@ const Main = ( wishHeart ) => {
           // 필요에 따라 추가 메시지 객체를 배열에 추가
         ];
         // 메시지 전송을 위한 액션 디스패치
-      const dispatchPromises = messages.map(message => dispatch(sendMessage(message)));
-  
+      dispatch(sendMessage(messages[0]));
+      // 클럽 주인에게 메시지 전송 (axios 사용)
+      axiosInstance.post('/users/messages', messages[1])
       // 모든 디스패치가 완료될 때까지 기다립니다.
-      Promise.all(dispatchPromises)
         .then(() => {
           console.log("메시지 전송 성공");
           navigate(`/mypage`);

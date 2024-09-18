@@ -19,6 +19,7 @@ import MessageIcon from '@mui/icons-material/Message'; //채팅 아이콘
 import NotificationsIcon from '@mui/icons-material/Notifications'; //알람 아이콘
 import SearchIcon from '@mui/icons-material/Search'; //검색 아이콘
 import Badge from '@mui/material/Badge';// 알림 뱃지
+import { fetchMessages } from "../store/actions/myMessageActions";
 
 function Header( ) {
 
@@ -30,6 +31,10 @@ function Header( ) {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
+  const isAuth = useSelector(state => state.user?.isAuth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
    // 현재 URL을 기준으로 선택된 항목을 결정
    const getSelected = () => {
     const path = location.pathname;
@@ -40,10 +45,21 @@ function Header( ) {
     if (path.includes("event")) return "이벤트";
     return "추천모임"; // 기본값
   };
+  const user = useSelector((state) => state.user?.userData?.user || {});
   const myMessage = useSelector((state) => state.myMessage?.messages || {});
   const [unreadCount, setUnreadCount] = useState(0);
+  const [path, setPath] = useState(location.pathname);
   //console.log('안 읽음만 들어가나?',myMessage)
   //console.log('메시지 카운트',unreadCount)
+  useEffect(() => {
+    setPath(location.pathname); // URL 경로를 상태로 저장
+  }, [location.pathname]); // 경로가 변경될 때마다 실행
+
+  useEffect(() => {
+    if (user.email) {
+      dispatch(fetchMessages(user.email)); // 리덕스 액션으로 메시지 가져오기
+    }
+  }, [user.email, path, dispatch]); // 이메일 또는 path가 변경될 때마다 실행
 
   useEffect(() => {
     if (!myMessage) {
@@ -99,10 +115,6 @@ function Header( ) {
     { to: '/mypage', name: '마이페이지', auth: true },
   ];
 
-    const isAuth = useSelector(state => state.user?.isAuth);
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-  
     const handleLogout = () => {
       try {
         dispatch(logoutUser())

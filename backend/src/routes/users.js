@@ -583,7 +583,6 @@ router.get('/messages/:email', async (req, res) => {
     try {
       const messages = await MyMessage.find({ recipient: req.params.email })
       .sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
-      console.log("뭐가 안넘어온거야", messages)
       res.status(200).json(
         messages
     );
@@ -633,25 +632,40 @@ router.get('/messages/:email/false', async (req, res) => {
     }
   });
 
-   // 모달창 열엇을 때 false > true로
-   router.put('/messages/:id', async (req, res) => {
+// // 메시지 읽음 상태로 변경
+router.put('/messages/changestate', async (req, res) => {
     try {
-      const messageId = req.params.id;
-      const updatedMessage = await MyMessage.findByIdAndUpdate(
-        messageId,
-        { isRead: true },
-        { new: true } // 업데이트된 문서를 반환
-      );
-  
-      if (!updatedMessage) {
-        return res.status(404).json({ error: 'Message not found' });
-      }
-  
-      res.status(200).json(updatedMessage);
+        let { ids } = req.body; // 클라이언트에서 전송한 메시지 IDs 배열 또는 단일 ID
+        console.log('받은 IDs:', ids);
+
+        // IDs가 이중 배열일 경우 평탄화
+        if (Array.isArray(ids[0])) {
+            ids = ids.flat();
+        }
+
+        // IDs가 배열인지 확인하고, 단일 값일 경우 배열로 변환
+        if (!Array.isArray(ids)) {
+            ids = [ids];
+        }
+
+        // 문자열 IDs를 그대로 사용하여 업데이트
+        const result = await MyMessage.updateMany(
+            { _id: { $in: ids } }, // IDs 배열에 포함된 메시지를 찾기 위한 조건
+            { $set: { isRead: true } } // 업데이트할 내용
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'No messages found' });
+        }
+
+        return res.status(200).json({ message: 'Messages updated successfully' });
+
     } catch (error) {
-      res.status(500).json({ error: error.message });
+        console.error('Error updating message state:', error); // 서버 로그로 오류 확인
+        res.status(500).json({ error: error.message });
     }
-  });
+});
+
 
 // 메시지 삭제
 router.post('/messages/delete', async (req, res) => {

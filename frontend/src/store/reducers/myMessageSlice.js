@@ -100,7 +100,10 @@ const messageSlice = createSlice({
       .addCase(deleteMessages.fulfilled, (state, action) => {
         state.loading = false;
         // 삭제 성공 시 서버에서 반환된 최신 메시지 목록으로 상태 업데이트
-        state.messages = action.payload.messages;
+        // 삭제된 메시지 ID들을 받아와서 상태에서 삭제
+        const deletedMessageIds = action.meta.arg;  // deleteMessages 호출 시 전달된 selectedMessages
+        // 삭제되지 않은 메시지만 남기기
+        state.messages = state.messages.filter(message => !deletedMessageIds.includes(message._id));
       })
       .addCase(deleteMessages.rejected, (state, action) => {
         state.loading = false;
