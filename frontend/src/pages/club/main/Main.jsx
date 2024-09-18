@@ -369,7 +369,7 @@ const handleInvite = async (email) => {
                 backgroundColor: "#DBC7B5",
                 color: "white",
                 position: "fixed",
-                bottom: "200px",
+                bottom: "50px",
                 right: "100px",
                 "&:hover": {
                   backgroundColor: "#A67153", // hover 시 배경 색상 변경

@@ -85,6 +85,10 @@ app.use("/meetings", meetingsRouter);
 const repliesRouter = require("./src/routes/replies");
 app.use("/replies", repliesRouter);
 
+//라우터 미들웨어(댓글)
+const BoardrepliesRouter = require("./src/routes/repliesBoard");
+app.use("/replies/board", BoardrepliesRouter);
+
 //라우터 미들웨어(유저)
 const usersRouter = require("./src/routes/users");
 app.use("/users", usersRouter);

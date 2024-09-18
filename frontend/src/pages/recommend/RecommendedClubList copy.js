@@ -66,6 +66,8 @@ const Clubs = () => {
   });
   //카테고리 바뀔 떄 마다 리스트를 불러옴 -> 어차피 3개씩 불러와서 빨리빨리 부르는데 헉 생각해보니...
   const navigate = useNavigate();
+
+  
   //무한스크롤 구현
   const getClubListScroll = async (newScrollCount) => {
     let response;
@@ -160,226 +162,15 @@ const Clubs = () => {
 
   return (
     <Box sx={{ width: "100%", backgroundColor: "#F2F2F2", position: "relative" }}>
-      <Fab
-        onClick={() => {
-          navigate("/clubs/create");
-        }}
-        aria-label="add"
-        style={{
-          backgroundColor: "#A6836F",
-          color: "white",
-          position: "fixed",
-          bottom: "50px",
-          right: "50px",
-        }}
-      >
-        <AddIcon />
-      </Fab>
-      <Box
-        sx={{
-          position: "fixed",
-          left: "20px",
-          top: "50%",
-          transform: "translateY(-50%)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-        }}
-      ></Box>
+
       <Box sx={{ width: "100%", height: "450px", backgroundColor: "white" }}>
-        <Container maxWidth="lg" sx={{ marginTop: "40px", paddingBottom: "40px" }}>
-          <Grid container spacing={3} justifyContent="center">
-            {[
-              // { color: "#68BDAB", icon: <StorefrontIcon sx={{ width: "70px", height: "70px" }} />, text: "전부보기" },
-              { color: "#71ABF0", icon: <FastfoodIcon sx={{ width: "70px", height: "70px" }} />, text: "푸드·드링크" },
-              { color: "#DC6A5A", icon: <MenuBookIcon sx={{ width: "70px", height: "70px" }} />, text: "자기계발" },
-              { color: "#9363D1", icon: <NightlifeIcon sx={{ width: "70px", height: "70px" }} />, text: "취미" },
-              { color: "#D7E56E", icon: <RowingIcon sx={{ width: "70px", height: "70px" }} />, text: "액티비티" },
-              { color: "#EE7E8C", icon: <CelebrationIcon sx={{ width: "70px", height: "70px" }} />, text: "파티" },
-              { color: "#4C5686", icon: <SportsKabaddiIcon sx={{ width: "70px", height: "70px" }} />, text: "소셜게임" },
-              { color: "#F7D16E", icon: <ColorLensIcon sx={{ width: "70px", height: "70px" }} />, text: "문화·예술" },
-              { color: "#C25BA1", icon: <LocalAtmIcon sx={{ width: "70px", height: "70px" }} />, text: "N잡·재테크" },
-              { color: "#DEB650", icon: <LoyaltyIcon sx={{ width: "70px", height: "70px" }} />, text: "연애·사랑" },
-              { color: "#78C17C", icon: <LocalAirportIcon sx={{ width: "70px", height: "70px" }} />, text: "여행·나들이" },
-              { color: "#828ED6", icon: <Diversity1Icon sx={{ width: "70px", height: "70px" }} />, text: "동네·또래" },
-              { color: "#8E44AD", icon: <AutoStoriesIcon sx={{ width: "70px", height: "70px" }} />, text: "외국어" },
-            ].map((item, index) => (
-              <Grid item xs={2} sm={2} lg={2} key={index}>
-                <Box
-                  onClick={() => {
-                    handleCategoryClick2(item);
-                  }}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    transition: "transform 0.3s",
-                    "&:hover": {
-                      transform: "scale(1.05)",
-                      cursor: "pointer",
-                    },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      textAlign: "center",
-                      backgroundColor: item.color,
-                      width: "100px",
-                      height: "100px",
-                      borderRadius: "50px",
-                      color: "white",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      marginBottom: "8px",
-                      transition: "background-color 0.3s",
-                      "&:hover": {
-                        backgroundColor: item.color + "BF", // Slightly darker color on hover
-                      },
-                    }}
-                  >
-                    {item.icon}
-                  </Box>
-                  <Box sx={{ textAlign: "center", fontSize: "18px", fontWeight: "550" }}>{item.text}</Box>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-          <Typography
-            variant={"h6"}
-            onClick={handleRegionClick}
-            sx={{
-              width: "80%",
-              backgroundColor: "#f2f2f2",
-              padding: "12px 20px",
-              borderRadius: "20px",
-              color: "#A6836F",
-              boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
-              position: "relative", // 부모 요소가 위치를 기준으로 버튼을 배치
-              marginTop: "50px",
-              marginLeft: "20px",
-              transition: "transform 0.3s ease, box-shadow 0.3s ease", // 부드러운 트랜지션 추가
-              "&:hover": {
-                transform: "scale(1.02)", // 호버 시 크기 확대
-                boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.2)", // 부드러운 그림자 추가
-                cursor: "pointer",
-              },
-            }}
-          >
-            <b>지역으로 클럽 찾기</b> <span style={{ fontSize: "15px", marginLeft: "10px" }}>* 카테고리와 지역을 동시에 선택하여 더 정확한 검색 결과를 확인해보세요.</span>
-            <Box
-              sx={{
-                width: "10%",
-                backgroundColor: "#A6836F",
-                padding: "12px 20px",
-                height: "33px",
-                borderTopRightRadius: "20px",
-                borderBottomRightRadius: "20px",
-                color: "white",
-                boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
-                position: "absolute", // 부모 요소가 위치를 기준으로 버튼을 배치
-                right: 0,
-                top: 0,
-                textAlign: "center",
-              }}
-            >
-              <SearchIcon sx={{ fontSize: "35px" }} />
-            </Box>
-          </Typography>
-        </Container>
+        {/* 이 부분에 데이터 출력 */}
       </Box>
       <Container maxWidth="lg" sx={{ marginTop: "40px", paddingBottom: "40px" }}>
-        <Grid container spacing={2} sx={{ display: "flex" }}>
-          {searchRegion && (
-            <div style={{ position: "relative", display: "flex", alignItems: "center", marginBottom: "10px" }}>
-              <Typography
-                variant={"h6"}
-                style={{
-                  backgroundColor: "#fff",
-                  padding: "10px 20px",
-                  borderRadius: "20px",
-                  color: "#A6836F",
-                  boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
-                  position: "relative", // 부모 요소가 위치를 기준으로 버튼을 배치
-                  opacity: "0.8",
-                }}
-              >
-                <b>"{searchRegion}"</b>로 검색한 결과
-                <Box
-                  onClick={() => setSearchRegion("")}
-                  style={{
-                    position: "absolute", // 절대 위치 설정
-                    top: "-10px", // Typography 오른쪽 위에 배치
-                    right: "-10px",
-                    width: "30px ",
-                    height: "30px ",
-                    backgroundColor: "#A6836F",
-                    borderRadius: "15px", // 완전한 원 모양으로 설정
-                    color: "#ffffff",
-                    fontSize: "12px", // 작은 글씨 크기
-                    opacity: "0.9",
-                    transition: "opacity 0.3s ease",
-                    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)", // 버튼에 작은 그림자 추가
-                    zIndex: "1",
-                    margin: "0",
-                    padding: "0",
-                    textAlign: "center",
-                    alignItems: "center",
-                  }}
-                  onMouseOver={(e) => (e.target.style.cursor = "pointer")}
-                >
-                  <DeleteForeverIcon sx={{ paddingTop: "2px" }} />
-                </Box>
-              </Typography>
-            </div>
-          )}
-          {category && (
-            <Box sx={{ position: "relative", display: "flex", alignItems: "center", marginBottom: "10px", marginLeft: "20px" }}>
-              <Typography
-                variant={"h6"}
-                style={{
-                  backgroundColor: "#fff",
-                  padding: "10px 20px",
-                  borderRadius: "20px",
-                  color: "#A6836F",
-                  boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
-                  position: "relative", // 부모 요소가 위치를 기준으로 버튼을 배치
-                  opacity: "0.8",
-                }}
-              >
-                {category}
-                <Box
-                  onClick={() => setCategory("")}
-                  style={{
-                    position: "absolute", // 절대 위치 설정
-                    top: "-10px", // Typography 오른쪽 위에 배치
-                    right: "-10px",
-                    width: "30px ",
-                    height: "30px ",
-                    backgroundColor: "#A6836F",
-                    borderRadius: "15px", // 완전한 원 모양으로 설정
-                    color: "#ffffff",
-                    fontSize: "12px", // 작은 글씨 크기
-                    opacity: "0.9",
-                    transition: "opacity 0.3s ease",
-                    boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)", // 버튼에 작은 그림자 추가
-                    zIndex: "1",
-                    margin: "0",
-                    padding: "0",
-                    textAlign: "center",
-                    alignItems: "center",
-                  }}
-                  onMouseOver={(e) => (e.target.style.cursor = "pointer")}
-                >
-                  <DeleteForeverIcon sx={{ paddingTop: "2px" }} />
-                </Box>
-              </Typography>
-            </Box>
-          )}
-        </Grid>
-
+        <Typography mb={3} variant="h5">지역기반 추천</Typography>
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <ClubListCard clubList={clubList} />
+
           {scrollData &&
             scrollData.map((club) => (
               <Grid item xs={12} sm={6} md={4} key={club._id} sx={{}}>
@@ -648,10 +439,9 @@ const Clubs = () => {
                 </Paper>
               </Grid>
             ))}
+            
         </Grid>
       </Container>
-      {/* <BubbleAnimation />  */}
-      {/* BubbleAnimation을 상위 요소로 추가 */}
     </Box>
   );
 };

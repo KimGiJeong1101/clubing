@@ -93,13 +93,12 @@ function NavBar() {
   ];
 
   return (
-    <Box sx={{ width: "100%", height: "114px" }}>
+    <Box sx={{ width: "100%", height: "100%" }}>
       <Box
         sx={{
           // position: "fixed",
           // top: "85px", // Header의 높이만큼 떨어뜨림
           // left: 0,
-          marginTop: "-15px",
           width: "100%",
           height: "50px",
           backgroundColor: "white",
