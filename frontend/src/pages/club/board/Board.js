@@ -119,13 +119,21 @@ const Board = () => {
   };
 
   return (
-    <Container>
+    <Container >
       {isMember && (
         <Fab
           onClick={handleClickOpen}
-          color="primary"
           aria-label="add"
-          style={{ position: "fixed", bottom: "50px", right: "50px" }}
+          sx={{ 
+                backgroundColor: "#DBC7B5",
+                color: "white",
+                position: "fixed",
+                bottom: "50px",
+                right: "100px",
+                "&:hover": {
+                  backgroundColor: "#A67153", // hover 시 배경 색상 변경
+                },
+              }}
         >
           <AddIcon />
         </Fab>

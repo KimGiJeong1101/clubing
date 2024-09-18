@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, List, ListItem, ListItemText, Box, Button, Dialog, DialogTitle, DialogContent, Pagination } from '@mui/material';
+import { Container, List, ListItem, ListItemText, Box, Button, Dialog, DialogTitle, DialogContent, Pagination, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -74,8 +74,16 @@ const ListPosts = () => {
     selectedCategory === '전체' || item.category === selectedCategory
   );
 
+  const truncateText = (text, maxLength) => {
+    if (text.length > maxLength) {
+      return text.slice(0, maxLength) + '...';
+    }
+    return text;
+  };
+  
+
   return (
-    <Container fullWidth maxWidth="md">
+    <Container maxWidth="md">
       <Box mt={1} sx={{ '& button': { m: 1 } }}>
         {['전체', '공지사항(전체알림)', '자유글', '관심사공유', '모임후기', '가입인사', '투표'].map(category => (
           <Button
@@ -98,26 +106,57 @@ const ListPosts = () => {
           </Button>
         ))}
       </Box>
-      <List>
-        {filteredItems.map((item) => (
-          <React.Fragment key={item._id}>
-            <ListItem
-              button
-              onClick={() => handleSelect(item._id, item.category, item.title)} // 모달 열기
-              sx={{ borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-            >
-              <ListItemText
-                primary={item.title}
-                secondary={`${item.category || ' 투표 '} ${item.endTime ? `종료시간: ${new Date(item.endTime).toLocaleString()}` : ''}`}
-              />
-              <ArrowForwardIcon 
-                onClick={() => handleArrowClick(item._id, item.category)} // 페이지 이동
-                sx={{ cursor: 'pointer' }} 
-              />
-            </ListItem>
-          </React.Fragment>
-        ))}
-      </List>
+
+      <Box
+        sx={{
+          minHeight: '400px', // 기본적으로 일정 높이 설정
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',// 내용(게시글이 없습니다 글자) 위쪽에 배치
+          alignItems: 'center',
+          // border: '1px solid #ddd',
+          borderRadius: '4px',
+          p: 2
+        }}
+      >
+        <List sx={{ width: '100%' }}>
+          {filteredItems.length === 0 ? (
+            <Typography variant="body1" color="textSecondary">게시물이 없습니다.</Typography>
+          ) : (
+            filteredItems.map((item) => (
+              <React.Fragment key={item._id}>
+                <ListItem
+                  button
+                  onClick={() => handleSelect(item._id, item.category, item.title)}
+                  sx={{ borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          minWidth: 0,
+                          flexGrow: 1
+                        }}
+                      >
+                        {truncateText(item.title, 45)}
+                      </Typography>
+                    }
+                    secondary={`${item.category || ' 투표 '} ${item.endTime ? `종료시간: ${new Date(item.endTime).toLocaleString()}` : ''}`}
+                  />
+                  <ArrowForwardIcon
+                    onClick={() => handleArrowClick(item._id, item.category)}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                </ListItem>
+              </React.Fragment>
+            ))
+          )}
+        </List>
+      </Box>
+
 
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
         <Pagination
