@@ -8,14 +8,13 @@ import WishGroups from './WishGroups'
 import axiosInstance from '../../../../utils/axios';
 
 const MyClub = () => {
-  const user = useSelector((state) => state.user?.userData?.user || {});
   // 클릭된 항목을 추적하는 상태
   const [activeItem, setActiveItem] = useState('myGroups');
   const [counts, setCounts] = useState({
     myGroups: 0,
     wishGroups: 0,
     //recentGroups: 0,
-    //invitedGroups: 0,
+    invitedGroups: 0,
   });
 
   useEffect(() => {
@@ -35,7 +34,6 @@ const MyClub = () => {
   const handleItemClick = (item) => {
     setActiveItem(item);
   };
-  //console.log('가입한 모임 수', counts.myGroups)
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto' }}>
@@ -103,7 +101,6 @@ const MyClub = () => {
           borderRadius: 2,
           boxShadow: 3,
           transition: 'background-color 0.3s ease',
-          mt: -1, // 콘텐츠 영역이 버튼 영역에 붙도록 조정
         }}
       >
         {activeItem === 'myGroups' && (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Typography, Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { useSelector } from 'react-redux';
 import axiosInstance from '../../../../utils/axios';
 import ClubCarousel3 from '../../../../components/club/ClubCarousel3'; 

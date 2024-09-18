@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom'; // 추가: useNavigate 훅을 가져옵니다.
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,12 +12,10 @@ import MyCancelAccount from './MyCancelAccount.jsx'
 import MyChangePw from './MyChangePw.jsx'
 import MyChangeLocation from './MyChangeLocation.jsx'
 import axiosInstance from '../../../../utils/axios'
-import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, FormControlLabel,
+import { TextField, Button, Typography, Box, Stack, FormControlLabel,
           FormControl, InputLabel, Select, MenuItem, FormHelperText, 
-          Chip, Modal, Grid,
+          Chip,
         } from '@mui/material';
-import {Visibility, VisibilityOff} from '@mui/icons-material';
-import color from '../../../../color'; // 색상를 정의한 파일
 import '../../../../assets/styles/LoginCss.css'
 import CustomButton from '../../../../components/club/CustomButton.jsx'
 import CustomButton2 from '../../../../components/club/CustomButton2.jsx'

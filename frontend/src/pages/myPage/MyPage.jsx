@@ -2,7 +2,7 @@ import MyUpdate from './sections/MyUpdate/MyUpdate'; // MyUpdate 컴포넌트를
 import MyChat from './sections/MyChat';
 import MyClub from './sections/MyClub/MyClub.jsx';
 import MySetting from './sections/MySetting';
-import MyWish from './sections/MyMessage';
+import MyMessage from './sections/MyMessage/MyMessage.jsx';
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import EditIcon from '@mui/icons-material/Edit';
@@ -14,19 +14,66 @@ import { Box, Typography, Avatar, Divider, IconButton, Modal, Popover, MenuItem,
 import { myPage }  from '../../store/actions/userActions';
 import axiosInstance from "../../utils/axios";
 import CustomButton from '../../components/club/CustomButton.jsx'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import Badge from '@mui/material/Badge';// 알림 뱃지
 
 const MyPage = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const user  = useSelector((state) => state.user?.userData?.user || {});
-  console.log("뭐들어 잇어?", user)
+  //console.log("뭐들어 잇어?", user)
   //이미지 확인 모달창 열기
   const [open, setOpen] = useState(false);
   const [imageSrc, setImageSrc] = useState('');
 
   const [profileImage, setProfileImage] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null); // Popover 상태 관리
-// 선택된 섹션
-  const [selectedSection, setSelectedSection] = useState(null); // 추가된 상태
+
+  // 안 읽은 메시지 숫자
+  const myMessage = useSelector((state) => state.myMessage?.messages || {});
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!myMessage) {
+      setUnreadCount(0);
+      return;
+    }
+    // unreadCount 계산
+    const count = myMessage.filter(message => !message.isRead).length;
+  setUnreadCount(count);
+  }, [myMessage]); // myMessage가 변경될 때마다 실행
+
+  const routes = [
+    { path: '', name: '모임 관리', component: <MyClub /> },
+    { path: 'chat', name: '채팅', component: <MyChat /> },
+    { path: 'myupdate', name: '회원 정보', component: <MyUpdate /> },
+    { path: 'mymessage', name: '메시지 함', component: <MyMessage />},
+    { path: 'setting', name: '안내사항', component: <MySetting /> },
+  ];
+
+  // 선택된 섹션
+const navigate = useNavigate(); // URL을 변경할 때 사용
+const [selectedSection, setSelectedSection] = useState('');
+
+ // URL 경로에서 /mypage 다음 값을 추출하여 상태를 설정합니다.
+useEffect(() => {
+  const path = location.pathname.split('/').slice(-1)[0]; // /mypage 다음 값을 가져옵니다
+  // path가 routes에 있는지 확인
+  const validPath = routes.find(route => route.path === path);
+  if (validPath) {
+    setSelectedSection(path);
+  } else {
+    // 유효한 path가 없을 경우 기본값 설정
+    setSelectedSection(''); // 여기서 원하는 기본값을 설정
+  }
+}, [location.pathname])
+
+
+// 버튼 클릭 시 섹션 변경과 URL 이동
+const handleSectionClick = (to) => {
+  setSelectedSection(to);
+  navigate(to); // URL을 section으로 이동
+};
 
   useEffect(() => {
     dispatch(myPage()); // 사용자 데이터 새로고침
@@ -205,41 +252,6 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
     justifyContent: 'center',
     alignItems: 'center',
   };
-
-// 버튼 스타일을 선택된 섹션에 따라 동적으로 설정
-  const handleSectionClick = (section) => {
-    setSelectedSection(section);
-  };
-
-  const getButtonStyles = (section) => ({
-    mb: 1,
-    fontSize: '1rem',
-    px: 3,
-    py: 1.5,
-    width: '100%',
-    height: '40px',
-    position: 'relative', // 가상 요소를 사용하기 위해 position 설정
-    variant: selectedSection === section ? 'contained' : 'outlined',
-    backgroundColor: selectedSection === section ? '#A67153' : '#DBC7B5',
-    color: selectedSection === section ? '#fff' : '#30231C',
-    '&:hover': {
-      backgroundColor: selectedSection === section ? '#A6836F' : '#A67153',
-    },
-    overflow: 'hidden',
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      bottom: 0,
-      left: '50%',
-      width: selectedSection === section ? '100%' : '0%',
-      height: '2px',
-      backgroundColor: '#595959',
-      transform: 'translateX(-50%)',
-      transition: 'width 0.3s ease',
-    },
-  });
-
-
 
   return (
     <Box
@@ -558,45 +570,69 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
 
             {/* 버튼 클릭 시 오른쪽 섹션 열기 */}
             <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center',
-              mt: 2 }}>
-              <CustomButton
-                variant="contained"
-                sx={getButtonStyles('club')}
-                onClick={() => handleSectionClick('club')}
-              >
-               모임 관리
-              </CustomButton>
-              <CustomButton
-                variant="contained"
-                sx={getButtonStyles('chat')}
-                onClick={() => handleSectionClick('chat')}
-              >
-                채팅
-                </CustomButton>
-                <CustomButton
-                variant="contained"
-                sx={getButtonStyles('update')}
-                onClick={() => handleSectionClick('update')}
-              >
-                회원 정보
-                </CustomButton>
-                <CustomButton
-                variant="contained"
-                sx={getButtonStyles('wish')}
-                onClick={() => handleSectionClick('wish')}
-              >
-                메시지 함
-                </CustomButton>
-                <CustomButton
-                variant="contained"
-                 sx={getButtonStyles('setting')}
-                onClick={() => handleSectionClick('setting')}
-              >
-                안내사항
-                </CustomButton>
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center',
+                mt: 2,
+                width: '100%' // 부모 요소의 넓이를 100%로 설정
+            }}>
+              {routes.map((route) => (
+                <Box key={route.path} sx={{ position: 'relative', width: '100%' }}>
+                    <CustomButton
+                      variant="contained"
+                      onClick={() => handleSectionClick(route.path)}
+                      sx={{
+                        mb: 1,
+                        fontSize: '1rem',
+                        px: 3,
+                        py: 1.5,
+                        width: '100%',
+                        height: '40px',
+                        position: 'relative',
+                        variant: selectedSection === route.path ? 'contained' : 'outlined',
+                        backgroundColor: selectedSection === route.path ? '#A67153' : '#DBC7B5',
+                        color: selectedSection === route.path ? '#fff' : '#30231C',
+                        '&:hover': {
+                          backgroundColor: selectedSection === route.path ? '#A6836F' : '#A67153',
+                        },
+                        overflow: 'hidden',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          bottom: 0,
+                          left: '50%',
+                          width: selectedSection === route.path ? '100%' : '0%',
+                          height: '2px',
+                          backgroundColor: '#595959',
+                          transform: 'translateX(-50%)',
+                          transition: 'width 0.3s ease',
+                        },
+                      }} // 버튼 스타일 적용
+                    >
+                      {route.name}
+                    </CustomButton>
+                    <Badge
+                    badgeContent={route.path === 'mymessage' && unreadCount > 0 ? unreadCount : null} // "메시지 함" 버튼에만 배지 표시
+                    color="error"
+                    sx={{
+                      '& .MuiBadge-dot': {
+                        backgroundColor: 'red',
+                        width: 20,
+                        height: 20,
+                        right: 5, // 조정 필요
+                        borderRadius: '50%',
+                      },
+                      '.MuiBadge-root': {
+                        position: 'absolute', // 버튼의 오른쪽 위에 배지 위치 조정
+                        top: 0,
+                        right: 0,
+                        transform: 'translate(-50%, -50%)', // 배지를 버튼의 중앙에 위치하도록 조정
+                      },
+                    }}
+                  >
+                  </Badge>
+                </Box>
+              ))}
             </Box>
           </Box>
         </Box>
@@ -607,11 +643,11 @@ const remainingCount = flattenedSubCategories.length - visibleCount;
           flexGrow: 2, 
           p: 2, 
           }}>
-          {selectedSection === 'chat' && <MyChat />}
-          {selectedSection === 'club' && <MyClub />}
-          {selectedSection === 'update' && <MyUpdate />}
-          {selectedSection === 'wish' && <MyWish />}
-          {selectedSection === 'setting' && <MySetting />}
+          <Routes>
+            {routes.map((route) => (
+              <Route key={route.path} path={route.path} element={route.component} />
+            ))}
+          </Routes>
         </Box>
   
         {/* 이미지 미리보기 모달 */}

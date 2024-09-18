@@ -72,7 +72,7 @@ function Header() {
         .post(`http://localhost:4000/clubs/cencellMember/${clubNumber}`)
         .then((response) => {
           alert("모임 탈퇴 성공");
-          navigate(`/mypage/wish`);
+          navigate(`/mypage`);
         })
         .catch((err) => {
           console.log(err);
