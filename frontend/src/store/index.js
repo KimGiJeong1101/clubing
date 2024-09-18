@@ -1,6 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import userSlice from "./reducers/userSlice.js";
 import wishSlice from "./reducers/wishSlice.js";
+import myMessageSlice from "./reducers/myMessageSlice.js";
 import { categoryClubListReducer, clubListReducer, getClubMemberReducer, getClubReducer, meetingListReducer } from "./reducers/clubReducer.js"; // 명시적으로 임포트
 import storage from "redux-persist/lib/storage"; // 로컬 스토리지
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore, persistReducer } from "redux-persist";
@@ -9,7 +10,7 @@ import chatReducer from "./reducers/chatSlice.js";
 const persistConfig = {
   key: "root",
   storage: storage,
-  whitelist: ["user", "club", "getClub", "meetingList", "categoryClub", "getClubMember", "chat", 'wish'],
+  whitelist: ["user", "club", "getClub", "meetingList", "categoryClub", "getClubMember", "chat", 'wish', 'myMessage'],
 };
 
 const rootReducer = combineReducers({
@@ -20,7 +21,9 @@ const rootReducer = combineReducers({
   meetingList: meetingListReducer,
   categoryClub: categoryClubListReducer,
   chat: chatReducer,
-  wish: wishSlice
+  wish: wishSlice,
+  myMessage : myMessageSlice
+
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

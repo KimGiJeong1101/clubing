@@ -6,7 +6,7 @@ import MyPageRoutes from "./pages/myPage/index"; // 마이페이지 관련 라�
 import ClubLayout from "./pages/club/clublayput/ClubLayout";
 import Clubs from "./pages/club/Clubs";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ProtectedRoutes from "./components/common/ProtectedRoutes";
 import NotAuthRoutes from "./components/common/NotAuthRoutes";
 import LoginPage from "./pages/auth/LoginPage";
