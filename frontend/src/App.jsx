@@ -18,6 +18,7 @@ import MeetingList from "./pages/club/meeting/MeetingList";
 import Board from "./pages/club/board/Board";
 import Home from "./pages/home/Home"
 import Event from "./pages/event/Event";
+import RecommendedClubList from './pages/recommend/RecommendedClubList'
 
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
         <Route path="" element={<Home />} />
         <Route path="/clublist" element={<Clubs />} />
         <Route path="/meetingList" element={<MeetingList />} />
+        <Route path="/recommendedClubList" element={<RecommendedClubList/>}></Route>
         <Route path="*" element={<NotFound />} />
         <Route path="/event" element={<Event/>}/>
 

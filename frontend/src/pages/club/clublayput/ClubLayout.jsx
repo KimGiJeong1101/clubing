@@ -87,9 +87,12 @@ function ClubLayout() {
     <Box>
       <MainHeader />
       {/* <Header />  */}
+
       <NavBar />
       <main>
         <Outlet />
+        {/* "#F0F0F0" */}
+
         {joinHandler && (
           <Box
             sx={{

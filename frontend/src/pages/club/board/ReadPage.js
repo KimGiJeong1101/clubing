@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Button, Box, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Container, Button, Box, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Typography } from '@mui/material';
+import { useParams, useLocation } from 'react-router-dom';
+import CKEditor5Editor from '../../../components/club/ClubBoardRead'; // CKEditor 컴포넌트 가져오기
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import CKEditor5Editor from '../../../components/club/ClubBoardRead';
 import UpdatePost from '../../../components/club/ClubBoardUpdateEditor';
-import ChatIcon from '@mui/icons-material/Chat';
 import { fetchPost, deletePost, updatePost } from '../../../api/ClubBoardApi';
 import Reply from './Reply'; // 댓글 컴포넌트 추가
 
-const Read = ({ postId, onClose }) => {
-  const queryClient = useQueryClient();
-  const author = useSelector(state => state.user?.userData?.user?.email || null);
+const BoardRead = ({ postId, onClose }) => {
+  const { id } = useParams(); // URL 파라미터에서 게시물 ID 가져오기
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const clubNumber = queryParams.get("clubNumber");
 
   // 게시물 데이터 가져오기
   const { data: post, isLoading, error } = useQuery({
-    queryKey: ['post', postId],
-    queryFn: () => fetchPost(postId),
+    queryKey: ['post', id],
+    queryFn: () => fetchPost(id),
     onSuccess: (data) => {
       console.log('게시물 가져오기 성공:', data);
     },
@@ -23,6 +25,9 @@ const Read = ({ postId, onClose }) => {
       console.error('게시물 가져오기 오류:', error);
     },
   });
+
+  const queryClient = useQueryClient();
+  const author = useSelector(state => state.user?.userData?.user?.email || null);
 
   // 상태 훅 정의
   const [openEditModal, setOpenEditModal] = useState(false); // 수정 모달 열기 상태
@@ -114,93 +119,89 @@ const Read = ({ postId, onClose }) => {
 
   const handleSnackbarClose = () => setSnackbarOpen(false); // 스낵바 닫기
 
-  // 로딩 상태 처리
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>게시물 가져오기 오류: {error.message}</div>;
-  if (!post) return <div>게시물을 찾을 수 없습니다</div>;
+  if (isLoading) return <p>로딩 중... 리드페이지입니다여</p>;
+  if (error) return <p>게시물 가져오기 오류: {error.message}</p>;
+  if (!post) return <p>게시물을 찾을 수 없습니다.</p>;
 
   const postType = 'Board'; // 포스트 타입
 
   return (
     <Container>
-      {post && (
-        <>
-          <div className="fetched-content">
-            <CKEditor5Editor content={post.content} readOnly={true} />
-          </div>
-          {isAuthor && (
-            <Box
-              mt={2}
-              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
-            >
-              <ChatIcon
-                sx={{ color: '#999999', fontSize: '40px', flexShrink: 0 }}
-                onClick={handleToggleReply} // 댓글 컴포넌트 열기/닫기
-              />
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  variant="contained"
-                  sx={{ backgroundColor: '#DBC7B5', color: '#000', '&:hover': { backgroundColor: '#A67153' } }}
-                  onClick={handleOpenEditModal}
-                >
-                  수정
-                </Button>
-                <Button
-                  variant="contained"
-                  sx={{ backgroundColor: '#6E3C21', color: '#fff', '&:hover': { backgroundColor: '#A67153' } }}
-                  onClick={handleDelete}
-                >
-                  삭제
-                </Button>
-              </Box>
-            </Box>
-          )}
-
-          {/* 댓글 컴포넌트를 Read 위치에 렌더링 */}
-          {openReply && (
-            <Box sx={{ padding: 2 }}>
-              <Reply postType={postType} postId={postId} />
-            </Box>
-          )}
-
-          <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="lg">
-            <DialogTitle>게시물 수정</DialogTitle>
-            <DialogContent>
-              <UpdatePost
-                post={{ title, category, content, image }}
-                onChange={(data) => setContent(data)}
-                title={title}
-                setTitle={setTitle}
-                category={category}
-                setCategory={setCategory}
-                content={content}
-                setImage={setImage}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseEditModal} color="primary">
-                닫기
-              </Button>
-              <Button onClick={handleSave} color="primary">
-                저장
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          <Snackbar
-            open={snackbarOpen}
-            autoHideDuration={6000}
-            onClose={handleSnackbarClose}
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="h4">{post.title}</Typography>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 0.5, mb: 2 }}>
+          <Typography variant="subtitle1" color="textSecondary">{post.category}</Typography>
+          <Typography>작성자</Typography>
+          <Typography>작성 시간</Typography>
+        </Box>
+        <Divider />
+      </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+        <Box sx={{ maxWidth: '1000px', width: '100%' }}>
+          <CKEditor5Editor content={post.content} readOnly={true} />
+          <Box
+            mt={2}
+            sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }} // 오른쪽 정렬
           >
-            <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
-              {snackbarMessage}
-            </Alert>
-          </Snackbar>
-        </>
-      )}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: '#DBC7B5', color: '#000', '&:hover': { backgroundColor: '#A67153' } }}
+                onClick={handleOpenEditModal}
+              >
+                수정
+              </Button>
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: '#6E3C21', color: '#fff', '&:hover': { backgroundColor: '#A67153' } }}
+                onClick={handleDelete}
+              >
+                삭제
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+      <Box sx={{ padding: 2 }}>
+        <Reply postType={postType} postId={id} />
+      </Box>
+
+      <Dialog open={openEditModal} onClose={handleCloseEditModal} fullWidth maxWidth="lg">
+        <DialogTitle>게시물 수정</DialogTitle>
+        <DialogContent>
+          <UpdatePost
+            post={{ title, category, content, image }}
+            onChange={(data) => setContent(data)}
+            title={title}
+            setTitle={setTitle}
+            category={category}
+            setCategory={setCategory}
+            content={content}
+            setImage={setImage}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditModal} color="primary">
+            닫기
+          </Button>
+          <Button onClick={handleSave} color="primary">
+            저장
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
 
-export default Read;
+export default BoardRead;
