@@ -1,4 +1,4 @@
-import { Button } from "@mui/material";
+import { Button, Snackbar, Alert } from "@mui/material";
 import React, { useState } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
@@ -22,8 +22,8 @@ const modalContentStyles = {
     padding: "20px",
     borderRadius: "8px",
     boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-    width: "600px", // 고정 너비 조정
-    height: "400px", // 고정 높이 조정
+    maxWidth: "90%", // 모달 최대 너비를 화면 너비의 90%로 제한
+    maxHeight: "90%", // 모달 최대 높이를 화면 높이의 90%로 제한
     overflow: "hidden", // 넘치는 내용 숨기기
     position: "relative", // 버튼의 절대 위치 설정을 위한 상대 위치
 };
@@ -58,51 +58,90 @@ const cropButtonStyles = {
 const EventImageCropper = ({ src, onCropComplete, onClose }) => {
     const [crop, setCrop] = useState({
         unit: "px",
-        width: 400, // 크롭 영역 너비를 줄임
-        height: 225, // 크롭 영역 높이를 줄임
+        width: 400,
+        height: 225,
+        x: 0,
+        y: 0,
         aspect: 16 / 9,
     });
 
+    const [completedCrop, setCompletedCrop] = useState(null);
     const [image, setImage] = useState(null);
+    const [modalSize, setModalSize] = useState({ width: "auto", height: "auto" });
+
+    // Snackbar 상태 관리 변수
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState("warning");
 
     const onLoad = (e) => {
-        setImage(e.target);
+        const img = e.target;
+        setImage(img);
+        // 이미지 크기에 맞게 모달 크기 설정
+        setModalSize({
+            width: img.naturalWidth > 600 ? "90%" : `${img.naturalWidth}px`,
+            height: img.naturalHeight > 400 ? "auto" : `${img.naturalHeight}px`,
+        });
     };
 
     const handleCropChange = (newCrop) => {
         setCrop(newCrop);
     };
 
-    const handleCropComplete = () => {
-        if (image && crop.width && crop.height) {
+    const handleCropComplete = (c) => {
+        setCompletedCrop(c);
+    };
+
+    const handleConfirmCrop = () => {
+        if (image && completedCrop && completedCrop.width && completedCrop.height) {
             const canvas = document.createElement("canvas");
             const scaleX = image.naturalWidth / image.width;
             const scaleY = image.naturalHeight / image.height;
-            canvas.width = crop.width;
-            canvas.height = crop.height;
+            canvas.width = completedCrop.width;
+            canvas.height = completedCrop.height;
             const ctx = canvas.getContext("2d");
-            ctx.drawImage(image, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, crop.width, crop.height);
+            ctx.drawImage(
+                image,
+                completedCrop.x * scaleX,
+                completedCrop.y * scaleY,
+                completedCrop.width * scaleX,
+                completedCrop.height * scaleY,
+                0,
+                0,
+                completedCrop.width,
+                completedCrop.height
+            );
             canvas.toBlob((blob) => {
                 const croppedImageUrl = URL.createObjectURL(blob);
                 onCropComplete(croppedImageUrl); // prop으로 전달된 onCropComplete 함수 호출
             }, "image/jpeg");
         } else {
-            console.error("이미지 또는 크롭 상태가 유효하지 않음");
+            // Snackbar로 메시지 표시
+            setSnackbarMessage("영역을 움직여서 이미지를 설정해주세요");
+            setSnackbarSeverity("warning");
+            setSnackbarOpen(true);
         }
+    };
+
+    // Snackbar 닫기 핸들러
+    const handleSnackbarClose = (event, reason) => {
+        if (reason === "clickaway") {
+            return;
+        }
+        setSnackbarOpen(false);
     };
 
     return (
         <div style={modalStyles}>
-            <div style={modalContentStyles}>
+            <div style={{ ...modalContentStyles, ...modalSize }}>
                 <Button onClick={onClose} variant="outlined" style={closeButtonStyles}>
                     X
                 </Button>
                 <ReactCrop
                     crop={crop}
                     onChange={handleCropChange}
-                    onComplete={handleCropChange} // 크롭 완료 시 콜백
+                    onComplete={handleCropComplete}
                     style={{ width: "100%", height: "100%" }}
-                    locked
                 >
                     <img
                         src={src}
@@ -117,9 +156,21 @@ const EventImageCropper = ({ src, onCropComplete, onClose }) => {
                         }}
                     />
                 </ReactCrop>
-                <Button onClick={handleCropComplete} style={cropButtonStyles}>
+                <Button onClick={handleConfirmCrop} style={cropButtonStyles}>
                     완료
                 </Button>
+
+                {/* Snackbar 컴포넌트 */}
+                <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={6000}
+                    onClose={handleSnackbarClose}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                >
+                    <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </div>
         </div>
     );
