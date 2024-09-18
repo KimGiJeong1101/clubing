@@ -40,7 +40,7 @@ const MessageRow = ({ message, selectedMessages, handleReadMessage  }) => {
               }}
             >
               <Typography sx={{ fontSize: '0.7rem' }}>
-                to : {message.sender}
+              From : {message.sender}
               </Typography>
               <Box sx={{ textAlign: 'right' }}>
                 <Typography sx={{ fontSize: '0.7rem', color: 'textSecondary', mb: 1 }}>
