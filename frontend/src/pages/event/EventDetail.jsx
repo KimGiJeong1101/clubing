@@ -66,36 +66,37 @@ const EventDetail = ({ eventId, onClose }) => {
     };
 
     return (
-        <Container sx={{ backgroundColor: '#f8f8f8', paddingTop: '40px', paddingBottom: '40px', maxWidth: '1000px' }}>
+        <Container sx={{ backgroundColor: 'white', paddingTop: '40px', paddingBottom: '40px', maxWidth: '1000px' }}>
             {post && (
                 <>
                     {/* 상단 정보 */}
                     <Box sx={{ borderBottom: '1px solid #ddd', paddingBottom: '20px', marginBottom: '20px' }}>
-                        <Typography variant="h3" gutterBottom sx={{ fontWeight: 'bold' }}>
+                        <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold' }}>
                             {post.title}
                         </Typography>
 
                         {/* 작성자와 조회수: 왼쪽, 등록 날짜와 종료 날짜: 오른쪽 */}
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
                             <Box>
-                                <Typography variant="subtitle1" color="textSecondary">
+                                <Typography variant="body2" color="textSecondary">
                                     작성자: {post.writer}
                                 </Typography>
-                                <Typography variant="subtitle1" color="textSecondary">
+                                <Typography variant="body2" color="textSecondary">
                                     조회수: {post.views}
                                 </Typography>
                             </Box>
 
                             <Box sx={{ textAlign: 'right' }}>
-                                <Typography variant="subtitle1" color="textSecondary">
+                                <Typography variant="body2" color="textSecondary">
                                     등록 날짜: {formatDateTime(post.createdAt)}
                                 </Typography>
-                                <Typography variant="subtitle1" color="textSecondary">
+                                <Typography variant="body2" color="textSecondary">
                                     종료 날짜: {post.endTime ? formatDateTime(post.endTime) : '없음'}
                                 </Typography>
                             </Box>
                         </Box>
                     </Box>
+
 
                     {/* CKEditor 내용 렌더링 */}
                     <Box className="fetched-content" sx={{ paddingTop: '20px' }}>

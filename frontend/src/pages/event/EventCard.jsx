@@ -201,7 +201,7 @@ const EventCard = ({ eventData, onClose }) => {
             const dataToSend = {
                 eventId: eventData?.eventId || null,  // eventData.eventId로 수정
                 title: title,
-                content: contentText,
+                content: eventData.content,
                 cardImage: finalCardImage,
                 cardTitle: cardTitle,
                 writer: writer,
