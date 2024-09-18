@@ -88,38 +88,54 @@ router.post("/room", auth, async (req, res) => {
     // clubId로 이미 존재하는 채팅방을 찾음
     let chatRoom = await ChatRoom.findOne({ clubId });
     if (chatRoom) {
-      // 기존 채팅방이 존재하는 경우
       console.log("Existing chat room found:", chatRoom);
-
-      // 기존 채팅방의 참가자 목록을 문자열로 변환
-      const existingParticipants = chatRoom.participants.map((participant) => participant.toString());
-
+    
+      // 기존 참가자 목록에서 참가자의 ObjectId를 문자열로 변환
+      const existingParticipants = chatRoom.participants.map(participant => participant.userId.toString());
+    
       // 새로운 참가자들을 추가하고 중복을 제거
-      const updatedParticipants = [...new Set([...existingParticipants, ...participantObjectIds.map((id) => id.toString())])];
-
-      // 업데이트된 참가자 목록을 ObjectId로 변환
-      chatRoom.participants = updatedParticipants.map((id) => new mongoose.Types.ObjectId(id));
-
+      const newParticipants = participantObjectIds.map(id => ({
+        userId: id,
+        timestamp: new Date(), // 참가 시간 기록
+      }));
+    
+      // 참가자 목록 업데이트 (기존 참가자와 새로운 참가자를 합쳐서 중복 제거)
+      const updatedParticipants = [
+        ...chatRoom.participants,
+        ...newParticipants.filter(newParticipant => !existingParticipants.includes(newParticipant.userId.toString()))
+      ];
+    
+      // 채팅방의 참가자 목록을 업데이트
+      chatRoom.participants = updatedParticipants;
+    
       // 업데이트된 채팅방을 데이터베이스에 저장
       const updatedChatRoom = await chatRoom.save();
       console.log("Updated chatRoom:", updatedChatRoom);
-
+    
       // 업데이트된 채팅방 정보를 클라이언트에 반환
       return res.status(200).json(updatedChatRoom);
     }
+    
 
-    // 새로운 채팅방을 생성
-    const newChatRoom = new ChatRoom({
-      clubId,
-      participants: participantObjectIds,
-    });
+   // 새로운 채팅방을 생성할 때, participants 배열에 timestamp를 포함
+const newParticipants = participantObjectIds.map(id => ({
+  userId: id,
+  timestamp: new Date(), // 참가 시간 기록
+}));
 
-    // 새로운 채팅방을 데이터베이스에 저장
-    const savedChatRoom = await newChatRoom.save();
-    console.log("Newly saved chatRoom:", savedChatRoom);
+// 새로운 채팅방을 생성
+const newChatRoom = new ChatRoom({
+  clubId,
+  participants: newParticipants,
+});
 
-    // 생성된 채팅방 정보를 클라이언트에 반환
-    res.status(201).json(savedChatRoom);
+// 새로운 채팅방을 데이터베이스에 저장
+const savedChatRoom = await newChatRoom.save();
+console.log("Newly saved chatRoom:", savedChatRoom);
+
+// 생성된 채팅방 정보를 클라이언트에 반환
+res.status(201).json(savedChatRoom);
+
   } catch (error) {
     // 채팅방 생성 또는 업데이트 중 오류가 발생하면 콘솔에 로그를 출력
     console.error("Error creating or updating chat room:", error);
@@ -273,3 +289,5 @@ router.get("/:clubId/messages", async (req, res) => {
 // });
 
 module.exports = router;
+
+

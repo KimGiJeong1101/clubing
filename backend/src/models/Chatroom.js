@@ -13,11 +13,19 @@ const chatRoomSchema = new mongoose.Schema({
     // required 속성 제거 (선택 사항으로 만듦)
   },
   participants: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now, // 사용자가 참가한 시간 기록
+    },
   }],
 });
 
 const ChatRoom = mongoose.model('ChatRoom', chatRoomSchema);
 
 module.exports = ChatRoom;
+
