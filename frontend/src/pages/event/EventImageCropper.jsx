@@ -113,10 +113,11 @@ const EventImageCropper = ({ src, onCropComplete, onClose }) => {
             );
             canvas.toBlob((blob) => {
                 const croppedImageUrl = URL.createObjectURL(blob);
-                onCropComplete(croppedImageUrl); // prop으로 전달된 onCropComplete 함수 호출
+                onCropComplete(croppedImageUrl); // 크롭된 이미지 전달
+                onClose(); // 모달 닫기
             }, "image/jpeg");
         } else {
-            // Snackbar로 메시지 표시
+            // 크롭 영역이 설정되지 않았을 때 경고 메시지
             setSnackbarMessage("영역을 움직여서 이미지를 설정해주세요");
             setSnackbarSeverity("warning");
             setSnackbarOpen(true);

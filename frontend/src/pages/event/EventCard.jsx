@@ -247,7 +247,7 @@ const EventCard = ({ eventData, onClose }) => {
                             alt={title || '이미지 없음'}
                             height="200"
                             image={displayImage || 'https://via.placeholder.com/345x140?text=No+Image'}
-                            onClick={handleImageClick}
+                            onClick={() => fileInputRef.current.click()}
                             sx={{ cursor: 'pointer', objectFit: 'cover', width: '100%', height: '200px' }}
                         />
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px', m: '10px' }}>
@@ -262,7 +262,7 @@ const EventCard = ({ eventData, onClose }) => {
                                             size="small"
                                             sx={{ marginRight: 1 }}
                                         />
-                                        <Button onClick={handleTitleSave} variant="contained" size="small">
+                                        <Button onClick={() => setEditTitle(false)} variant="contained" size="small">
                                             저장
                                         </Button>
                                     </Box>
@@ -278,7 +278,7 @@ const EventCard = ({ eventData, onClose }) => {
                                             whiteSpace: 'normal',
                                             cursor: 'pointer',
                                         }}
-                                        onClick={handleTitleClick}
+                                        onClick={() => setEditTitle(true)}
                                     >
                                         {cardTitle || title || '기본 타이틀'}
                                     </Typography>
@@ -296,23 +296,58 @@ const EventCard = ({ eventData, onClose }) => {
                             </Typography>
                         </Box>
                         <CardActions>
-                            <Button size="small">공유</Button>
-                            <Button size="small">더 보기</Button>
+                            <Button size="small" sx={{ color: '#30231C' }}>공유</Button>
+                            <Button size="small" sx={{ color: '#30231C' }}>더 보기</Button>
                         </CardActions>
                     </Card>
                 </Box>
 
-                <Box sx={{ display: 'flex', mt: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mt: 2, width: '350px' }}>
+                    {isDatePickerOpen && (
+                        <Box sx={{ marginRight: 1 }}>
+                            <MobileDateTimePicker
+                                value={endTime}
+                                onChange={(newValue) => setEndTime(newValue)}
+                                onAccept={() => setIsDatePickerOpen(false)}
+                                onClose={() => setIsDatePickerOpen(false)}
+                                showToolbar
+                                ampm={false}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        size="small"
+                                        sx={{
+                                            width: '150px', // 너비 조정
+                                            fontSize: '12px', // 글자 크기 조정
+                                        }}
+                                    />
+                                )}
+                            />
+
+                        </Box>
+                    )}
                     <Button
                         variant="contained"
                         onClick={() => setIsDatePickerOpen(true)}
-                        sx={{ mr: 1 }}
+                        sx={{
+                            backgroundColor: '#DBC7B5',
+                            '&:hover': {
+                                backgroundColor: '#A67153',
+                            },
+                            mr: 1,
+                        }}
                     >
                         종료시일 설정
                     </Button>
                     <Button
                         variant="contained"
                         onClick={handleSubmit}
+                        sx={{
+                            backgroundColor: '#6E3C21',
+                            '&:hover': {
+                                backgroundColor: '#A67153',
+                            },
+                        }}
                     >
                         제출
                     </Button>
@@ -329,21 +364,8 @@ const EventCard = ({ eventData, onClose }) => {
                 {showCropper && (
                     <EventImageCropper
                         src={displayImage}
-                        onCropComplete={handleCropComplete}
+                        onCropComplete={setDisplayImage}
                         onClose={() => setShowCropper(false)}
-                    />
-                )}
-
-                {isDatePickerOpen && (
-                    <MobileDateTimePicker
-                        value={endTime}
-                        onChange={(newValue) => setEndTime(newValue)}
-                        onAccept={() => setIsDatePickerOpen(false)}
-                        onClose={() => setIsDatePickerOpen(false)}
-                        showToolbar
-                        ampm={false}
-                        renderInput={(params) => null}
-                        sx={{ mt: '10px' }}
                     />
                 )}
 
@@ -358,6 +380,7 @@ const EventCard = ({ eventData, onClose }) => {
                     </Alert>
                 </Snackbar>
             </Box>
+
         </LocalizationProvider>
     );
 };

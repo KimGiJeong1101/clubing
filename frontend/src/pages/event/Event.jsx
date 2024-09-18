@@ -30,7 +30,6 @@ const Event = () => {
     const [filter, setFilter] = useState('ongoing'); // 'ongoing' 또는 'ended' 필터
     const [snackbarOpen, setSnackbarOpen] = useState(false); // 스낵바 열림 상태
     const [snackbarMessage, setSnackbarMessage] = useState(''); // 스낵바 메시지
-    const [selectedEvent, setSelectedEvent] = useState(null); // 선택된 이벤트 상세 정보
     const [openDetail, setOpenDetail] = useState(false); // 상세 페이지 모달 열림 상태
 
     const user = useSelector(state => state.user?.userData?.user || null);
@@ -78,13 +77,14 @@ const Event = () => {
     };
 
     // 상세 페이지 열기
-    const handleOpenDetail = (event) => {
-        setSelectedEvent(event);
-        setOpenDetail(true);
+    const handleOpenDetail = (eventId) => {
+        setSelectedEventId(eventId); // eventId 저장
+        setOpenDetail(true); // 상세 페이지 모달 열기
     };
 
     const handleCloseDetail = () => {
         setOpenDetail(false);
+        refetch();
     };
 
     // 새로 만든 handleNextForModify 함수
@@ -197,7 +197,7 @@ const Event = () => {
                                 event={event}
                                 onEdit={handleEditEvent} // 수정 핸들러 전달
                                 onDelete={handleDeleteEvent} // 삭제 핸들러 전달
-                                onImageClick={() => handleOpenDetail(event)} // 이미지 클릭 시 상세 페이지 열기
+                                onImageClick={() => handleOpenDetail(event._id)} // 이미지 클릭 시 상세 페이지 열기
                             />
                         </Grid>
                     ))
@@ -356,7 +356,8 @@ const Event = () => {
                                             overflowY: 'auto',
                                         }}
                                     >
-                                        <EventDetail event={selectedEvent} onClose={handleCloseDetail} />
+                                        {/* EventDetail에 eventId 전달 */}
+                                        <EventDetail eventId={selectedEventId} onClose={handleCloseDetail} />
                                     </Box>
                                 </motion.div>
                             </Backdrop>

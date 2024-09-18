@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import axiosInstance from './../../utils/axios';
 import { useMutation } from '@tanstack/react-query';
 import { Snackbar, Alert } from '@mui/material'; // Snackbar for success/error messages
+import axios from 'axios';
 
 const EventListCard = ({ event, onEdit, onDelete, onImageClick }) => {
     const displayImage = event.cardImage || 'https://via.placeholder.com/345x140?text=No+Image';
@@ -37,6 +38,17 @@ const EventListCard = ({ event, onEdit, onDelete, onImageClick }) => {
         handleMenuClose();
         if (onEdit) {
             onEdit(event);
+        }
+    };
+
+    // 조회수 증가 함수
+    const increaseViews = async (eventId) => {
+        try {
+            console.log(`조회수 증가 함수 호출됨: 이벤트 ID - ${eventId}`); // 디버깅 로그 추가
+            const response = await axios.patch(`http://localhost:4000/events/${eventId}/views`);
+            console.log("조회수 증가 응답:", response.data); // 서버 응답 로그 추가
+        } catch (error) {
+            console.error("조회수 증가 오류:", error);
         }
     };
 
@@ -78,6 +90,14 @@ const EventListCard = ({ event, onEdit, onDelete, onImageClick }) => {
         setSnackbarOpen(false);
     };
 
+    // 이미지 클릭 시 조회수 증가 후 상세 페이지로 이동
+    const handleImageClick = () => {
+        increaseViews(event._id); // event._id를 사용하여 조회수 증가
+        if (onImageClick) {
+            onImageClick(); // 상세 페이지 이동
+        }
+    };
+
     return (
         <>
             <Card sx={{ width: '350px', height: 'auto', margin: 0, backgroundColor: '#f0f0f0' }}>
@@ -86,7 +106,7 @@ const EventListCard = ({ event, onEdit, onDelete, onImageClick }) => {
                     alt={event.title || '이미지 없음'}
                     height="200"
                     image={displayImage}
-                    onClick={onImageClick}
+                    onClick={handleImageClick} // 이미지 클릭 시 조회수 증가 및 상세 페이지 이동
                     sx={{ cursor: 'pointer', objectFit: 'cover', width: '100%', height: '200px' }}
                 />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px', margin: '10px', backgroundColor: '#f0f0f0', position: 'relative' }}>

@@ -163,8 +163,8 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
-// 이벤트 조회 API (GET)
-router.get("/:id", async (req, res) => {
+//조회수 증가 api
+router.patch("/:id/views", async (req, res) => {
   const eventId = req.params.id;
 
   try {
@@ -174,7 +174,42 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ error: "이벤트를 찾을 수 없습니다." });
     }
 
-    res.status(200).json(event);
+    // 조회수 증가
+    event.views = (event.views || 0) + 1;
+    await event.save();
+    res.status(200).json({ message: "조회수가 증가되었습니다.", views: event.views });
+  } catch (error) {
+    console.error("조회수 증가 중 오류 발생:", error);
+    res.status(500).json({ error: "조회수 증가를 실패하였습니다." });
+  }
+});
+
+// 이벤트 조회 API (GET)
+router.get("/:id", async (req, res) => {
+  const eventId = req.params.id;
+
+  try {
+    console.log(`Received request to fetch event with ID: ${eventId}`);
+
+    // 이벤트 찾기
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ error: "이벤트를 찾을 수 없습니다." });
+    }
+
+    // User 컬렉션에서 writer(작성자)를 찾아 nickname을 가져옴
+    const user = await User.findById(event.writer);
+    if (!user) {
+      return res.status(404).json({ error: "작성자를 찾을 수 없습니다." });
+    }
+    console.log(user.nickName);
+    // 이벤트 데이터를 클라이언트로 보낼 때, writer 필드를 nickname으로 변경
+    const eventWithNickname = {
+      ...event._doc, // 기존 이벤트 데이터 복사
+      writer: user.nickName, // writer를 nickname으로 대체
+    };
+
+    res.status(200).json(eventWithNickname);
   } catch (error) {
     console.error("이벤트 조회 중 오류 발생:", error);
     res.status(500).json({ error: "이벤트 조회를 실패하였습니다." });

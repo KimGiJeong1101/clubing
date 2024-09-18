@@ -45,8 +45,8 @@ const EventModify = ({ eventId, onClose, onNext }) => {  // onSubmit 대신 onNe
         title,
         content,
         cardImage: finalImage,
-        eventId : eventId,
-        isEdit:true,
+        eventId: eventId,
+        isEdit: true,
       };
       onNext(eventDetails); // 부모 컴포넌트로 데이터 넘기기
     } else {
@@ -85,7 +85,13 @@ const EventModify = ({ eventId, onClose, onNext }) => {  // onSubmit 대신 onNe
           setImage={setImage}
         />
       </Box>
-      <Button variant="contained" color="primary" onClick={handleNext}>  {/* handleModify에서 handleNext로 변경 */}
+      <Button variant="contained" color="primary" onClick={handleNext} sx={{
+        backgroundColor: "#DBC7B5", // 기본 버튼 색상
+        "&:hover": {
+          backgroundColor: "#A67153", // 호버 시 색상
+        },
+        mt: 2,
+      }}>  {/* handleModify에서 handleNext로 변경 */}
         다음
       </Button>
       <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={handleCloseSnackbar}>
