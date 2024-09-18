@@ -16,12 +16,15 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../src/store/actions/userActions';
 import { useMediaQuery, useTheme } from '@mui/material';
+import Badge from '@mui/material/Badge';// 알림 뱃지
+import { fetchMessages } from "../store/actions/myMessageActions";
+import axios from 'axios';
 
 function Header() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // 'sm'보다 작을 때 모바일로 간주
+  const isMobile = useMediaQuery(theme.breakpoints.down('md')); // 'sm'보다 작을 때 모바일로 간주  //md로 일단 바꿔놓음(시간되면 md 전에 안 움직이기게 수정)
   const location = useLocation();
-  const [selected, setSelected] = useState('추천모임');
+  const [selected, setSelected] = useState('모임찾기');
   const [scrollY, setScrollY] = useState(0);
   const [showNavbar, setShowNavbar] = useState(true);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -31,12 +34,40 @@ function Header() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const user = useSelector((state) => state.user?.userData?.user || {});
+  const myMessage = useSelector((state) => state.myMessage?.messages || {});
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [path, setPath] = useState(location.pathname);
+
+  useEffect(() => {
+    setPath(location.pathname); // URL 경로를 상태로 저장
+  }, [location.pathname]); // 경로가 변경될 때마다 실행
+
+
+  useEffect(() => {
+    if (user.email) {
+      dispatch(fetchMessages(user.email)); // 리덕스 액션으로 메시지 가져오기
+    }
+  }, [user.email, path, dispatch]); // 이메일 또는 path가 변경될 때마다 실행
+
+  useEffect(() => {
+    if (!myMessage) {
+      setUnreadCount(0);
+      return;
+    }
+    // unreadCount 계산
+    const count = myMessage.filter(message => !message.isRead).length;
+  setUnreadCount(count);
+  }, [myMessage]); // myMessage가 변경될 때마다 실행
+
+
   const routes = [
     { to: '/login', name: '로그인', auth: false },
     { to: '/register', name: '회원가입', auth: false },
     { to: '', name: '로그아웃', auth: true },
     { to: '/mypage', name: '마이페이지', auth: true },
   ];
+
 
   const navItems = [
     { name: '모임찾기', path: '/clubList' },
@@ -48,11 +79,11 @@ function Header() {
   const getSelected = () => {
     const path = location.pathname;
     if (path.includes('home')) return '발견';
+    if (path.includes('clubList')) return '모임찾기';
     if (path.includes('meetingList')) return '정모일정';
-    if (path.includes('recommendedClubList')) return '신규모임';
-    if (path.includes('class')) return '클래스';
+    if (path.includes('recommendedClubList')) return '추천모임';
     if (path.includes('event')) return '이벤트';
-    return '추천모임';
+    return '발견';
   };
 
   useEffect(() => {
@@ -62,7 +93,7 @@ function Header() {
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
-      setShowNavbar(window.scrollY < 100 || window.scrollY < scrollY);
+      setShowNavbar(window.scrollY < 100 || window.scrollY < scrollY); // 100px 이상 스크롤 시 숨김
     };
     window.addEventListener('scroll', handleScroll);
     return () => {
@@ -95,17 +126,39 @@ function Header() {
 
   const [showSearch, setShowSearch] = useState(false);
   const [openSearchDialog, setOpenSearchDialog] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]); // 검색 결과 상태 추가
+  
   const handleSearchDialogOpen = () => {
     setOpenSearchDialog(true);
   };
+
   const handleSearchDialogClose = () => {
     setOpenSearchDialog(false);
+    setSearchTerm(''); // 다이얼로그 닫을 때 검색어 초기화
+    setSearchResults([]); // 결과도 초기화
   };
-  const [searchTerm, setSearchTerm] = useState('');
 
-  const handleInputChange = (event) => {
-    setSearchTerm(event.target.value);
+  const handleInputChange = async (event) => {
+    const term = event.target.value;
+    console.log("입력된 검색어:", term);
+    setSearchTerm(term);
+    if (term) {
+      try {
+        const response = await axios.get(`http://localhost:4000/clubs/search/test?title=${term}`);
+        setSearchResults(response.data);
+      } catch (error) {
+        console.error("검색 요청 실패", error);
+      }
+    } else {
+      setSearchResults([]);
+    }
   };
+  
+
+    const handleMymessage = () => {
+      navigate('/mypage/mymessage'); // 클릭 시 이동할 경로
+    };
 
   return (
     <Box sx={{ width: '100%', height: '85px' }}>
@@ -136,7 +189,7 @@ function Header() {
             <Box
               mr={40}
               sx={{
-                display: { xs: 'none', sm: 'flex' },
+                display: { xs: 'none', md: 'flex' },
                 flexGrow: 1,
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -196,18 +249,42 @@ function Header() {
                     sx={{ padding: '7px', color: 'gray', ':hover': { cursor: 'pointer' }, fontSize: 24 }}
                   />
                 </Tooltip>
+
                 <Tooltip title="알림" arrow>
+                <Badge
+                  badgeContent={unreadCount > 0 ? unreadCount : null} // unreadCount가 0보다 클 때만 표시
+                  color="error"
+                  sx={{
+                    '& .MuiBadge-dot': {
+                      backgroundColor: 'red',
+                      width: 20, // 배지의 가로 크기
+                      height: 20, // 배지의 세로 크기
+                      top: 5, // 배지의 위쪽 위치 조정
+                      right: 5, // 배지의 오른쪽 위치 조정
+                      borderRadius: '50%', // 배지를 원형으로 만듭니다
+                    },
+                    '.MuiBadge-root': {
+                      '& .MuiBadge-dot': {
+                        top: 0, // 배지의 상단 위치 조정
+                        right: 0, // 배지의 우측 위치 조정
+                      },
+                    },
+                  }}
+                >
                   <NotificationsIcon
-                    onClick={() => {}}
-                    sx={{ padding: '7px', color: 'gray', ':hover': { cursor: 'pointer' }, fontSize: 24 }}
+                     onClick={handleMymessage}
+                    sx={{ padding: "7px", color: "gray", ":hover": { cursor: 'pointer' }, fontSize: 24 }}
                   />
-                </Tooltip>
+                </Badge>
+              </Tooltip>
+
                 <Tooltip title="채팅" arrow>
                   <MessageIcon
                     onClick={() => {}}
                     sx={{ padding: '7px', color: 'gray', ':hover': { cursor: 'pointer' }, fontSize: 24 }}
                   />
                 </Tooltip>
+
                 {/* 화면이 큰 경우에만 계정 아이콘을 표시 */}
                 {!isMobile && (
                   <Tooltip title="계정" arrow>
@@ -253,7 +330,7 @@ function Header() {
               {/* 햄버거 아이콘 */}
               {isMobile && (
                 <IconButton
-                  sx={{ display: { xs: 'flex', sm: 'none' }, color: 'gray' }}
+                  sx={{ display: { xs: 'flex', md: 'none' }, color: 'gray' }}
                   onClick={handleDrawerToggle}
                 >
                   <MenuIcon />
@@ -329,8 +406,8 @@ function Header() {
         </Box>
       </Drawer>
 
-      {/* 검색 다이얼로그 */}
-      <Dialog
+       {/* 검색 다이얼로그 */}
+       <Dialog
         open={openSearchDialog}
         onClose={handleSearchDialogClose}
         maxWidth="md"
@@ -368,14 +445,25 @@ function Header() {
             />
           </Box>
           {/* 검색 결과 리스트 */}
-          {searchTerm && (
+          {searchResults.length > 0 && (
             <Box sx={{ marginTop: 2 }}>
               <Typography variant="h6">검색 결과</Typography>
-              {/* 검색 결과를 여기에 표시 */}
+              {searchResults.map((club) => (
+                <Box key={club._id} sx={{ padding: '10px 0', borderBottom: '1px solid gray' }}>
+                 <Link
+                    to={`/clubs/main?clubNumber=${club._id}`}
+                    style={{ textDecoration: 'none', color: 'inherit' }}
+                    onClick={handleSearchDialogClose} // 클릭 시 모달 닫기
+                  >
+                    <Typography>{club.title}</Typography> {/* 모임 제목 */}
+                  </Link>
+                </Box>
+              ))}
             </Box>
           )}
         </DialogContent>
       </Dialog>
+
     </Box>
   );
 }

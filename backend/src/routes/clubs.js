@@ -516,12 +516,54 @@ router.get('/recommend/scroll/:pageParam', async (req, res) => {
   }
 });
 
+//검색 (헤더에 모임이름으로 검색)  =>> 왜 안되는 거야??
+// router.get("/search", async (req, res, next) => {
+//   console.log("검색 요청 수신:", req.query.title);
+//   try {
+//     const { title } = req.query; // 클라이언트에서 받은 검색어
+
+//     // 제목으로 검색 (검색어가 포함된 클럽 찾기)
+//     const clubs = await Club.find(
+//       { title: { $regex: title, $options: 'i' } }, // 대소문자 구분 없이 검색
+//       { _id: 1, title: 1 } // _id와 title만 가져옴
+//     )
+//     .sort({ _id: -1 }) // _id가 큰 순서로 정렬
+//     .limit(10); // 최대 10개 결과 반환
+
+//     res.status(200).json(clubs);
+//   } catch (error) {
+//     console.error("제목으로 검색 데이터 가져오기 실패", error);
+//     next(error);
+//   }
+// });
+
+//검색 테스트 (헤더에 모임이름으로 검색)
+router.get("/search/test", async (req, res, next) => {
+  // console.log("검색 요청 수신:", req.query.title);
+  try {
+    const { title } = req.query; // 클라이언트에서 받은 검색어
+
+    // 제목으로 검색 (검색어가 포함된 클럽 찾기)
+    const clubs = await Club.find(
+      { title: { $regex: title, $options: 'i' } }, // 대소문자 구분 없이 검색
+      { _id: 1, title: 1 } // _id와 title만 가져옴
+    )
+    .sort({ _id: -1 }) // _id가 큰 순서로 정렬
+    .limit(10); // 최대 10개 결과 반환
+
+    res.status(200).json(clubs);
+  } catch (error) {
+    console.error("제목으로 검색 데이터 가져오기 실패", error);
+    next(error);
+  }
+});
+
 //메인 페이지 (모임 찾기)
 router.get("/home/card", async (req, res, next) => {
   try {
-    console.log("클럽 목록 가져오기 시작");
+    // console.log("클럽 목록 가져오기 시작");
     const clubs = await Club.find(); // 모든 클럽 가져오기
-    console.log("클럽 목록 가져오기 완료", clubs);
+    // console.log("클럽 목록 가져오기 완료", clubs);
     
     // 배열을 랜덤으로 섞기
     const shuffledClubs = clubs.sort(() => 0.5 - Math.random()).slice(0, 4); // 4개의 클럽만 가져오기
@@ -559,9 +601,9 @@ router.get("/home/card", async (req, res, next) => {
 //메인 페이지 (신규모임)
 router.get("/home/card/new", async (req, res, next) => {
   try {
-    console.log("신규 모임 목록 가져오기 시작");
+    // console.log("신규 모임 목록 가져오기 시작");
     const clubs = await Club.find().sort({ _id: -1 }).limit(10); // 4개의 클럽만 가져오기
-    console.log("신규 모임 목록 가져오기 완료", clubs);
+    // console.log("신규 모임 목록 가져오기 완료", clubs);
     
     // 나머지 로직은 동일하게 유지
     const clubsWithImages = await Promise.all(
@@ -595,37 +637,39 @@ router.get("/home/card/new", async (req, res, next) => {
 //메인 페이지 (추천 모임)
 router.get('/home/recommend', async (req, res) => {
   try {
-    // 유저 정보를 가져오는 부분
     let user = null;
+
+    // if (req.query.email) {
+    //   user = await User.findOne({ email: req.query.email });
+    //   console.log(user)
+    // }
 
     if (req.query.email) {
       user = await User.findOne({ email: req.query.email });
+      console.log("User found:", user);
+    } else {
+      console.log("No email provided in query.");
     }
 
     let clubs;
 
-    if (!user) {
+    if (!user || user === 'null') {
       // 유저 정보가 없을 때 모든 클럽을 조회
-      clubs = await Club.find().sort({ _id: -1 }).limit(4); // 4개만 가져오기
+      clubs = await Club.find().sort({ _id: -1 }).limit(4);
+      console.log("Clubs retrieved:", clubs);
     } else {
       // 유저 정보가 있을 때 필터링 및 정렬
       const { homeLocation, interestLocation, workplace, category, job } = user;
 
-      // 지역 필터링 순서: neighborhood -> district -> city
       const regions = [homeLocation, interestLocation, workplace].filter(Boolean);
+      let regionFilters = regions.map(region => ({
+        $or: [
+          { 'region.neighborhood': region.neighborhood },
+          { 'region.district': region.district },
+          { 'region.city': region.city }
+        ]
+      }));
 
-      let regionFilters = [];
-      for (const region of regions) {
-        regionFilters.push({
-          $or: [
-            { 'region.neighborhood': region.neighborhood },
-            { 'region.district': region.district },
-            { 'region.city': region.city }
-          ]
-        });
-      }
-
-      // 선호 정보 필터링 순서: subCategory -> mainCategory
       let categoryFilters = [];
       if (category) {
         categoryFilters = category.flatMap(cat => [
@@ -634,7 +678,6 @@ router.get('/home/recommend', async (req, res) => {
         ]);
       }
 
-      // 필터 조건을 합친다
       const filterConditions = {
         $and: [
           { $or: regionFilters },
@@ -643,7 +686,6 @@ router.get('/home/recommend', async (req, res) => {
         ]
       };
 
-      // 클럽을 필터링하고 정렬하기 위한 집계 파이프라인
       clubs = await Club.aggregate([
         { $match: filterConditions },
         {
@@ -672,15 +714,46 @@ router.get('/home/recommend', async (req, res) => {
           }
         },
         { $sort: { categoryScore: 1, regionScore: 1 } },
-        { $limit: 4 } // 4개만 가져오기
+        { $limit: 4 }
       ]);
     }
 
-    res.json(clubs);
+// 이미지 추가 로직
+const clubsWithImages = await Promise.all(
+  clubs.map(async (club) => {
+    const admin = club.admin;
+    const adminData = await User.findOne({ email: admin });
+    const adminImage = adminData?.profilePic?.thumbnailImage || null;
+
+    const memberImages = await Promise.all(
+      club.members.map(async (memberEmail) => {
+        const memberData = await User.findOne({ email: memberEmail });
+        return memberData?.profilePic?.thumbnailImage || null;
+      }),
+    );
+
+    // Mongoose 문서인지 확인하고 toObject() 호출
+    return {
+      ...(club.toObject ? club.toObject() : club), // Mongoose 문서일 경우에만 toObject() 호출
+      adminImage,
+      memberImages,
+    };
+  }),
+);
+
+    res.json(clubsWithImages);
   } catch (error) {
+    console.error("Error occurred while fetching recommended clubs:", {
+      message: error.message,
+      stack: error.stack,
+      requestQuery: req.query,
+      userId: req.query.email || null,
+    });
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 
 
