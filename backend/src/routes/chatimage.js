@@ -66,7 +66,7 @@ router.post("/upload", upload.array("files", 20), async (req, res) => {
 
       // Sharp 라이브러리를 사용하여 썸네일 생성
       await sharp(file.path)
-        .resize(100, 100) // 썸네일 크기 설정 (100x100)
+        .resize(200, 200) // 썸네일 크기 설정 (200x200)
         .toFile(path.join(uploadDir, thumbnailFilePath)); // 썸네일 파일 저장
 
       console.log("오리리리리지지나나날 :: " + originalFilePath);
