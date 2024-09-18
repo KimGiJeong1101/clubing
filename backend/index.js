@@ -29,7 +29,9 @@ const io = socketIo(server, {
   },
 });
 
-app.use(express.json());
+// body-parser 대신 아래 코드로 교체
+app.use(express.json()); // JSON 파싱
+app.use(express.urlencoded({ extended: true })); // URL-encoded 파싱
 
 // 세션 설정 적용
 //app.use(session);
