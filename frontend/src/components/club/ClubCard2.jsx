@@ -6,12 +6,12 @@ import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import club from "../../data/Club.js";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 
 const ClubCard2 = ({ clubList }) => {
   const [list, setList] = useState(club);
-  const user  = useSelector((state) => state.user?.userData?.user || {});
-  console.log(user.email)
+  const user = useSelector((state) => state.user?.userData?.user || {});
+  console.log(user.email);
 
   const navigate = useNavigate();
 
@@ -43,9 +43,9 @@ const ClubCard2 = ({ clubList }) => {
                 transition: "box-shadow 0.3s ease",
                 backgroundColor: "white",
                 position: "relative", // Paper의 상대적인 위치 기준 설정
-                '&:hover': {
+                "&:hover": {
                   transform: "scale(1.03)",
-                }
+                },
               }}
               onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
             >
@@ -152,25 +152,25 @@ const ClubCard2 = ({ clubList }) => {
                         </span>
                       </Box>
                     </Box>
-                   {/* 내가 만든 모임 표시 */}
-                  {club.admin === user.email && (
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        position: "absolute",
-                        top: "8px",
-                        right: "8px",
-                        backgroundColor: "#BF5B16",
-                        color: "white",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                        zIndex: 1, // Typography를 가장 위에 표시
-                      }}
-                    >
-                      내가 만든 모임
-                    </Typography>
-                  )}
-                 </Box>
+                    {/* 내가 만든 모임 표시 */}
+                    {club.admin === user.email && (
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          position: "absolute",
+                          top: "8px",
+                          right: "8px",
+                          backgroundColor: "#BF5B16",
+                          color: "white",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          zIndex: 1, // Typography를 가장 위에 표시
+                        }}
+                      >
+                        내가 만든 모임
+                      </Typography>
+                    )}
+                  </Box>
                 </Grid>
               </Grid>
             </Paper>

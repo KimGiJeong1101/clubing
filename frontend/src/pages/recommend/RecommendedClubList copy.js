@@ -67,7 +67,6 @@ const Clubs = () => {
   //카테고리 바뀔 떄 마다 리스트를 불러옴 -> 어차피 3개씩 불러와서 빨리빨리 부르는데 헉 생각해보니...
   const navigate = useNavigate();
 
-  
   //무한스크롤 구현
   const getClubListScroll = async (newScrollCount) => {
     let response;
@@ -162,12 +161,11 @@ const Clubs = () => {
 
   return (
     <Box sx={{ width: "100%", backgroundColor: "#F2F2F2", position: "relative" }}>
-
-      <Box sx={{ width: "100%", height: "450px", backgroundColor: "white" }}>
-        {/* 이 부분에 데이터 출력 */}
-      </Box>
+      <Box sx={{ width: "100%", height: "450px", backgroundColor: "white" }}>{/* 이 부분에 데이터 출력 */}</Box>
       <Container maxWidth="lg" sx={{ marginTop: "40px", paddingBottom: "40px" }}>
-        <Typography mb={3} variant="h5">지역기반 추천</Typography>
+        <Typography mb={3} variant="h5">
+          지역기반 추천
+        </Typography>
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <ClubListCard clubList={clubList} />
 
@@ -439,7 +437,6 @@ const Clubs = () => {
                 </Paper>
               </Grid>
             ))}
-            
         </Grid>
       </Container>
     </Box>
