@@ -200,9 +200,7 @@ router.get("/:clubId/messages", auth, async (req, res) => {
     const userId = req.user._id;
 
     console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
-    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
-    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
-    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
+    
 
     const participant = chatRoom.participants.find((p) => p.userId.equals(userId));
 

@@ -11,7 +11,7 @@ const ChatHeader = ({ title, onFileUpload }) => {
   };
 
   // 조건에 따라 제목을 잘라내는 함수
-  const truncatedTitle = title.length > 12 ? `${title.slice(0, 12)}...` : title;
+  const truncatedTitle = title.length > 16 ? `${title.slice(0, 16)}...` : title;
 
   return (
     <Grid container alignItems="center" justifyContent="space-between" sx={{ margin: 0, backgroundColor: "#a67153", padding: 2, borderBottom: "1px solid #c1c1c1", borderRadius: "10px 10px 0px 0px" }}>

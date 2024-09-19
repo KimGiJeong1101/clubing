@@ -74,6 +74,11 @@ const getImageSize = (count) => {
   }
 };
 
+const isUrl = (text) => {
+  const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/;
+  return urlRegex.test(text);
+};
+
 const MessageList = ({ messages, userId, handleScroll, isAtBottom, newMessageReceived }) => {
   const containerRef = useRef(null);
   const [userProfiles, setUserProfiles] = useState({});
@@ -249,8 +254,15 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, newMessageRec
                         fontSize: isOnlyEmoji(msg.content) && countEmojis(msg.content) === 1 ? "2.5rem" : "1rem",
                       }}
                     >
-                      {msg.content}
+                      {isUrl(msg.content) ? (
+                        <a href={msg.content.startsWith("http") ? msg.content : `http://${msg.content}`} target="_blank" rel="noopener noreferrer" style={{ color: "#1976d2" }}>
+                          {msg.content}
+                        </a>
+                      ) : (
+                        msg.content
+                      )}
                     </Typography>
+
                     {msg.images && (
                       <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                         {msg.images.map((image, i) => {
