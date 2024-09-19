@@ -1,5 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
+const MyMessage = require('../models/MyMessage');
+const RecentVisit = require('../models/RecentVisit');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 //const sessionAuth = require('../middleware/sessionAuth');
@@ -576,6 +578,230 @@ router.get("/:id", async (req, res) => {
         res.json({ success: true, message: '초대를 거절했습니다.' });
     } catch (error) {
         res.status(500).json({ success: false, message: '초대를 거절 중 오류가 발생했습니다.', error });
+    }
+});
+
+// 유저 ID로 메시지 조회
+router.get('/messages/:email', async (req, res) => {
+    try {
+      const messages = await MyMessage.find({ recipient: req.params.email })
+      .sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+      res.status(200).json(
+        messages
+    );
+    } catch (error) {
+        res.status(500).json({ error: error.message }); // 수정된 부분
+    }
+  });
+
+  // Express 서버 측 라우트 예시
+router.get('/messages/counts/:email', async (req, res) => {
+    try {
+        const readCount = await MyMessage.countDocuments({ recipient: req.params.email, isRead: true });
+        const unreadCount = await MyMessage.countDocuments({ recipient: req.params.email, isRead: false });
+        
+        res.status(200).json({
+            readCount,
+            unreadCount
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+  // 유저 ID로 읽지 않은 메시지 조회
+router.get('/messages/:email/false', async (req, res) => {
+    try {
+      const messages = await MyMessage.find({
+        recipient: req.params.email,
+        isRead: false
+      });
+      res.status(200).json(messages);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // 유저 ID로 읽지 읽은 메시지 조회
+  router.get('/messages/:email/true', async (req, res) => {
+    try {
+        const messages = await MyMessage.find({
+            recipient: req.params.email,
+            isRead: true
+        }).sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+      res.status(200).json(messages);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+// // 메시지 읽음 상태로 변경
+router.put('/messages/changestate', async (req, res) => {
+    try {
+        let { ids } = req.body; // 클라이언트에서 전송한 메시지 IDs 배열 또는 단일 ID
+        console.log('받은 IDs:', ids);
+
+        // IDs가 이중 배열일 경우 평탄화
+        if (Array.isArray(ids[0])) {
+            ids = ids.flat();
+        }
+
+        // IDs가 배열인지 확인하고, 단일 값일 경우 배열로 변환
+        if (!Array.isArray(ids)) {
+            ids = [ids];
+        }
+
+        // 문자열 IDs를 그대로 사용하여 업데이트
+        const result = await MyMessage.updateMany(
+            { _id: { $in: ids } }, // IDs 배열에 포함된 메시지를 찾기 위한 조건
+            { $set: { isRead: true } } // 업데이트할 내용
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'No messages found' });
+        }
+
+        return res.status(200).json({ message: 'Messages updated successfully' });
+
+    } catch (error) {
+        console.error('Error updating message state:', error); // 서버 로그로 오류 확인
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+// 메시지 삭제
+router.post('/messages/delete', async (req, res) => {
+    try {
+    const { ids, email } = req.body;
+  
+      // IDs 배열이 제공되지 않았거나 비어있는 경우 오류 반환
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Invalid message IDs' });
+      }
+  
+      // IDs가 올바른 형식인지 확인 (MongoDB ObjectId 형식 체크)
+      if (!ids.every(id => typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/))) {
+        return res.status(400).json({ error: 'Invalid ID format' });
+      }
+  
+      // 여러 메시지 삭제
+      const result = await MyMessage.deleteMany({ _id: { $in: ids } });
+  
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: 'No messages found to delete' });
+      }
+  
+    // 삭제 후 안 읽음 메시지 재조회
+    const updatedMessages = await MyMessage.find({
+        recipient: email,
+        isRead: false
+    });
+
+    res.status(200).json({ message: 'Messages deleted successfully', messages: updatedMessages });
+    } catch (error) {
+      console.error('Error deleting messages:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+
+//메시지 보내기
+router.post("/messages", async (req, res) => {
+    console.log("Received request body:", req.body); // 요청 본문 로그 출력
+
+    const { club, recipient, sender, content, title } = req.body;
+  
+    try {
+      const newMessage = new MyMessage({
+        club,
+        recipient,
+        sender,
+        content,
+        title,
+      });
+  
+      await newMessage.save();
+  
+      res.status(201).json(newMessage);
+    } catch (err) {
+      res.status(500).json({ message: "메시지 저장에 실패했습니다." });
+    }
+  });
+
+// 유저 ID로 방문 클럽 조회
+router.get('/recentvisit/:email', async (req, res) => {
+    const email = req.params.email;
+    console.log("받아온 이메일:", email);
+    try {
+        // 해당 이메일로 RecentVisit 항목 조회
+        const RecentVisitList = await RecentVisit.find({ email: email })
+            .sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+        
+        // 각 RecentVisit 항목에 클럽 수를 추가
+        const responseData = RecentVisitList.map(item => ({
+            ...item.toObject(), // Mongoose 문서를 일반 객체로 변환
+            clubCount: item.clubs.flat().filter(club => typeof club === 'number').length // 중첩 배열 평탄화 후 숫자만 필터링하여 카운트
+        }));
+        // responseData를 콘솔에 찍기
+        console.log("왜 안되는데:", responseData);
+
+        // 데이터와 총 항목 수를 객체로 반환
+        res.status(200).json({
+            RecentVisitList: responseData, // 조회된 데이터
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message }); // 에러 처리
+    }
+});
+
+//최근 본 모임 저장
+router.post("/recentvisit", async (req, res) => {
+    let { clubs, email } = req.body;
+
+    // clubs가 배열인지 확인하고, 배열이 아닐 경우 단일 값을 배열로 변환
+    if (!Array.isArray(clubs)) {
+        clubs = [clubs];
+    }
+
+    try {
+        // 이메일로 RecentVisit 문서 찾기
+        let recentVisit = await RecentVisit.findOne({ email });
+
+        // 클라이언트에서 보내온 clubs 값을 문자열 배열로 변환
+        const incomingClubs = clubs.map(club => Number(club));
+        
+        if (recentVisit) {
+            // 기존 clubs 값을 문자열 배열로 변환
+            const existingClubs = recentVisit.clubs.map(club => Number(club));
+
+            // 중복 제거 및 추가
+            const updatedClubs = [...new Set([...existingClubs, ...incomingClubs])];
+
+             // 최대 6개 제한: 6개 초과 시 가장 오래된 기록 제거
+             if (updatedClubs.length > 6) {
+                 updatedClubs.sort((a, b) => b - a); // 클럽 ID가 큰 것이 최신
+                updatedClubs.splice(6); // 가장 오래된 기록 제거
+            }
+
+            console.log("Updated clubs:", updatedClubs); // 업데이트된 clubs 배열 로그 출력
+
+            recentVisit.clubs = updatedClubs;
+            recentVisit.date = Date.now();
+            await recentVisit.save(); // 문서 업데이트
+        } else {
+            // 문서가 존재하지 않으면 새로운 문서 생성
+            recentVisit = new RecentVisit({
+                clubs: incomingClubs,
+                email,
+            });
+            await recentVisit.save(); // 문서 저장
+        }
+
+        res.status(201).json(recentVisit); // 응답 반환
+    } catch (err) {
+        console.error(err); // 오류 로그 출력
+        res.status(500).json({ message: "목록 저장에 실패했습니다." }); // 오류 응답
     }
 });
 

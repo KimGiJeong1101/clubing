@@ -22,7 +22,6 @@ app.use(
   }),
 );
 
-
 const io = socketIo(server, {
   cors: {
     origin: "http://localhost:3000", // 소켓 통신을 허용할 출처
@@ -30,7 +29,9 @@ const io = socketIo(server, {
   },
 });
 
-app.use(express.json());
+// body-parser 대신 아래 코드로 교체
+app.use(express.json()); // JSON 파싱
+app.use(express.urlencoded({ extended: true })); // URL-encoded 파싱
 
 // 세션 설정 적용
 //app.use(session);
@@ -72,6 +73,10 @@ app.use("/clubs/gallery", galleriesRouter);
 const clubsRouter = require("./src/routes/clubs");
 app.use("/clubs", clubsRouter);
 
+//라우터 미들웨어(이벤트)
+const eventRouter = require("./src/routes/events");
+app.use("/events", eventRouter);
+
 //라우터 미들웨어(미팅)
 const meetingsRouter = require("./src/routes/meetings");
 app.use("/meetings", meetingsRouter);
@@ -79,6 +84,10 @@ app.use("/meetings", meetingsRouter);
 //라우터 미들웨어(댓글)
 const repliesRouter = require("./src/routes/replies");
 app.use("/replies", repliesRouter);
+
+//라우터 미들웨어(댓글)
+const BoardrepliesRouter = require("./src/routes/repliesBoard");
+app.use("/replies/board", BoardrepliesRouter);
 
 //라우터 미들웨어(유저)
 const usersRouter = require("./src/routes/users");

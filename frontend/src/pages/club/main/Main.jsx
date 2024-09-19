@@ -22,6 +22,8 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import MenuIcon from "@mui/icons-material/Menu";
 import MemberModal from "./MemberModal.jsx";
 import WishHearts from "../../../components/club/WishHearts.jsx";
+import { sendMessage } from "../../../store/actions/myMessageActions";
+import { saveVisitClub } from "../../../store/actions/RecentVisitAction";
 
 dayjs.locale("ko");
 
@@ -63,7 +65,37 @@ const Main = ( wishHeart ) => {
         .post(`http://localhost:4000/clubs/cencellMember/${clubNumber}`)
         .then((response) => {
           alert("모임 탈퇴 성공");
-          navigate(`/mypage/wish`);
+
+           // 모임 가입 성공 후 메시지 DB에 저장
+           const messages = [ 
+            {
+            club: clubNumber,
+            recipient: user.userData.user.email,
+            sender: getClub.clubs.title, // 클럽 이름
+            content: `${getClub.clubs.title}에서 탈퇴하셨습니다.`,
+            title: "모임 탈퇴 성공",
+          },
+          {
+            club: clubNumber,
+            recipient: getClub.clubs.admin,
+            sender: user.userData.user.email, // 클럽 이름
+            content:`${user.userData.user.email}님이 모임에서 탈퇴하셨습니다.`,
+            title: "탈퇴",
+          }
+          // 필요에 따라 추가 메시지 객체를 배열에 추가
+        ];
+        // 메시지 전송을 위한 액션 디스패치
+      dispatch(sendMessage(messages[0]));
+      // 클럽 주인에게 메시지 전송 (axios 사용)
+      axiosInstance.post('/users/messages', messages[1])
+      // 모든 디스패치가 완료될 때까지 기다립니다.
+        .then(() => {
+          console.log("메시지 전송 성공");
+          navigate(`/mypage`);
+        })
+        .catch((err) => {
+          console.error("메시지 전송 실패", err);
+        });
         })
         .catch((err) => {
           console.log(err);
@@ -258,6 +290,20 @@ const handleInvite = async (email) => {
 
     if (response.status === 200) {
       alert("초대를 했습니다.");
+       // 모임 가입 성공 후 메시지 DB에 저장
+       const message = {
+        club: clubNumber,
+        recipient: email,
+        sender: getClub.clubs.title, // 클럽 이름
+        content: `${getClub.clubs.title}에서 모임에 초대합니다.`,
+        title: "모임 초대",
+      };
+
+      // 메시지 전송을 위한 액션 디스패치
+    dispatch(sendMessage(message))
+    .then(() => {
+      console.log("메시지 전송 성공");
+    })
       queryClient.invalidateQueries(["readClub", clubNumber, memberModalOpen, memberModalOpen2]);
     } else {
       console.error("초대 전송 실패:", response.statusText);
@@ -269,6 +315,28 @@ const handleInvite = async (email) => {
   }
 };
 //초대하기 끝
+
+//최근 방문 리스트
+useEffect(() => {
+  if (clubNumber && user.userData.user.email) {
+    // 서버로 보낼 데이터 객체
+    const body = {
+      clubs: clubNumber,
+      email: user.userData.user.email,
+    };
+
+    // saveVisitClub 액션 디스패치
+    dispatch(saveVisitClub(body))
+      .then((result) => {
+        // 액션 성공 처리
+        console.log('Visit saved successfully:', result);
+      })
+      .catch((error) => {
+        // 액션 실패 처리
+        console.error('Failed to save visit:', error);
+      });
+  }
+}, [clubNumber, user.userData.user.email, dispatch]);
 
   if (isLoading) {
     return <div>로딩 중...</div>; // 최초 로딩 시
@@ -324,7 +392,7 @@ const handleInvite = async (email) => {
                 backgroundColor: "#DBC7B5",
                 color: "white",
                 position: "fixed",
-                bottom: "200px",
+                bottom: "50px",
                 right: "100px",
                 "&:hover": {
                   backgroundColor: "#A67153", // hover 시 배경 색상 변경

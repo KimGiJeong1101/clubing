@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Button, Typography, Box, Modal, Grid, Snackbar, Alert } from '@mui/material';
+import { Button, Typography, Box, Modal, Grid, } from '@mui/material';
 import { logoutUser } from '../../../../store/actions/userActions';
 import axiosInstance from '../../../../utils/axios';
 import CustomSnackbar from '../../../../components/auth/Snackbar';

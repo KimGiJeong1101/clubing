@@ -8,15 +8,16 @@ import WishGroups from './WishGroups'
 import axiosInstance from '../../../../utils/axios';
 
 const MyClub = () => {
-  const user = useSelector((state) => state.user?.userData?.user || {});
   // 클릭된 항목을 추적하는 상태
   const [activeItem, setActiveItem] = useState('myGroups');
   const [counts, setCounts] = useState({
     myGroups: 0,
     wishGroups: 0,
-    //recentGroups: 0,
-    //invitedGroups: 0,
+    recentGroups: 0,
+    invitedGroups: 0,
   });
+
+  const user = useSelector((state) => state.user?.userData?.user || {});
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -24,6 +25,16 @@ const MyClub = () => {
         const response = await axiosInstance.get('/users/myPage'); 
         const { counts } = response.data; // 서버 응답에서 counts를 추출
         setCounts(counts); // 상태 업데이트
+         // recentGroups 카운트를 별도로 요청
+        const Response = await axiosInstance.get(`/users/recentvisit/${user.email}`);
+        const RecentVisitList = Response.data.RecentVisitList;
+        const RecentClubs = RecentVisitList.length > 0 ? RecentVisitList[0].clubCount : 0;
+      // recentGroups를 업데이트
+      setCounts(prevCounts => ({
+        ...prevCounts,
+        recentGroups : RecentClubs
+      }));
+
       } catch (error) {
         console.error('Error fetching group counts:', error);
       }
@@ -35,7 +46,6 @@ const MyClub = () => {
   const handleItemClick = (item) => {
     setActiveItem(item);
   };
-  //console.log('가입한 모임 수', counts.myGroups)
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto' }}>
@@ -82,13 +92,13 @@ const MyClub = () => {
             <Typography variant="body1">
               {item === 'myGroups' && '내 모임'}
               {item === 'wishGroups' && '찜 모임'}
-              {item === 'recentGroups' && '최근 본 모임'}
+              {item === 'recentGroups' && '최근 방문한 모임'}
               {item === 'invitedGroups' && '초대받은 모임'}
             </Typography>
             <Typography variant="body2">
               {item === 'myGroups' && counts.myGroups}
               {item === 'wishGroups' && counts.wishGroups}
-              {item === 'recentGroups' && '0'}
+              {item === 'recentGroups' && counts.recentGroups}
               {item === 'invitedGroups' && counts.inviteGroups}
             </Typography>
           </Box>
@@ -103,7 +113,6 @@ const MyClub = () => {
           borderRadius: 2,
           boxShadow: 3,
           transition: 'background-color 0.3s ease',
-          mt: -1, // 콘텐츠 영역이 버튼 영역에 붙도록 조정
         }}
       >
         {activeItem === 'myGroups' && (

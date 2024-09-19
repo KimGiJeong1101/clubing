@@ -1,111 +1,358 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { motion } from "framer-motion"; // Framer Motion을 사용해 애니메이션 구현
-import Box from '@mui/material/Box'; // MUI의 Box 컴포넌트 사용
-import Button from '@mui/material/Button'; // MUI의 Button 컴포넌트 사용
-import './HomeImageCarousel.css'; // CSS 파일 임포트 (이미지 캐러셀의 스타일 정의)
+import React, { useEffect, useState } from "react";
+import { Box, Button, Typography, Grid, Container, Tooltip, IconButton  } from "@mui/material";
+import { motion } from "framer-motion";
+import './HomeImageCarousel.css';
+import HomeCard from "../../components/commonEffect/HomeCard";
+import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { useNavigate } from "react-router-dom";
+import axios from 'axios';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
-// 이미지 배열, 캐러셀에서 순차적으로 보여줄 이미지들
 const images = [
   '/MainImage/mainImage.webp',
   '/MainImage/mainImage2.webp',
   '/MainImage/mainImage3.webp',
 ];
 
-// 이미지 애니메이션의 상태 정의
 const imageVariants = {
   enter: (direction) => ({
-    // 이미지가 처음 등장할 때 위치와 투명도 설정
     opacity: 0,
-    x: direction > 0 ? window.innerWidth : -window.innerWidth, // 슬라이드 방향에 따른 x 축 이동
+    x: direction > 0 ? window.innerWidth : -window.innerWidth,
     transition: {
-      type: "spring", // 스프링 애니메이션 적용
-      stiffness: 300, // 스프링 강도
-      damping: 20, // 스프링 감쇠력
+      type: "spring",
+      stiffness: 300,
+      damping: 20,
     },
   }),
   center: {
-    // 중앙에 있을 때 상태
-    zIndex: 1, // 레이어 순서
-    opacity: 1, // 불투명도 (완전하게 보이도록 설정)
-    x: 0, // x 축 위치 중앙
+    zIndex: 1,
+    opacity: 1,
+    x: 0,
     transition: {
       x: {
-        type: "spring", // 스프링 애니메이션 적용
+        type: "spring",
         stiffness: 300,
         damping: 20,
-        restDelta: 2, // 약간의 흔들림 설정
-        restSpeed: 2, // 스프링 안정화 후 속도 설정
+        restDelta: 2,
+        restSpeed: 2,
       },
-      opacity: { duration: 3 }, // 불투명도 변화 지속 시간
+      opacity: { duration: 3 },
     },
   },
   exit: (direction) => ({
-    // 이미지가 퇴장할 때 상태
-    zIndex: 0, // 이미지가 뒤로 감
-    opacity: 0, // 이미지가 투명해짐
-    x: direction < 0 ? window.innerWidth : -window.innerWidth, // 슬라이드 방향에 따른 x 축 이동
+    zIndex: 0,
+    opacity: 0,
+    x: direction < 0 ? window.innerWidth : -window.innerWidth,
     transition: {
       x: {
-        type: "spring", // 스프링 애니메이션 적용
+        type: "spring",
         stiffness: 300,
-        damping: 30, // 감쇠력을 더 강하게 설정
+        damping: 30,
       },
-      opacity: { duration: 3 }, // 불투명도 변화 지속 시간
+      opacity: { duration: 3 },
     },
   }),
 };
 
+// API 부분
+const fetchCardData = async () => {
+  const response = await axios.get(`http://localhost:4000/clubs/home/card`);
+  return response.data;
+};
+
+const fetchNewClubsData = async () => {
+  const response = await axios.get(`http://localhost:4000/clubs/home/card/new`);
+  return response.data;
+};
+
+// 추천 모임 데이터 가져오기
+const fetchRecommendedClubs = async (email) => {
+  const response = await axios.get('http://localhost:4000/clubs/home/recommend', {
+    params: { email } // 여기서 email은 문자열입니다.
+  });
+  return response.data;
+};
+
+
 const Home = () => {
-  // 페이지와 방향을 저장하는 상태
+  const navigate = useNavigate();
+
   const [[page, direction], setPage] = useState([0, 0]);
 
-  // 다음 이미지를 보여주는 함수
-  const nextImage = useCallback(() => {
-    setPage(([prevPage]) => [prevPage + 1, 1]); // 페이지 번호 증가 및 방향 설정 (1: 다음)
-  }, []);
+  const email = useSelector(state => state.user?.userData?.user?.email || null);
+  // console.log(email)
 
-  // 이전 이미지를 보여주는 함수
-  const prevImage = () => setPage(([prevPage]) => [prevPage - 1, -1]); // 페이지 번호 감소 및 방향 설정 (-1: 이전)
+  // 기존 클럽 데이터
+  const { isLoading: loadingClubs, error: clubsError, data: clubsData } = useQuery({
+    queryKey: ['clubData'],
+    queryFn: fetchCardData,
+  });
 
-  // 현재 페이지의 이미지 인덱스를 계산
+  // 신규 모임 데이터
+  const { isLoading: loadingNewClubs, error: newClubsError, data: newClubsData } = useQuery({
+    queryKey: ['newClubData'],
+    queryFn: fetchNewClubsData,
+  });
+
+  // 추천 모임 데이터
+  const { isLoading: loadingRecommendedClubs, error: recommendedClubsError, data: recommendedClubsData } = useQuery({
+    queryKey: ['recommendedClubs', email], // 이메일을 쿼리 키에 포함
+    queryFn: () => fetchRecommendedClubs(email), // 이메일을 직접 전달
+    enabled: true // 항상 쿼리를 실행
+  });
+
+  const isLoading = loadingClubs || loadingNewClubs || loadingRecommendedClubs;
+  const error = clubsError || newClubsError || recommendedClubsError;
+
+  const nextImage = () => {
+    setPage(([prevPage]) => [prevPage + 1, 1]);
+  };
+
+  const prevImage = () => {
+    setPage(([prevPage]) => [prevPage - 1, -1]);
+  };
+
   const imageIndex = (page) => (page % images.length + images.length) % images.length;
 
-  // 8초마다 자동으로 다음 이미지를 보여줌 (nextImage 함수 호출)
   useEffect(() => {
-    const interval = setInterval(nextImage, 8000); // 8000ms (8초)마다 실행
-    return () => clearInterval(interval); // 컴포넌트가 사라질 때 interval 해제
-  }, [nextImage]);
+    const interval = setInterval(nextImage, 8000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 중심을 기준으로 카드들이 회전하도록 하는 로직
+  const [rotation, setRotation] = useState(0);
+
+  useEffect(() => {
+    const rotateInterval = setInterval(() => {
+      setRotation(prev => prev + 20); // 매번 20도씩 회전
+    }, 3000);
+
+    return () => clearInterval(rotateInterval);
+  }, []);
+
+  const tooltipText = email
+    ? `선택한 지역 및 관심사 기준으로 추천해드립니다.  
+       지역 및 관심사 변경은
+       마이페이지-회원정보-정보수정 에서 가능합니다.`
+    : `선택한 지역 및 관심사 기준으로 추천해드립니다. 로그인 시 정확한 추천 정보를 받을 수 있습니다.`;
+
 
   return (
-    <>
-      <Box className="carousel-container" sx={{ position: 'relative' }}>
-        {/* 이미지 캐러셀 영역 */}
-        <Box className="carousel">
-          <motion.div className="image-frame">
-            {/* 이미지 슬라이드 애니메이션 */}
-            <motion.img
-              key={page} // 각 페이지를 구분할 수 있도록 key 값 설정
-              src={images[imageIndex(page)]} // 현재 페이지에 해당하는 이미지
-              custom={direction} // 슬라이드 방향 전달
-              variants={imageVariants} // 슬라이드 애니메이션 적용
-              initial="enter" // 처음 진입 애니메이션 상태
-              animate="center" // 중간 상태
-              exit="exit" // 퇴장 상태
-              className="carousel-image" // 이미지 스타일을 위한 클래스
-            />
-          </motion.div>
+    <Box sx={{ width: "100%", backgroundColor: "#F2F2F2", position: "relative" }}>
+      <Container maxWidth="lg" sx={{ paddingBottom: "40px" }}>
+        {/* 이미지 캐러셀 */}
+        <Box className="carousel-container" sx={{ position: 'relative' }}>
+          <Box sx={{ display: "flex" }}>
+            <Button
+              className="prev-btn"
+              onClick={prevImage}
+              sx={{ color: 'black' }}
+            >
+              &#10094;
+            </Button>
+            <Box className="carousel">
+              <motion.div className="image-frame">
+                <motion.img
+                  key={page}
+                  src={images[imageIndex(page)]}
+                  custom={direction}
+                  variants={imageVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  className="carousel-image"
+                />
+              </motion.div>
+            </Box>
+            <Button className="next-btn" onClick={nextImage} sx={{ color: 'black' }}>
+              &#10095;
+            </Button>
+          </Box>
         </Box>
 
-        {/* 이전 이미지로 가는 버튼 */}
-        <Button className="prev-btn" onClick={prevImage}>
-          &#10094; {/* 좌측 화살표 */}
-        </Button>
-        {/* 다음 이미지로 가는 버튼 */}
-        <Button className="next-btn" onClick={nextImage}>
-          &#10095; {/* 우측 화살표 */}
-        </Button>
-      </Box>
-    </>
+        {isLoading && <div>Loading...</div>}
+        {error && <div>Error fetching data</div>}
+
+        {/* 모임 찾기 렌더링되는 카드 섹션 */}
+        <Box sx={{ mt: 5, padding: '20px' }}>
+          <Box sx={{ borderBottom: '3px solid black', mb: 2, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', ml: 2 }}>
+              모임 찾기
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: 'gray' ,
+                cursor: 'pointer', // 기본 커서 스타일
+                '&:hover': {
+                  color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                  cursor: 'pointer' // 호버 시 커서 모양 변경
+                }
+              }}
+              onClick={() => navigate(`/clubList`)}
+            >
+              더보기
+            </Typography>
+          </Box>
+
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            {clubsData && clubsData.map((club, idx) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
+                <HomeCard club={club} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* 신규 모임 렌더링되는 카드 섹션 */}
+        <Box sx={{ mt: 5, padding: '20px' }}>
+          <Box sx={{ borderBottom: '3px solid black', mb: 2, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', ml: 2 }}>
+              신규 모임
+            </Typography>
+          </Box>
+
+          {/* 카드들을 중앙을 기준으로 회전시키는 컨테이너 */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '230px',
+              perspective: '10000px',
+              overflow: 'hidden',
+            }}
+          >
+            <Box
+              sx={{
+                position: 'relative',
+                width: '200px',
+                height: '200px',
+                transformStyle: 'preserve-3d',
+                transform: `rotateY(${rotation}deg)`,
+                transition: 'transform 10s ease',
+              }}
+            >
+              {newClubsData && newClubsData.map((club, idx) => {
+                const angle = (idx / newClubsData.length) * 360; // 각도 계산
+
+                return (
+                  <Box
+                    key={idx}
+                    sx={{
+                      position: 'absolute',
+                      width: '120px', // 카드 크기 조정
+                      height: '90px',
+                      transform: `rotateY(${angle}deg) translateZ(250px)`, // Z축 이동값 증가
+                      backfaceVisibility: 'hidden',
+                    }}
+                  >
+                    <HomeCard club={club} />
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
+        </Box>
+
+        {/* 추천 모임 렌더링되는 카드 섹션 */}
+        <Box sx={{ mt: 5, padding: '20px' }}>
+          <Box sx={{ borderBottom: '3px solid black', mb: 2, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center'}}>
+              <Typography variant="h5" sx={{ fontWeight: 'bold', ml: 2 }}>
+                추천 모임
+              </Typography>
+              <Tooltip
+              title={tooltipText}
+              arrow
+              sx={{
+                '& .MuiTooltip-tooltip': {
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)', // 흐린 회색 배경
+                  color: 'white',
+                  fontSize: '0.75rem',
+                  borderRadius: '4px'
+                }
+              }}
+            >
+              <IconButton sx={{ color: 'gray', fontSize: '1.5rem' }}>
+                <InfoOutlinedIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: 'gray' ,
+                cursor: 'pointer', // 기본 커서 스타일
+                '&:hover': {
+                  color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                  cursor: 'pointer' // 호버 시 커서 모양 변경
+                }
+              }}
+              onClick={() => navigate(`/recommendedClubList`)}
+            >
+              더보기
+            </Typography>
+          </Box>
+
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            {recommendedClubsData && recommendedClubsData.map((club, idx) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
+                <HomeCard club={club} />
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* 정모일정 */}
+        <Box sx={{ mt: 5, padding: '20px' }}>
+          <Box sx={{ borderBottom: '3px solid black', mb: 2, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', ml: 2 }}>
+              정모일정
+            </Typography>
+            <Typography 
+            variant="body1" 
+            sx={{ 
+              color: 'gray' ,
+              cursor: 'pointer', // 기본 커서 스타일
+              '&:hover': {
+                color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                cursor: 'pointer' // 호버 시 커서 모양 변경
+              }
+            }}
+            onClick={() => navigate(`/meetingList`)}
+            >
+              더보기
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* 이벤트 */}
+        <Box sx={{ mt: 5, padding: '20px' }}>
+          <Box sx={{ borderBottom: '3px solid black', mb: 2, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="h5" sx={{ fontWeight: 'bold', ml: 2 }}>
+              이벤트
+            </Typography>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: 'gray' ,
+                cursor: 'pointer', // 기본 커서 스타일
+                '&:hover': {
+                  color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                  cursor: 'pointer' // 호버 시 커서 모양 변경
+                }
+              }}
+              onClick={() => navigate(`/event`)}
+            >
+              더보기
+            </Typography>
+          </Box>
+        </Box>
+
+      </Container>
+    </Box>
   );
 };
 

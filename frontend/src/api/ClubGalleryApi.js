@@ -27,7 +27,7 @@ export const fetchGalleryDetail = async (clubNumber, imageId) => {
 
 // 선택한 이미지들을 삭제하는 함수 (삭제 로직)
 export const deleteImages = async (clubNumber, { imageIds, writer }) => {
-  await axios.delete(
+  await axiosInstance.delete(
     `http://localhost:4000/clubs/gallery/${clubNumber}/images`,
     {
       data: { imageIds, writer }, // imageIds와 writer를 함께 전송
@@ -37,7 +37,7 @@ export const deleteImages = async (clubNumber, { imageIds, writer }) => {
 
 // 모든 이미지를 삭제하는 함수 (전체 삭제 로직)
 export const deleteAllImages = async (clubNumber, { writer }) => {
-  await axios.delete(
+  await axiosInstance.delete(
     `http://localhost:4000/clubs/gallery/${clubNumber}/images/all`,
     {
       data: { writer }, // writer 정보를 요청 데이터로 포함시킴
@@ -47,7 +47,7 @@ export const deleteAllImages = async (clubNumber, { writer }) => {
 
 // 이미지를 수정하는 함수 (수정 로직)
 export const editImage = async (clubNumber, { id, formData }) => {
-  await axios.put(
+  await axiosInstance.put(
     `http://localhost:4000/clubs/gallery/${clubNumber}/images/${id}`,
     formData
   );

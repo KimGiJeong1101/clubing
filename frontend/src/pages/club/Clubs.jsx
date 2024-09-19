@@ -650,7 +650,8 @@ const Clubs = () => {
             ))}
         </Grid>
       </Container>
-      <BubbleAnimation /> {/* BubbleAnimation을 상위 요소로 추가 */}
+      {/* <BubbleAnimation />  */}
+      {/* BubbleAnimation을 상위 요소로 추가 */}
     </Box>
   );
 };

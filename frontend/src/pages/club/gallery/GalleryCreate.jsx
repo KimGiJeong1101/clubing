@@ -237,11 +237,18 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           />
           <Button
             variant="contained"
-            color="primary"
             onClick={() => fileInputRef.current.click()} // 버튼 클릭 시 파일 입력 창 열기
-            sx={{ top: -20, right: 0, margin: '0px' }}
+            sx={{
+              top: -20,
+              right: 0,
+              margin: '0px',
+              backgroundColor: '#DBC7B5', // 버튼 기본 색상
+              '&:hover': {
+                backgroundColor: '#A67153', // 버튼 호버 색상
+              },
+            }}
           >
-            Select Image
+            눌러서 이미지를 선택해주세요
           </Button>
 
           {/* 드래그 앤 드롭 컨텍스트 */}
@@ -307,7 +314,7 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
 
           {/* 제목과 내용 입력 필드 */}
           <TextField
-            label="Title"
+            label="제목"
             variant="outlined"
             fullWidth
             value={title}
@@ -316,7 +323,7 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           />
 
           <TextField
-            label="Content"
+            label="내용"
             variant="outlined"
             multiline
             rows={4}
@@ -327,8 +334,18 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           />
 
           {/* 저장 버튼 */}
-          <Button variant="contained" color="primary" onClick={handleSaveAll} sx={{ marginTop: '0px' }}>
-            Save
+          <Button
+            variant="contained"
+            onClick={handleSaveAll}
+            sx={{
+              marginTop: '0px',
+              backgroundColor: '#DBC7B5', // 버튼 기본 색상
+              '&:hover': {
+                backgroundColor: '#A67153', // 버튼 호버 색상
+              },
+            }}
+          >
+            저 장
           </Button>
         </Box>
       </Box>
