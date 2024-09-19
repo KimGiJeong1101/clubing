@@ -1,3 +1,4 @@
+//카테고리 선택 전 부분 
 import React from "react";
 import { Box, Container, Grid, Typography, Tooltip, IconButton } from "@mui/material";
 import ClubListCard from "../../components/club/ClubListCard.js";

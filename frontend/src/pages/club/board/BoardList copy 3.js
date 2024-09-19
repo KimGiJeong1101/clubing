@@ -1,3 +1,4 @@
+//리스트랑 모달 화살표로 구분
 import React, { useState, useEffect } from 'react';
 import { Container, List, ListItem, ListItemText, Box, Button, Dialog, DialogTitle, DialogContent, Pagination, Typography } from '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
@@ -19,7 +20,7 @@ const ListPosts = () => {
   const limit = 12; // 페이지당 게시물 수
 
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate 훅
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
 
@@ -31,21 +32,17 @@ const ListPosts = () => {
 
   useEffect(() => {
     if (data) {
-      setTotalPages(data.totalPages);
+      setTotalPages(data.totalPages); // 상태 업데이트
     }
   }, [data]);
 
   const items = data?.boards || [];
 
   const handleSelect = (id, category, title) => {
-    if (category === '투표') {
-      setSelectedItemId(id);
-      setSelectedItemCategory(category);
-      setDialogTitle(title);
-      setOpenDialog(true);
-    } else {
-      navigate(`read/${id}?clubNumber=${clubNumber}`);
-    }
+    setSelectedItemId(id);
+    setSelectedItemCategory(category);
+    setDialogTitle(title);
+    setOpenDialog(true);
   };
 
   const handleClose = () => {
@@ -63,6 +60,18 @@ const ListPosts = () => {
     setCurrentPage(page);
   };
 
+  // 화살표 아이콘 클릭 핸들러
+  const handleArrowClick = (id, category) => {
+    if (category === '투표') {
+      navigate(`vote/${id}?clubNumber=${clubNumber}`); // 투표 페이지로 이동
+    } else {
+      navigate(`read/${id}?clubNumber=${clubNumber}`); // 게시물 페이지로 이동
+    }
+  };
+
+  if (isLoading) return <p>로딩 중...</p>;
+  if (error) return <p>데이터를 가져오는 중 오류 발생: {error.message}</p>;
+
   const filteredItems = items.filter(item => 
     selectedCategory === '전체' || item.category === selectedCategory
   );
@@ -73,9 +82,7 @@ const ListPosts = () => {
     }
     return text;
   };
-
-  if (isLoading) return <p>로딩 중...</p>;
-  if (error) return <p>데이터를 가져오는 중 오류 발생: {error.message}</p>;
+  
 
   return (
     <Container maxWidth="md">
@@ -104,11 +111,12 @@ const ListPosts = () => {
 
       <Box
         sx={{
-          minHeight: '400px',
+          minHeight: '400px', // 기본적으로 일정 높이 설정
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'flex-start',
+          justifyContent: 'flex-start',// 내용(게시글이 없습니다 글자) 위쪽에 배치
           alignItems: 'center',
+          // border: '1px solid #ddd',
           borderRadius: '4px',
           p: 2
         }}
@@ -140,14 +148,17 @@ const ListPosts = () => {
                     }
                     secondary={`${item.category || ' 투표 '} ${item.endTime ? `종료시간: ${new Date(item.endTime).toLocaleString()}` : ''}`}
                   />
-                  {/* 핀 아이콘 조건부 렌더링 */}
-                  {item.pin && <PushPinIcon sx={{ color: 'gold' }} />} {/* 핀 아이콘의 색상을 조정할 수 있습니다 */}
+                  <ArrowForwardIcon
+                    onClick={() => handleArrowClick(item._id, item.category)}
+                    sx={{ cursor: 'pointer' }}
+                  />
                 </ListItem>
               </React.Fragment>
             ))
           )}
         </List>
       </Box>
+
 
       <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
         <Pagination

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useParams, useLocation } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -12,11 +13,14 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  styled
+  styled,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import ChatIcon from '@mui/icons-material/Chat';
+import PushPinIcon from '@mui/icons-material/PushPin';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchVote, fetchVoteSummary, voteForOption, removeVote, deleteVote } from '../../../api/ClubBoardApi';
+import { fetchVote, fetchVoteSummary, voteForOption, removeVote, deleteVote, pinPost } from '../../../api/ClubBoardApi';
 import Reply from './Reply'; // 댓글 컴포넌트 추가
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
@@ -44,7 +48,12 @@ const ReadVote = ({ voteId, onDelete }) => {
   const [votedOptions, setVotedOptions] = useState([]);
   const [isVoteEnded, setIsVoteEnded] = useState(false);
   const [openReply, setOpenReply] = useState(false); // 댓글 컴포넌트 열기 상태
+  const [isPinned, setIsPinned] = useState(false); // 핀 상태 추가
   const queryClient = useQueryClient();
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const clubNumber = queryParams.get("clubNumber");
 
   const email = useSelector(state => state.user?.userData?.user?.email || null);
 
@@ -70,6 +79,7 @@ const ReadVote = ({ voteId, onDelete }) => {
         setVotedOptions(votedOptionsList);
 
         setIsAuthor(voteData.author === email);
+        setIsPinned(voteData.pin); // 핀 상태 설정
       } catch (error) {
         console.error('투표 데이터를 가져오는 중 오류 발생:', error);
       }
@@ -122,6 +132,18 @@ const ReadVote = ({ voteId, onDelete }) => {
     }
   });
 
+  const pinMutation = useMutation({
+    mutationFn: ({ pin, clubNumber }) => pinPost(voteId, { pin, clubNumber }),
+    onSuccess: (data) => {
+      setIsPinned(data.pin);
+      queryClient.invalidateQueries(['post', voteId]);
+    },
+    onError: (error) => {
+      showSnackbar(error.message, 'error');
+    },
+  });
+  
+
   const handleVote = () => {
     if (selectedOption && !hasVoted) {
       voteMutation.mutate();
@@ -165,6 +187,26 @@ const ReadVote = ({ voteId, onDelete }) => {
   };
 
   const handleToggleReply = () => setOpenReply(prev => !prev); // 댓글 컴포넌트 열기/닫기
+
+  const handlePinToggle = () => {
+    pinMutation.mutate({ pin: !isPinned, clubNumber });
+  };
+
+    // 스낵바 상태 추가
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+    const showSnackbar = (message, severity) => {
+      setSnackbarMessage(message);
+      setSnackbarSeverity(severity);
+      setSnackbarOpen(true);
+    };
+  
+    const handleSnackbarClose = () => {
+      setSnackbarOpen(false);
+    };
+  
 
   return (
     <Container>
@@ -282,10 +324,14 @@ const ReadVote = ({ voteId, onDelete }) => {
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'flex-end',
+              justifyContent: 'space-between',
               width: '100%'
             }}
           >
+            <PushPinIcon
+              onClick={handlePinToggle}
+              sx={{ color: isPinned ? 'gold' : '#999999', cursor: 'pointer' }}
+            />
             <ChatIcon
               sx={{
                 color: '#999999',
@@ -325,6 +371,17 @@ const ReadVote = ({ voteId, onDelete }) => {
               </Button>
             </DialogActions>
           </Dialog>
+
+          <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={6000}
+            onClose={handleSnackbarClose}
+            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          >
+            <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+              {snackbarMessage}
+            </Alert>
+          </Snackbar>
         </>
       )}
     </Container>

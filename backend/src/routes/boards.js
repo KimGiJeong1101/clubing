@@ -8,6 +8,7 @@ const path = require('path');
 const multer = require('multer');
 const mime = require('mime-types');
 const { v4: uuid } = require('uuid');
+const User = require("../models/User");
 
 // Upload directory
 const uploadDir = path.join(__dirname, '../../upload');
@@ -100,48 +101,78 @@ router.get('/posts', async (req, res) => {
     }
 });
 
+// router.get('/posts/:id', async (req, res) => {
+//     const { id } = req.params;
+//     try {
+//         const post = await Board.findById(id);
+//         if (!post) {
+//             return res.status(404).send('Post not found');
+//         }
+//         res.status(200).json(post);
+//     } catch (error) {
+//         console.error('Error fetching post:', error);
+//         res.status(500).send('Failed to fetch post');
+//     }
+// });
+
+// router.put('/posts/:id', async (req, res) => {
+//     const { id } = req.params;
+//     const { title, category, content } = req.body;
+//     try {
+//         const post = await Board.findByIdAndUpdate(id, { title, category, content }, { new: true });
+//         if (!post) {
+//             return res.status(404).send('Post not found');
+//         }
+//         res.status(200).json(post);
+//     } catch (error) {
+//         console.error('Error updating post:', error);
+//         res.status(500).send('Failed to update post');
+//     }
+// });
+
+// router.delete('/posts/:id', async (req, res) => {
+//     const { id } = req.params;
+//     try {
+//         const post = await Board.findByIdAndDelete(id);
+//         if (!post) {
+//             return res.status(404).send('Post not found');
+//         }
+//         res.status(200).send('Post deleted successfully');
+//     } catch (error) {
+//         console.error('Error deleting post:', error);
+//         res.status(500).send('Failed to delete post');
+//     }
+// });
+
 router.get('/posts/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const post = await Board.findById(id);
-        if (!post) {
-            return res.status(404).send('Post not found');
-        }
-        res.status(200).json(post);
-    } catch (error) {
-        console.error('Error fetching post:', error);
-        res.status(500).send('Failed to fetch post');
+  const { id } = req.params;
+  try {
+    const post = await Board.findById(id);
+
+    if (!post) {
+      return res.status(404).send('Post not found');
     }
+
+    // 작성자 정보 가져오기
+    const authorData = await User.findOne({ email: post.author });
+    if (!authorData) {
+      return res.status(404).send('Author not found');
+    }
+
+    const authorImage = authorData.profilePic?.thumbnailImage || null;
+    const authorNickname = authorData.nickName || null;
+
+    res.status(200).json({
+      ...post.toObject(),
+      authorImage,
+      authorNickname,
+    });
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    res.status(500).send('Failed to fetch post');
+  }
 });
 
-router.put('/posts/:id', async (req, res) => {
-    const { id } = req.params;
-    const { title, category, content } = req.body;
-    try {
-        const post = await Board.findByIdAndUpdate(id, { title, category, content }, { new: true });
-        if (!post) {
-            return res.status(404).send('Post not found');
-        }
-        res.status(200).json(post);
-    } catch (error) {
-        console.error('Error updating post:', error);
-        res.status(500).send('Failed to update post');
-    }
-});
-
-router.delete('/posts/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const post = await Board.findByIdAndDelete(id);
-        if (!post) {
-            return res.status(404).send('Post not found');
-        }
-        res.status(200).send('Post deleted successfully');
-    } catch (error) {
-        console.error('Error deleting post:', error);
-        res.status(500).send('Failed to delete post');
-    }
-});
 
 router.get('/membership', auth, async (req, res) => {
   console.log(req.query); // 요청 쿼리 확인을 위한 로그
@@ -201,11 +232,6 @@ router.get('/all', async (req, res) => {
 });
 
 
-
-
-
-
-
 router.post('/votes', async (req, res) => {
     const {clubNumber, create_at,author,title, category, options, allowMultiple, anonymous, endTime } = req.body;
     
@@ -227,7 +253,8 @@ router.post('/votes', async (req, res) => {
     try {
         const newBoard = new Board({
             clubNumber, 
-            create_at,author,
+            create_at,
+            author,
             title, 
             category,
             options,
@@ -331,6 +358,74 @@ router.post('/votes/:id/vote', async (req, res) => {
       res.status(500).json({ error: 'Failed to update vote.' });
     }
   });
+
+  // 핀 상태 업데이트
+  // router.patch('/posts/:postId/pin', async (req, res) => {
+  //   try {
+  //     const { postId } = req.params;
+  //     const { pin } = req.body; // 핀 상태를 요청 본문에서 가져옵니다.
+
+  //     const post = await Board.findByIdAndUpdate(
+  //       postId,
+  //       { pin }, // 핀 상태 업데이트
+  //       { new: true } // 업데이트된 문서를 반환
+  //     );
+
+  //     if (!post) {
+  //       return res.status(404).send('게시물을 찾을 수 없습니다.');
+  //     }
+
+  //     res.json(post);
+  //   } catch (error) {
+  //     console.error('핀 업데이트 오류:', error);
+  //     res.status(500).send('서버 오류');
+  //   }
+  // });
+
+  // 핀 상태 업데이트
+  router.patch('/posts/:postId/pin', async (req, res) => {
+    try {
+      const { postId } = req.params;
+      const { pin, clubNumber } = req.body;
+  
+      // 요청 본문 출력
+      console.log('요청 본문:', req.body);
+  
+      if (typeof pin !== 'boolean' || !clubNumber) {
+        return res.status(400).send('잘못된 요청입니다. 핀 상태와 클럽 번호를 확인하세요.');
+      }
+  
+      const pinnedPostsCount = await Board.countDocuments({
+        clubNumber,
+        pin: true
+      });
+  
+      // 현재 핀된 게시물 수 출력
+      console.log('현재 핀된 게시물 수:', pinnedPostsCount);
+
+      if (pin && pinnedPostsCount >= 3) {
+        return res.status(400).json({ message: '글 고정은 최대 3개까지 가능합니다.' });
+      }
+  
+      const post = await Board.findByIdAndUpdate(
+        postId,
+        { pin },
+        { new: true }
+      );
+  
+      if (!post) {
+        return res.status(404).send('게시물을 찾을 수 없습니다.');
+      }
+  
+      res.json(post);
+    } catch (error) {
+      console.error('핀 업데이트 오류:', error);
+      res.status(500).send('서버 오류');
+    }
+  });
+  
+  
+
   
   // 이거 투표 한 사람 삭제
   router.put('/votes/:id', async (req, res) => {

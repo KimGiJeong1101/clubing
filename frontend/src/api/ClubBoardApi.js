@@ -34,7 +34,6 @@ export const saveVote = async (data) => {
 };
 
 
-
 // 게시물 목록을 가져오는 API 호출 (페이징 처리 전 )
 // export const fetchPosts = async (clubNumber, page = 1) => {
 //   try {
@@ -69,15 +68,11 @@ export const fetchPosts = async (clubNumber, page = 1, limit = 12, category = ''
 };
 
 
-
-
-
-
 // 게시물 조회
 export const fetchPost = async (postId) => {
   try {
     const response = await axiosInstance.get(`http://localhost:4000/clubs/boards/posts/${postId}`);
-    return response.data;
+    return response.data; // 작성자 정보가 포함된 post 객체 반환
   } catch (error) {
     console.error('게시물 조회 오류:', error);
     throw error;
@@ -104,6 +99,39 @@ export const updatePost = async (postId, postData) => {
     throw error;
   }
 };
+
+//글 고정하기
+// export const pinPost = async (postId, data) => {
+//   const response = await fetch(`http://localhost:4000/clubs/boards/posts/${postId}/pin`, {
+//     method: 'PATCH',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify(data),
+//   });
+//   if (!response.ok) {
+//     throw new Error('게시물 핀 업데이트 실패');
+//   }
+//   return await response.json();
+// };
+
+export const pinPost = async (postId, data) => {
+  const response = await fetch(`http://localhost:4000/clubs/boards/posts/${postId}/pin`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json(); // 오류 응답을 JSON으로 파싱
+    throw new Error(errorData.message || '게시물 핀 업데이트 실패'); // 서버에서 보낸 메시지 사용
+  }
+  
+  return await response.json();
+};
+
 
 // 투표 정보 가져오기
 export const fetchVote = async (voteId) => {
@@ -156,4 +184,5 @@ export const deleteVote = async (voteId) => {
     throw error;
   }
 };
+
 

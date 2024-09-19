@@ -10,6 +10,7 @@ const boardSchema = mongoose.Schema({
     title: String,
     category: String,
     content: { type: String, default: false },
+    pin: { type: Boolean, default: false },
     options: [{ type: String, default: false }],
     allowMultiple: { type: Boolean, default: false },
     anonymous: { type: Boolean, default: false },

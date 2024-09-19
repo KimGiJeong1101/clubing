@@ -209,8 +209,8 @@ const Reply = ({ postType, postId }) => {
         });
     };
 
-    console.log("postType", postType);
-    console.log("postId", postId)
+    // console.log("postType", postType);
+    // console.log("postId", postId)
 
     return (
         <Box
@@ -301,7 +301,7 @@ const Reply = ({ postType, postId }) => {
                                                     '& .MuiOutlinedInput-root': { minHeight: '32px' },
                                                 }}
                                             />
-                                            <IconButton color="primary" onClick={handleEditSubmit}>
+                                            <IconButton onClick={handleEditSubmit}>
                                                 <SendIcon />
                                             </IconButton>
                                         </Box>
@@ -364,7 +364,7 @@ const Reply = ({ postType, postId }) => {
                                                                         '& .MuiOutlinedInput-root': { minHeight: '32px' },
                                                                     }}
                                                                 />
-                                                                <IconButton color="primary" onClick={handleEditChildSubmit}>
+                                                                <IconButton onClick={handleEditChildSubmit}>
                                                                     <SendIcon />
                                                                 </IconButton>
                                                             </Box>
@@ -405,7 +405,6 @@ const Reply = ({ postType, postId }) => {
                                                 }}
                                             />
                                             <IconButton
-                                                color="primary"
                                                 onClick={() => handleReplySubmit(reply._id)}
                                             >
                                                 <SendIcon />
@@ -451,7 +450,7 @@ const Reply = ({ postType, postId }) => {
                     InputProps={{
                         endAdornment: (
                             <InputAdornment position="end">
-                                <IconButton color="primary" onClick={handleCommentSubmit} sx={{ padding: '4px' }}>
+                                <IconButton onClick={handleCommentSubmit} sx={{ padding: '4px' }}>
                                     <SendIcon fontSize="small" />
                                 </IconButton>
                             </InputAdornment>
