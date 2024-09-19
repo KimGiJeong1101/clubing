@@ -158,20 +158,20 @@ const MainUpdate = () => {
             "Content-Type": "multipart/form-data",
           },
         });
-        alert("모임 수정 성공");
-        navigate(`/clubs/main?clubNumber=${clubNumber}`);
+        navigate(`/clubs/main?clubNumber=${clubNumber}`, { state: { snackbarMessage: "모임 수정을 완료했습니다." } });
       } catch (err) {
         console.error(err);
-        alert("모임 만들기에 실패했습니다");
+        navigate(`/clubs/main?clubNumber=${clubNumber}`, { state: { snackbarMessage: "모임 수정을 실패했습니다." } });
       }
     } else {
       try {
         const response = await axiosInstance.post(`/clubs/update2/${clubNumber}`, data);
-        alert("모임 수정 성공");
-        navigate(`/clubs/main?clubNumber=${clubNumber}`);
+        navigate(`/clubs/main?clubNumber=${clubNumber}`, { state: { snackbarMessage: "모임 수정을 완료했습니다." } });
+
       } catch (err) {
         console.error(err);
-        alert("모임 만들기에 실패했습니다");
+        navigate(`/clubs/main?clubNumber=${clubNumber}`, { state: { snackbarMessage: "모임 수정을 실패했습니다." } });
+
       }
     }
   };
