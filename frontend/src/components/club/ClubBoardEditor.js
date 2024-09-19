@@ -128,19 +128,8 @@ export default function CKEditor5Editor({ onChange, title, setTitle, category, s
 
   const editorConfig = {
     toolbar: {
-
-      items: [
-        'undo', 'redo', '|',
-        'selectAll', '|', 'heading', '|',
-        'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-        'bold', 'italic', 'underline', 'strikethrough', 'code', '|',
-        'specialCharacters', 'horizontalLine', 'link', 'insertImage',
-        'insertTable', 'blockQuote', 'codeBlock', '|',
-        'alignment', '|', 'bulletedList', 'numberedList', 'todoList',
-        'outdent', 'indent', '|', 'accessibilityHelp'
-      ],
-      shouldNotGroupWhenFull: false
-
+      items: ["undo", "redo", "|", "selectAll", "|", "heading", "|", "fontSize", "fontFamily", "fontColor", "fontBackgroundColor", "|", "bold", "italic", "underline", "strikethrough", "code", "|", "specialCharacters", "horizontalLine", "link", "insertImage", "insertTable", "blockQuote", "codeBlock", "|", "alignment", "|", "bulletedList", "numberedList", "todoList", "outdent", "indent", "|", "accessibilityHelp"],
+      shouldNotGroupWhenFull: false,
     },
     plugins: [
       AccessibilityHelp,

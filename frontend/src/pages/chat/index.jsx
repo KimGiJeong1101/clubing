@@ -233,9 +233,10 @@ const ChatPage = () => {
       maxWidth="md"
       sx={{
         marginBottom: 10,
-        backgroundColor: "#F0F0F0",
+        backgroundColor: "#ffffff",
         borderRadius: 7,
-        paddingBottom: 10,
+        paddingBottom: 7,
+        paddingTop: 7,
         height: "118vh",
         display: "flex",
         flexDirection: "column",

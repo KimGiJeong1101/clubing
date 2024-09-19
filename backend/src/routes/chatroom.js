@@ -89,53 +89,48 @@ router.post("/room", auth, async (req, res) => {
     let chatRoom = await ChatRoom.findOne({ clubId });
     if (chatRoom) {
       console.log("Existing chat room found:", chatRoom);
-    
+
       // 기존 참가자 목록에서 참가자의 ObjectId를 문자열로 변환
-      const existingParticipants = chatRoom.participants.map(participant => participant.userId.toString());
-    
+      const existingParticipants = chatRoom.participants.map((participant) => participant.userId.toString());
+
       // 새로운 참가자들을 추가하고 중복을 제거
-      const newParticipants = participantObjectIds.map(id => ({
+      const newParticipants = participantObjectIds.map((id) => ({
         userId: id,
         timestamp: new Date(), // 참가 시간 기록
       }));
-    
+
       // 참가자 목록 업데이트 (기존 참가자와 새로운 참가자를 합쳐서 중복 제거)
-      const updatedParticipants = [
-        ...chatRoom.participants,
-        ...newParticipants.filter(newParticipant => !existingParticipants.includes(newParticipant.userId.toString()))
-      ];
-    
+      const updatedParticipants = [...chatRoom.participants, ...newParticipants.filter((newParticipant) => !existingParticipants.includes(newParticipant.userId.toString()))];
+
       // 채팅방의 참가자 목록을 업데이트
       chatRoom.participants = updatedParticipants;
-    
+
       // 업데이트된 채팅방을 데이터베이스에 저장
       const updatedChatRoom = await chatRoom.save();
       console.log("Updated chatRoom:", updatedChatRoom);
-    
+
       // 업데이트된 채팅방 정보를 클라이언트에 반환
       return res.status(200).json(updatedChatRoom);
     }
-    
 
-   // 새로운 채팅방을 생성할 때, participants 배열에 timestamp를 포함
-const newParticipants = participantObjectIds.map(id => ({
-  userId: id,
-  timestamp: new Date(), // 참가 시간 기록
-}));
+    // 새로운 채팅방을 생성할 때, participants 배열에 timestamp를 포함
+    const newParticipants = participantObjectIds.map((id) => ({
+      userId: id,
+      timestamp: new Date(), // 참가 시간 기록
+    }));
 
-// 새로운 채팅방을 생성
-const newChatRoom = new ChatRoom({
-  clubId,
-  participants: newParticipants,
-});
+    // 새로운 채팅방을 생성
+    const newChatRoom = new ChatRoom({
+      clubId,
+      participants: newParticipants,
+    });
 
-// 새로운 채팅방을 데이터베이스에 저장
-const savedChatRoom = await newChatRoom.save();
-console.log("Newly saved chatRoom:", savedChatRoom);
+    // 새로운 채팅방을 데이터베이스에 저장
+    const savedChatRoom = await newChatRoom.save();
+    console.log("Newly saved chatRoom:", savedChatRoom);
 
-// 생성된 채팅방 정보를 클라이언트에 반환
-res.status(201).json(savedChatRoom);
-
+    // 생성된 채팅방 정보를 클라이언트에 반환
+    res.status(201).json(savedChatRoom);
   } catch (error) {
     // 채팅방 생성 또는 업데이트 중 오류가 발생하면 콘솔에 로그를 출력
     console.error("Error creating or updating chat room:", error);
@@ -147,7 +142,6 @@ res.status(201).json(savedChatRoom);
 
 router.get("/room/:clubId", auth, async (req, res) => {
   try {
-
     console.log("하하하하하하");
     console.log(req.query.clubNumber);
     console.log(req.params.clubNumber);
@@ -191,29 +185,44 @@ router.get("/room/:clubId", auth, async (req, res) => {
   }
 });
 
-router.get("/:clubId/messages", async (req, res) => {
-  const { clubId } = req.params; // req.params에서 바로 추출
-  console.log("채팅겟에서 클럽아이디 ㅎㅎ" + clubId);
+router.get("/:clubId/messages", auth, async (req, res) => {
+  const { clubId } = req.params;
+  const { skip = 0, limit = 30 } = req.query;
 
-  const { skip = 0, limit = 30 } = req.query; // 페이지네이션 파라미터 추출
   try {
-    // 클럽 ID로 채팅방을 찾은 다음 해당 채팅방 ID로 메시지 조회
-
+    // 1. 해당 clubId의 채팅방을 찾기
     const chatRoom = await ChatRoom.findOne({ clubId });
     if (!chatRoom) {
-      return res.status(404).json({ error: "Chat room not found" });
+      return res.status(404).json({ error: "채팅방을 찾을 수 없습니다." });
     }
 
-    const messages = await Message.find({ clubId }) // clubId로 메시지 조회
-      .sort({ timestamp: -1 }) // 최신 메시지부터 정렬
-      .skip(parseInt(skip)) // 페이지네이션 skip 적용
-      .limit(parseInt(limit)); // 페이지네이션 limit 적용
+    // 2. 요청한 사용자의 ID로 참가 기록을 확인
+    const userId = req.user._id;
 
-    res.json(messages); // 메시지 배열을 클라이언트에 반환
+    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
+    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
+    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
+    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
+
+    const participant = chatRoom.participants.find((p) => p.userId.equals(userId));
+
+    if (!participant) {
+      return res.status(403).json({ message: "이 채팅방에 참가하지 않았습니다." });
+    }
+
+    // 3. 참가한 시간 이후의 메시지를 조회
+    const messages = await Message.find({
+      clubId, // 해당 클럽의 메시지
+      timestamp: { $gte: participant.timestamp }, // 참가 시간 이후의 메시지
+    })
+      .sort({ timestamp: -1 }) // 최신순으로 정렬
+      .skip(parseInt(skip))
+      .limit(parseInt(limit));
+
+    res.json(messages); // 조회한 메시지 반환
   } catch (error) {
-    console.error("Error fetching messages:", error);
-
-    res.status(500).json({ error: "Failed to fetch messages" }); // 서버 오류 처리
+    console.error("메시지 조회 중 오류:", error);
+    res.status(500).json({ error: "메시지를 불러오는데 실패했습니다." });
   }
 });
 
@@ -289,5 +298,3 @@ router.get("/:clubId/messages", async (req, res) => {
 // });
 
 module.exports = router;
-
-

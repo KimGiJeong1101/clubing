@@ -49,7 +49,7 @@ const isEmoji = (char) => {
 
 // 이모지로만 이루어진지 체크
 const isOnlyEmoji = (text) => {
-  const cleanedText = text.replace(/\s/g, ''); // 공백 제거
+  const cleanedText = text.replace(/\s/g, ""); // 공백 제거
   return [...cleanedText].every(isEmoji); // 모든 문자가 이모지인지 확인
 };
 
@@ -57,8 +57,6 @@ const isOnlyEmoji = (text) => {
 const countEmojis = (text) => {
   return [...text].filter(isEmoji).length;
 };
-
-
 
 // 이미지 크기 반환 함수
 const getImageSize = (count) => {
@@ -72,7 +70,7 @@ const getImageSize = (count) => {
     case 4:
       return { width: 100, height: 100 }; // 이미지가 네 장일 때
     default:
-      return { width: 100, height: 100 };  // 이미지가 네 장 이상일 때
+      return { width: 100, height: 100 }; // 이미지가 네 장 이상일 때
   }
 };
 
@@ -254,30 +252,27 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, newMessageRec
                       {msg.content}
                     </Typography>
                     {msg.images && (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      {msg.images.map((image, i) => {
-                        const { width, height } = getImageSize(msg.images.length); // 이미지 개수에 따른 크기 결정
-                        return (
-                          <Box key={i} sx={{ flex: `0 0 ${width}px`, height: `${height}px` }}>
-                            <img
-                              src={image.thumbnail}
-                              alt={`image-${i}`}
-                              onClick={() => handleImageClick(msg.images, i)}
-                              style={{
-                                width: '100%', // 박스에 맞게 너비 설정
-                                height: '100%', // 박스에 맞게 높이 설정
-                                objectFit: 'cover', // 비율 유지하면서 박스에 맞게 조정
-                                cursor: 'pointer',
-                                borderRadius: '8px',
-                              }}
-                            />
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                    
-                    
-                    
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                        {msg.images.map((image, i) => {
+                          const { width, height } = getImageSize(msg.images.length); // 이미지 개수에 따른 크기 결정
+                          return (
+                            <Box key={i} sx={{ flex: `0 0 ${width}px`, height: `${height}px` }}>
+                              <img
+                                src={image.thumbnail}
+                                alt={`image-${i}`}
+                                onClick={() => handleImageClick(msg.images, i)}
+                                style={{
+                                  width: "100%", // 박스에 맞게 너비 설정
+                                  height: "100%", // 박스에 맞게 높이 설정
+                                  objectFit: "cover", // 비율 유지하면서 박스에 맞게 조정
+                                  cursor: "pointer",
+                                  borderRadius: "8px",
+                                }}
+                              />
+                            </Box>
+                          );
+                        })}
+                      </Box>
                     )}
                   </Box>
 

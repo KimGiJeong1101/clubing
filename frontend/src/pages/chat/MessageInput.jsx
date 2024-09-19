@@ -33,7 +33,7 @@ const MessageInput = ({ message, setMessage, handleSendMessage, handleKeyPress }
   };
 
   return (
-    <Grid container sx={{ backgroundColor: "white", padding: 1.5, borderRadius: "0px 0px 10px 10px", borderTop: "1px solid #c1c1c1" }}>
+    <Grid container sx={{ backgroundColor: "#F0F0F0", padding: 1.5, borderRadius: "0px 0px 10px 10px", borderTop: "1px solid #c1c1c1" }}>
       <Grid item xs={10} sm={11}>
         <TextField
           fullWidth
