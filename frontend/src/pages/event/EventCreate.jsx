@@ -57,10 +57,28 @@ export default function EventCreate({ onClose, onNext }) {
                     setImage={setImage}
                 />
             </Box>
-            <Button variant="contained" color="primary" onClick={handleNext}>
+
+            {/* 하나의 버튼 */}
+            <Button
+                variant="contained"
+                sx={{
+                    backgroundColor: "#DBC7B5", // 기본 버튼 색상
+                    "&:hover": {
+                        backgroundColor: "#A67153", // 호버 시 색상
+                    },
+                    mt: 2,
+                }}
+                onClick={handleNext}
+            >
                 다음
             </Button>
-            <Snackbar open={openSnackbar} autoHideDuration={4000} onClose={handleCloseSnackbar}>
+
+            {/* 스낵바 */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={4000}
+                onClose={handleCloseSnackbar}
+            >
                 <Alert onClose={handleCloseSnackbar} severity="warning" sx={{ width: "100%" }}>
                     {snackbarMessage}
                 </Alert>

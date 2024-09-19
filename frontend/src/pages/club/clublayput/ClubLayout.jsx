@@ -60,6 +60,7 @@ function ClubLayout() {
               content: `${user.email}에서 모임에 가입했습니다.`,
               title: `${user.email}님 모임에 가입`,
             }
+
             // 필요에 따라 추가 메시지 객체를 배열에 추가
           ];
           // 메시지 전송을 위한 액션 디스패치
