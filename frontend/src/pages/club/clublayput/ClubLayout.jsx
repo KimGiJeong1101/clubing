@@ -58,13 +58,8 @@ function ClubLayout() {
               recipient: getClub.clubs.admin,
               sender: user.email, // 클럽 이름
               content: `${user.email}에서 모임에 가입했습니다.`,
-<<<<<<< HEAD
               title: "${user.email}님 모임에 가입",
             }
-=======
-              title: "새 멤머",
-            },
->>>>>>> d9007c1d7f1a042f30cba188ed72ce2bf518df58
             // 필요에 따라 추가 메시지 객체를 배열에 추가
           ];
           // 메시지 전송을 위한 액션 디스패치
