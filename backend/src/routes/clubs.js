@@ -14,9 +14,15 @@ router.get("/", async (req, res, next) => {
   try {
     if (req.query.searchRegion) {
       const clubs = await Club.find({ "region.district": req.query.searchRegion }).sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      await memberInfoInsert(clubs);
       res.status(200).json(clubs);
     } else {
       const clubs = await Club.find().sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      console.log(`clubs`);
+      console.log(clubs.length);
+      console.log(`clubs`);
+      await memberInfoInsert(clubs);
+
       res.status(200).json(clubs);
     }
   } catch (error) {
@@ -27,9 +33,11 @@ router.get("/:category", async (req, res, next) => {
   try {
     if (req.query.searchRegion) {
       const clubs = await Club.find({ mainCategory: req.params.category, "region.district": req.query.searchRegion }).sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      await memberInfoInsert(clubs);
       res.status(200).json(clubs);
     } else {
       const clubs = await Club.find({ mainCategory: req.params.category }).sort({ _id: -1 }).limit(6); // 오름차순 솔팅
+      await memberInfoInsert(clubs);
       res.status(200).json(clubs);
     }
   } catch (error) {
@@ -41,9 +49,11 @@ router.get("/scroll/:scrollCount/:category", async (req, res, next) => {
     const skip = (req.params.scrollCount - 1) * 6;
     if (req.query.searchRegion) {
       const clubs = await Club.find({ mainCategory: req.params.category, "region.district": req.query.searchRegion }).sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      await memberInfoInsert(clubs);
       res.status(200).json(clubs);
     } else {
       const clubs = await Club.find({ mainCategory: req.params.category }).sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      await memberInfoInsert(clubs);
       res.status(200).json(clubs);
     }
   } catch (error) {
@@ -57,9 +67,11 @@ router.get("/scroll/:scrollCount", async (req, res, next) => {
 
     if (req.query.searchRegion) {
       const clubs = await Club.find({ "region.district": req.query.searchRegion }).sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      await memberInfoInsert(clubs);
       res.status(200).json(clubs);
     } else {
       const clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(6); // 오름차순 솔팅
+      await memberInfoInsert(clubs);
       res.status(200).json(clubs);
     }
   } catch (error) {
@@ -148,9 +160,12 @@ router.get("/read2/:id", async (req, res, next) => {
   }
 });
 
-router.delete("/delete/:id", async (req, res, next) => {
+router.delete("/delete/:id", auth, async (req, res, next) => {
   try {
     const clubs = await Club.findByIdAndDelete({ _id: req.params.id });
+    console.log(`clubs`);
+    console.log(clubs);
+    console.log(`clubs`);
     return res.sendStatus(200);
   } catch (error) {
     next(error);
@@ -208,7 +223,13 @@ router.post("/cencellMember/:clubNumber", auth, async (req, res, next) => {
   try {
     const clubs = await Club.findById({ _id: req.params.clubNumber });
     const memberIndex = clubs.members.indexOf(req.user.email);
+
+    //유저에서 클럽
+    const user = await User.find({ email: req.user.email });
+    const clubIndex = user.clubs.indexOf(req.params.clubNumber);
     clubs.members.splice(memberIndex, 1);
+
+    user.clubs.splice(clubIndex, 1);
     clubs.save();
     return res.sendStatus(200);
   } catch (error) {
@@ -259,6 +280,27 @@ router.post("/deleteMember/:nickName/:clubNumber", async (req, res, next) => {
     } else {
       return res.status(500).json("실패");
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/mandateManager/:nickName/:clubNumber", async (req, res, next) => {
+  try {
+    let club = await Club.findById(req.params.clubNumber);
+    const userinfo = await User.findOne({ nickName: req.params.nickName });
+    if (club.manager) {
+      if (club.manager.includes(userinfo.email)) {
+        return res.status(200).json("이미 있음");
+      } else {
+        club.manager.push(userinfo.email);
+        await club.save();
+        return res.status(200).json("성공");
+      }
+    }
+    club.manager.push(userinfo.email);
+    await club.save();
+    return res.status(200).json("성공");
   } catch (error) {
     next(error);
   }
@@ -320,5 +362,21 @@ router.post("/removeWish/:clubNumber", auth, async (req, res, next) => {
     next(error);
   }
 });
+
+const memberInfoInsert = async (clubs) => {
+  for (let j = 0; j < clubs.length; j++) {
+    clubs[j].members.length;
+    let memberInfo = [];
+    for (let i = 0; i < clubs[j].members.length; i++) {
+      let copymember = { thumbnailImage: "", name: "", nickName: "" };
+      const userinfo = await User.findOne({ email: clubs[j].members[i] });
+      copymember.name = userinfo.name;
+      copymember.nickName = userinfo.nickName;
+      copymember.thumbnailImage = userinfo.profilePic.thumbnailImage;
+      memberInfo.push(copymember);
+    }
+    clubs[j].memberInfo = memberInfo;
+  }
+};
 
 module.exports = router;

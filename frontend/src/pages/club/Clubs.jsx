@@ -1,15 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
-import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
-import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
+import { Box, Container, Grid, Snackbar, SnackbarContent, Typography } from "@mui/material";
 import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import { Fab } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import BubbleAnimation from "../../components/club/BubbleAnimation.js";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import FastfoodIcon from "@mui/icons-material/Fastfood";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import NightlifeIcon from "@mui/icons-material/Nightlife";
@@ -27,19 +24,42 @@ import { throttle } from "lodash";
 import SearchIcon from "@mui/icons-material/Search";
 import ModeNightIcon from "@mui/icons-material/ModeNight";
 import ClubListCard from "../../components/club/ClubListCard.js";
+import { styled } from "@mui/system";
 
+const StyledSnackbarContent = styled(SnackbarContent)(({ theme }) => ({
+  backgroundColor: "white", // 배경을 하얀색으로 설정
+  color: "#A6836F", // 텍스트 색상 설정
+  borderRadius: "4px", // 테두리 둥글게 설정 (선택사항)
+  
+}));
 const Clubs = () => {
   let [category, setCategory] = useState("");
   //검색 스위치
   const [searchRegion, setSearchRegion] = useState("");
 
+  //////스낵바
+  const location = useLocation();
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  useEffect(() => {
+    console.log("location:", location); // location 객체 확인
+    if (location.state && location.state.snackbarMessage) {
+      console.log("여기 와??");
+      setSnackbarMessage(location.state.snackbarMessage);
+      setOpenSnackbar(true);
+    }
+  }, [location]);
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
+
+  /////스낵바 .end
+
   const getClubList = async () => {
     if (!category) {
       const response = await fetch(`http://localhost:4000/clubs?searchRegion=${searchRegion}`);
       const data = await response.json();
-      console.log(`data`);
-      console.log(data);
-      console.log(`data`);
       if (!data || data.length < 6) {
         window.removeEventListener("scroll", handleScroll);
       }
@@ -50,6 +70,9 @@ const Clubs = () => {
       if (!data || data.length < 6) {
         window.removeEventListener("scroll", handleScroll);
       }
+      console.log(`data`);
+      console.log(data);
+      console.log(`data`);
       return data;
     }
   };
@@ -187,7 +210,7 @@ const Clubs = () => {
         }}
       ></Box>
       <Box sx={{ width: "100%", height: "450px", backgroundColor: "white" }}>
-        <Container maxWidth="lg" sx={{ marginTop: "40px", paddingBottom: "40px" }}>
+        <Container maxWidth="lg" sx={{ paddingBottom: "40px" }}>
           <Grid container spacing={3} justifyContent="center">
             {[
               // { color: "#68BDAB", icon: <StorefrontIcon sx={{ width: "70px", height: "70px" }} />, text: "전부보기" },
@@ -380,274 +403,12 @@ const Clubs = () => {
 
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <ClubListCard clubList={clubList} />
-          {scrollData &&
-            scrollData.map((club) => (
-              <Grid item xs={12} sm={6} md={4} key={club._id} sx={{}}>
-                <Paper
-                  elevation={3}
-                  sx={{
-                    borderRadius: "20px",
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    height: "100%",
-                    backgroundColor: "white",
-                    boxShadow: "none", // 그림자 제거
-                  }}
-                >
-                  <Box
-                    sx={{
-                      width: "100%",
-                      height: "300px",
-                      overflow: "hidden",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      position: "relative",
-                      backgroundColor: "#f0f0f0",
-                    }}
-                  >
-                    <img
-                      src={`http://localhost:4000/` + club.img}
-                      alt={club.title}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        borderRadius: "20px 20px 0 0",
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        backgroundColor: "#f2f2f2",
-                        width: "150px",
-                        height: "40px",
-                        paddingBottom: "18px",
-                        borderBottom: "15px solid #f2f2f2",
-                        borderLeft: "15px solid #f2f2f2",
-                        borderBottomLeftRadius: "20px",
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          marginTop: "5px",
-                          marginLeft: "5px",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          width: "130px",
-                          height: "50px",
-                          color: "#A6836F",
-                          fontWeight: "bold",
-                          borderRadius: "20px",
-                          backgroundColor: "white",
-                        }}
-                      >
-                        {club.mainCategory}
-                      </Box>
-                    </Box>
-                    {/* 지옥의 둥굴게 말기.... */}
-                    <ModeNightIcon
-                      sx={{
-                        position: "absolute",
-                        top: 49,
-                        right: -24,
-                        color: "#f2f2f2",
-                        zIndex: 3,
-                        fontSize: "50px",
-                        transform: "rotate(-45deg)",
-                      }}
-                    />
-                    <ModeNightIcon
-                      sx={{
-                        position: "absolute",
-                        top: -23,
-                        right: 141,
-                        color: "#f2f2f2",
-                        zIndex: 3,
-                        fontSize: "50px",
-                        transform: "rotate(-45deg)",
-                      }}
-                    />
-                  </Box>
-                  <Box
-                    sx={{
-                      padding: "16px",
-                      display: "flex",
-                      flexDirection: "column",
-                      height: "200px",
-                      position: "relative",
-                    }}
-                  >
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        fontWeight: "700",
-                        fontSize: "20px",
-                        color: "#383535",
-                        marginBottom: "8px",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {club.title}
-                    </Typography>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: "500",
-                        fontSize: "18px",
-                        color: "#777777",
-                        marginBottom: "8px",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {club.subTitle}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: "#9F9E9D",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      {club.region.district}
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <CommentRoundedIcon sx={{ color: "#BF5B16", fontSize: "18px" }} />
-                      <Typography variant="body2" sx={{ color: "#BF5B16", marginLeft: "5px" }}>
-                        5분 전 대화
-                      </Typography>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginTop: "auto",
-                        borderTop: "1px solid #e0e0e0",
-                        paddingTop: "8px",
-                        paddingBottom: "8px",
-                      }}
-                    >
-                      <AvatarGroup max={4}>
-                        {club.members.map((member, idx) => (
-                          <Avatar key={idx} alt={`Member ${idx + 1}`} src={member.img} sx={{ width: 32, height: 32 }} />
-                        ))}
-                      </AvatarGroup>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          marginLeft: "8px",
-                          fontSize: "16px",
-                          color: "#666666",
-                        }}
-                      >
-                        <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
-                        <span style={{ marginLeft: "5px" }}>
-                          {club.members.length}/{club.maxMember}
-                        </span>
-                      </Box>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: -5,
-                        right: 0,
-                        backgroundColor: "#f2f2f2",
-                        width: "65px",
-                        height: "60px",
-                        paddingTop: "10px",
-                        borderBottom: "15px solid #f2f2f2",
-                        borderLeft: "15px solid #f2f2f2",
-                        borderTopLeftRadius: "20px",
-                      }}
-                      onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          marginTop: "5px",
-                          marginRight: "5px",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          width: "50px",
-                          height: "50px",
-                          color: "white",
-                          fontWeight: "bold",
-                          borderRadius: "25px",
-                          backgroundColor: "#A6836F",
-                          transition: "all 0.3s ease", // 모든 속성에 대해 부드럽게 변환
-                          "&:hover": {
-                            transform: "scale(1.2)", // 호버 시 크기 확대
-                            color: "#f2f2f2", // 색상 변경
-                            backgroundColor: "#3f51b5", // 배경색 변경
-                            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자 추가
-                            cursor: "pointer",
-                          },
-                        }}
-                      >
-                        <ArrowForwardIcon sx={{ color: "white" }} />
-                      </Box>
-                    </Box>
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: -0,
-                        right: 80,
-                        backgroundColor: "white",
-                        width: "20px",
-                        height: "20px",
-                        zIndex: 3,
-                        borderBottomRightRadius: "50px", // 둥근 모서리 적용
-                      }}
-                    ></Box>
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: -0,
-                        right: 80,
-                        backgroundColor: "#f2f2f2",
-                        width: "20px",
-                        height: "20px",
-                        zIndex: 2,
-                      }}
-                    ></Box>
-
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: 78,
-                        right: 0,
-                        backgroundColor: "white",
-                        width: "20px",
-                        height: "20px",
-                        zIndex: 3,
-                        borderBottomRightRadius: "50px", // 둥근 모서리 적용
-                      }}
-                    ></Box>
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: 78,
-                        right: 0,
-                        backgroundColor: "#f2f2f2",
-                        width: "20px",
-                        height: "20px",
-                        zIndex: 2,
-                      }}
-                    ></Box>
-                  </Box>
-                </Paper>
-              </Grid>
-            ))}
+          {scrollData && <ClubListCard clubList={scrollData} />}
+          {/* 스낵바 */}
+          <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: "top", horizontal: "center" }}>
+            <StyledSnackbarContent message={snackbarMessage} />
+          </Snackbar>
+          {/* 스낵바.end */}
         </Grid>
       </Container>
       <BubbleAnimation /> {/* BubbleAnimation을 상위 요소로 추가 */}
