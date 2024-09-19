@@ -6,84 +6,85 @@ import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import ModeNightIcon from "@mui/icons-material/ModeNight";
 import ClubListCard from "../../components/club/ClubListCard.js";
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-import { useSelector } from 'react-redux';
-import axios from 'axios';
+import { useSelector } from "react-redux";
+import axios from "axios";
 
 const ClubsList = () => {
+  // 클럽 목록을 가져오는 함수
+  const fetchClubs = async () => {
+    try {
+      const response = await axios.get("http://localhost:4000/clubs"); // 클럽 데이터를 가져오는 API
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching clubs:", error);
+      throw error;
+    }
+  };
 
-    // 클럽 목록을 가져오는 함수
-const fetchClubs = async () => {
-  try {
-    const response = await axios.get('http://localhost:4000/clubs'); // 클럽 데이터를 가져오는 API
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching clubs:", error);
-    throw error;
-  }
-};
+  // React Query를 사용하여 클럽 목록을 가져옴
+  const {
+    data: clubList = [],
+    error,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["clubs"],
+    queryFn: fetchClubs,
+  });
 
-// React Query를 사용하여 클럽 목록을 가져옴
-const { data: clubList = [], error, isLoading, isError } = useQuery({
-  queryKey: ['clubs'],
-  queryFn: fetchClubs,
-});
+  //   const [category, setCategory] = useState("");
+  //   const [searchRegion, setSearchRegion] = useState("");
+  //   const [page, setPage] = useState(1);
+  //   const [hasMore, setHasMore] = useState(true);
 
-//   const [category, setCategory] = useState("");
-//   const [searchRegion, setSearchRegion] = useState("");
-//   const [page, setPage] = useState(1);
-//   const [hasMore, setHasMore] = useState(true);
+  //   const navigate = useNavigate();
 
-//   const navigate = useNavigate();
+  //   const user = useSelector(state => state.user?.userData?.user || null);
+  //   const email = useSelector(state => state.user?.userData?.user?.email || null);
+  //   const interestLocation = useSelector(state => state.user?.userData?.user?.interestLocation || null);
+  //   const homeLocation = useSelector(state => state.user?.userData?.user?.homeLocation || null);
+  //   const workplace = useSelector(state => state.user?.userData?.user?.workplace || null);
+  //   const userCategory = useSelector(state => state.user?.userData?.user?.category || null);
+  //   const job = useSelector(state => state.user?.userData?.user?.job || null);
 
-//   const user = useSelector(state => state.user?.userData?.user || null);
-//   const email = useSelector(state => state.user?.userData?.user?.email || null);
-//   const interestLocation = useSelector(state => state.user?.userData?.user?.interestLocation || null);
-//   const homeLocation = useSelector(state => state.user?.userData?.user?.homeLocation || null);
-//   const workplace = useSelector(state => state.user?.userData?.user?.workplace || null);
-//   const userCategory = useSelector(state => state.user?.userData?.user?.category || null);
-//   const job = useSelector(state => state.user?.userData?.user?.job || null);
-  
-//   console.log('email: ', email)
-//   console.log('user: ', user)
-//   console.log('interestLocation: ', interestLocation)
-//   console.log('homeLocation: ', homeLocation)
-//   console.log('workplace: ', workplace)
-//   console.log('userCategory: ', userCategory)
-//   console.log('job: ', job)
-  
+  //   console.log('email: ', email)
+  //   console.log('user: ', user)
+  //   console.log('interestLocation: ', interestLocation)
+  //   console.log('homeLocation: ', homeLocation)
+  //   console.log('workplace: ', workplace)
+  //   console.log('userCategory: ', userCategory)
+  //   console.log('job: ', job)
 
+  // // 클럽 목록을 가져오는 함수
+  // const fetchClubs = async ({ pageParam = 1 }) => {
+  //   // 유저 정보를 가져온다
+  //   const user = {
+  //     homeLocation: useSelector(state => state.user?.userData?.user?.homeLocation || null),
+  //     interestLocation: useSelector(state => state.user?.userData?.user?.interestLocation || null),
+  //     workplace: useSelector(state => state.user?.userData?.user?.workplace || null),
+  //     category: useSelector(state => state.user?.userData?.user?.category || null),
+  //     job: useSelector(state => state.user?.userData?.user?.job || null),
+  //   };
 
-// // 클럽 목록을 가져오는 함수
-// const fetchClubs = async ({ pageParam = 1 }) => {
-//   // 유저 정보를 가져온다
-//   const user = {
-//     homeLocation: useSelector(state => state.user?.userData?.user?.homeLocation || null),
-//     interestLocation: useSelector(state => state.user?.userData?.user?.interestLocation || null),
-//     workplace: useSelector(state => state.user?.userData?.user?.workplace || null),
-//     category: useSelector(state => state.user?.userData?.user?.category || null),
-//     job: useSelector(state => state.user?.userData?.user?.job || null),
-//   };
+  //   // API 호출
+  //   const response = await axios.get(`http://localhost:4000/clubs/recommend/scroll/${pageParam}`, {
+  //     params: {
+  //       userId: user.id // 서버에서 유저 정보를 가져오기 위해 userId를 전달
+  //     }
+  //   });
+  //   return response.data;
+  // };
 
-//   // API 호출
-//   const response = await axios.get(`http://localhost:4000/clubs/recommend/scroll/${pageParam}`, {
-//     params: {
-//       userId: user.id // 서버에서 유저 정보를 가져오기 위해 userId를 전달
-//     }
-//   });
-//   return response.data;
-// };
+  // const { data: clubList = [], error, isLoading, isError, isFetching } = useQuery({
+  //   queryKey: ['clubList'],
+  //   queryFn: fetchClubs,
+  //   keepPreviousData: true,
+  // });
 
-// const { data: clubList = [], error, isLoading, isError, isFetching } = useQuery({
-//   queryKey: ['clubList'],
-//   queryFn: fetchClubs,
-//   keepPreviousData: true,
-// });
-
-  
   // // 데이터 요청 함수
   // const fetchClubs = async ({ pageParam = 1 }) => {
   //   let response;
@@ -111,7 +112,7 @@ const { data: clubList = [], error, isLoading, isError } = useQuery({
   //     return lastPage.length >= 3 ? allPages.length + 1 : undefined;
   //   },
   //   keepPreviousData: true,
-  // }); 
+  // });
 
   // const clubsList = clubListData?.pages.flat() || [];
 
@@ -165,10 +166,12 @@ const { data: clubList = [], error, isLoading, isError } = useQuery({
   }
 
   return (
-    <Box sx={{ width: "100%", paddingTop:"20px", backgroundColor: "#F2F2F2", position: "relative" }}>
-      <Container maxWidth="lg" sx={{ paddingBottom: "40px"}}>
+    <Box sx={{ width: "100%", paddingTop: "20px", backgroundColor: "#F2F2F2", position: "relative" }}>
+      <Container maxWidth="lg" sx={{ paddingBottom: "40px" }}>
         <Box>
-        <Typography mb={4} variant="h5">지역기반 추천</Typography>
+          <Typography mb={4} variant="h5">
+            지역기반 추천
+          </Typography>
         </Box>
 
         <ClubListCard clubList={clubList} />

@@ -36,9 +36,7 @@ const upload = multer({
     // 허용된 파일 형식을 정의
     const filetypes = /jpeg|jpg|png|gif|webp|bmp|tiff|ico/;
     const mimetype = filetypes.test(file.mimetype); // 파일의 MIME 타입 확인
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    ); // 파일 확장자 확인
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase()); // 파일 확장자 확인
 
     // 파일 형식이 허용된 형식이면 업로드 허용
     if (mimetype && extname) {
@@ -68,7 +66,7 @@ router.post("/upload", upload.array("files", 20), async (req, res) => {
 
       // Sharp 라이브러리를 사용하여 썸네일 생성
       await sharp(file.path)
-        .resize(100, 100) // 썸네일 크기 설정 (100x100)
+        .resize(200, 200) // 썸네일 크기 설정 (200x200)
         .toFile(path.join(uploadDir, thumbnailFilePath)); // 썸네일 파일 저장
 
       console.log("오리리리리지지나나날 :: " + originalFilePath);

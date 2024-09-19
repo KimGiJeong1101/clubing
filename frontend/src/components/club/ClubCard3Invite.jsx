@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { Box, Grid, Paper, Typography } from "@mui/material";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
@@ -6,26 +6,26 @@ import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import club from "../../data/Club.js";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from 'react-redux';
-import axiosInstance from '../../utils/axios.js';
-import CustomButton2 from '../../components/club/CustomButton2.jsx'
-import CustomSnackbar from '../../components/auth/Snackbar';
+import { useSelector } from "react-redux";
+import axiosInstance from "../../utils/axios.js";
+import CustomButton2 from "../../components/club/CustomButton2.jsx";
+import CustomSnackbar from "../../components/auth/Snackbar";
 
 const ClubCard2 = ({ clubList }) => {
   const [list, setList] = useState(club);
   const [userInvite, setUserInvite] = useState([]); // userInvite 상태 추가
-  const user  = useSelector((state) => state.user?.userData?.user || {});
+  const user = useSelector((state) => state.user?.userData?.user || {});
   const [loading, setLoading] = useState(true); // 로딩 상태
-  console.log(user.email)
+  console.log(user.email);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('Fetching user invites...');
+    console.log("Fetching user invites...");
     const fetchUserInvite = async () => {
       try {
         // 유저의 초대 목록을 가져오기 위한 API 호출
-        const response = await axiosInstance.get('/users/myPage'); 
+        const response = await axiosInstance.get("/users/myPage");
         const userData = response.data.user;
 
         setUserInvite(userData.invite || []); // 초대 목록 설정
@@ -40,14 +40,13 @@ const ClubCard2 = ({ clubList }) => {
   }, [user.email]); // 의존성 배열에 user.email 추가
 
   const handleRejectInvite = async (clubId) => {
-
     try {
       // 서버에 초대 거절 요청
       await axiosInstance.post(`/users/reject-invite`, { clubId });
 
       // 성공 알림 표시
-      setSnackbarMessage('초대가 거절되었습니다.');
-      setSnackbarSeverity('success');
+      setSnackbarMessage("초대가 거절되었습니다.");
+      setSnackbarSeverity("success");
       setTimeout(() => {
         window.location.reload(); // 페이지 새로고침
       }, 1000); // 1초 후 새로고침
@@ -55,21 +54,21 @@ const ClubCard2 = ({ clubList }) => {
       console.error("Error rejecting invite:", error);
 
       // 실패 알림 표시
-      setSnackbarMessage('초대 거절 중 오류가 발생했습니다.');
-      setSnackbarSeverity('error');
+      setSnackbarMessage("초대 거절 중 오류가 발생했습니다.");
+      setSnackbarSeverity("error");
     } finally {
       setSnackbarOpen(true); // 스낵바 열기
     }
   };
 
-   // 스낵바 상태를 추가합니다.
-   const [snackbarOpen, setSnackbarOpen] = useState(false);
-   const [snackbarMessage, setSnackbarMessage] = useState('');
-   const [snackbarSeverity, setSnackbarSeverity] = useState('error');
- 
-   const handleSnackbarClose = () => {
-     setSnackbarOpen(false);
-   };
+  // 스낵바 상태를 추가합니다.
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("error");
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
 
   return (
     <Box>
@@ -99,9 +98,9 @@ const ClubCard2 = ({ clubList }) => {
                 transition: "box-shadow 0.3s ease",
                 backgroundColor: "white",
                 position: "relative", // Paper의 상대적인 위치 기준 설정
-                '&:hover': {
+                "&:hover": {
                   transform: "scale(1.03)",
-                }
+                },
               }}
               onClick={() => navigate(`/clubs/main?clubNumber=${club._id}`)}
             >
@@ -209,15 +208,15 @@ const ClubCard2 = ({ clubList }) => {
                       </Box>
                       {userInvite && (
                         <CustomButton2
-                            onClick={(e) => {
-                              e.stopPropagation(); // 상위 Paper의 클릭 이벤트 전파 방지
-                              handleRejectInvite(club._id); // 초대 거절 핸들러 호출
-                            }}
+                          onClick={(e) => {
+                            e.stopPropagation(); // 상위 Paper의 클릭 이벤트 전파 방지
+                            handleRejectInvite(club._id); // 초대 거절 핸들러 호출
+                          }}
                           variant="caption"
                           sx={{
                             position: "absolute",
                             bottom: "15px", // 하단에 위치
-                            right: "15px",  // 오른쪽에 위치
+                            right: "15px", // 오른쪽에 위치
                             color: "white",
                             padding: "6px 12px", // 패딩을 키워서 버튼을 더 크게
                             borderRadius: "4px",
@@ -229,7 +228,7 @@ const ClubCard2 = ({ clubList }) => {
                         </CustomButton2>
                       )}
                     </Box>
-                 </Box>
+                  </Box>
                 </Grid>
               </Grid>
             </Paper>
@@ -243,7 +242,6 @@ const ClubCard2 = ({ clubList }) => {
         severity={snackbarSeverity} // 상태에서 전달
         onClose={handleSnackbarClose}
       />
-
     </Box>
   );
 };
