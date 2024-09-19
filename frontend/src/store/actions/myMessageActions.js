@@ -46,7 +46,7 @@ export const markMessageAsRead = createAsyncThunk(
   }
 );
 
-// 메시지 읽음 삭제 
+// 메시지 삭제 
 export const deleteMessages = createAsyncThunk(
   'messages/deleteMessages', // 액션 타입
   async (selectedMessages, thunkAPI) => {

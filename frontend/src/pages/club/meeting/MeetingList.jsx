@@ -6,11 +6,13 @@ import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../../utils/axios";
 import MeetingListByCategory from "./MeetingListByCategory";
+import MeetingListAsUser from "./MeetingListAsUser";
 
 const MeetingList = () => {
+ 
   const [nowTime, setNowTime] = useState([]);
   const [selectedTab, setSelectedTab] = useState(0); // 선택된 탭의 상태
-  const [category, setCategory] = useState(["맞춤 추천", ...Object.keys(clubCategories)]);
+  const [category, setCategory] = useState([...Object.keys(clubCategories)]);
   const [selectedCategoryTab, setSelectedCategoryTab] = useState(0); // 선택된 탭의 상태
   const days = ["일", "월", "화", "수", "목", "금", "토"];
   const [nowDate, setNowDate] = useState("");
@@ -93,7 +95,7 @@ const MeetingList = () => {
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue); // 클릭된 탭을 설정
   };
-  const [passCategory, setPassCategory] = useState("맞춤 추천");
+  const [passCategory, setPassCategory] = useState("푸드·드링크");
 
   const handleCategoryTabChange = (event, newValue) => {
     setSelectedCategoryTab(newValue);
@@ -174,13 +176,7 @@ const MeetingList = () => {
         <Grid container spacing={2} sx={{ marginBottom: "20px" }}>
           {meetingList &&
             meetingList.slice(0, 4).map((meeting, index) => {
-              const avatars = meeting.joinMember.map((member, i) => (
-                <Avatar
-                  key={i}
-                  alt={member.name}
-                  src={member.avatarUrl || "/static/images/avatar/default.jpg"} // 기본 이미지 URL 설정
-                />
-              ));
+              const avatars = meeting?.joinMemberInfo.map((member, idx) => <Avatar key={idx} alt={member.img} src={member.thumbnailImage} sx={{ width: 32, height: 32 }} />);
               return (
                 <Grid
                   item
@@ -209,6 +205,11 @@ const MeetingList = () => {
                       padding: "16px",
                       display: "flex",
                       borderRadius: "20px",
+                      transition: "all 0.3s ease", // 부드러운 전환 효과 추가
+                      "&:hover": {
+                        // 호버 스타일 추가
+                        transform: "scale(1.02)", // 호버 시 살짝 확대
+                      },
                     }}
                   >
                     <Grid item xs={12} sm={12} md={4}>
@@ -282,21 +283,15 @@ const MeetingList = () => {
         {/* 더보기 후 불러오는 모임리스트 4개씩 */}
         <Grid container spacing={2} sx={{ marginBottom: "20px" }}>
           {moreMeetingList &&
-            moreMeetingList.slice(0, 4).map((meeting, index) => {
-              const avatars = meeting.joinMember.map((member, i) => (
-                <Avatar
-                  key={i}
-                  alt={member.name}
-                  src={member.avatarUrl || "/static/images/avatar/default.jpg"} // 기본 이미지 URL 설정
-                />
-              ));
+            moreMeetingList.slice(0, moreMeetingListCount * 4).map((meeting, index) => {
+              const avatars = meeting?.joinMemberInfo.map((member, idx) => <Avatar key={idx} alt={member.img} src={member.thumbnailImage} sx={{ width: 32, height: 32 }} />);
               return (
                 <Grid
                   item
                   xs={6}
                   sm={6}
                   md={6}
-                  key={index} // meeting.clubNumber을 고유 키로 사용
+                  key={index}
                   onClick={() => {
                     navigate(`/clubs/main?clubNumber=${meeting.clubNumber}`);
                   }}
@@ -318,6 +313,11 @@ const MeetingList = () => {
                       padding: "16px",
                       display: "flex",
                       borderRadius: "20px",
+                      transition: "all 0.3s ease", // 부드러운 전환 효과 추가
+                      "&:hover": {
+                        // 호버 스타일 추가
+                        transform: "scale(1.02)", // 호버 시 살짝 확대
+                      },
                     }}
                   >
                     <Grid item xs={12} sm={12} md={4}>
@@ -468,7 +468,7 @@ const MeetingList = () => {
           marginTop: "30px",
         }}
       >
-        {/* 카테고리별 모임 */}
+        {/* 카테고리텝 */}
         <Grid item xs={12}>
           <Box sx={{ fontSize: "25px", fontWeight: "600" }}>카테고리 별 정기모임</Box>
         </Grid>
@@ -508,11 +508,13 @@ const MeetingList = () => {
             ))}
           </Tabs>
         </Grid>
-        {/* 카테고리별 모임.end */}
+        {/* 카테고리텝.end */}
       </Container>
+      {/* 카테고리 모임리스트 */}
       {passCategory && <MeetingListByCategory passCategory={passCategory}></MeetingListByCategory>}
-      {/* 모임리스트들 */}
-      {/* 모임리스트 끝 */}
+      {/* 카테고리 모임리스트 */}
+
+      <MeetingListAsUser />
       <Box sx={{ width: "100%", height: "100px", backgroundColor: "white" }}></Box>
       {/* {isFetching && !isLoading && <div>업데이트 중...</div>} */}
     </Box>

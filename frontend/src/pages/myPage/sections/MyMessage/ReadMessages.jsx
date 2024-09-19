@@ -10,6 +10,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import RowsPerPageSelector from '../../../../components/auth/RowsPerPageSelector'
 import CustomCheckbox from '../../../../components/club/CustomCheckbox'; // CustomCheckbox 컴포넌트 경로
+import CustomSnackbarWithTimer from '../../../../components/auth/Snackbar.jsx'; // CustomCheckbox 컴포넌트 경로
 
 const ReadMessages = () => {
   const [messages, setMessages] = useState([]);
@@ -45,6 +46,15 @@ const ReadMessages = () => {
     );
   };
 
+   //스낵바
+   const [snackbarOpen, setSnackbarOpen] = useState(false);
+   const [snackbarMessage, setSnackbarMessage] = useState("");
+   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+   const handleSnackbarClose = () => {
+       setSnackbarOpen(false); // 스낵바 닫기
+     };
+
     //정보 삭제
   const handleDelete = () => {
     // 선택한 메시지를 삭제하는 API 호출
@@ -56,6 +66,11 @@ const ReadMessages = () => {
         );
         // 선택 상태 초기화
         setSelectedMessages([]);
+
+         // 삭제 성공 시 스낵바 열기
+        setSnackbarMessage("선택한 메시지를 삭제했습니다.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true); // 스낵바 열기
       })
       .catch(error => {
         console.error('Error deleting messages:', error);
@@ -173,6 +188,15 @@ const ReadMessages = () => {
               <ArrowForwardIcon />
             </IconButton>
           </Box>
+
+          {/* 스낵바 컴포넌트 추가 */}
+          <CustomSnackbarWithTimer
+            open={snackbarOpen}
+            message={snackbarMessage}
+            severity={snackbarSeverity}
+            onClose={handleSnackbarClose}
+            duration={5000} // 원하는 시간 동안 스낵바 유지
+          />
         </Box>
       );
     };

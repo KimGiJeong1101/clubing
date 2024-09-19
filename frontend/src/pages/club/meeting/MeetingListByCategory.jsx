@@ -2,18 +2,19 @@ import { Avatar, AvatarGroup, Grid, Paper, Typography } from "@mui/material";
 import { Box, Container } from "@mui/system";
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../utils/axios";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
+import { useSelector } from "react-redux";
 
 const MeetingListByCategory = ({ passCategory }) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [moreMeetingListCount, setMoreMeetingListCount] = useState(0);
   const [moreMeetingList, setMoreMeetingList] = useState([]);
   const moreMeetingListHandler = () => {
     setMoreMeetingListCount((prev) => prev + 1); // 상태 업데이트 반환
   };
+  const user = useSelector((state) => state.user);
 
   const getCategoryMeetingList = async () => {
     const response = await axiosInstance.get(`/meetings/category/${passCategory}`);
@@ -67,6 +68,7 @@ const MeetingListByCategory = ({ passCategory }) => {
         <Grid container spacing={3} sx={{ marginBottom: "30px" }}>
           {categoryMeetingList &&
             categoryMeetingList.slice(0, 4).map((meeting, index) => {
+              const avatars = meeting?.joinMemberInfo.map((member, idx) => <Avatar key={idx} alt={member.img} src={member.thumbnailImage} sx={{ width: 32, height: 32 }} />);
               return (
                 <Grid
                   item
@@ -81,12 +83,6 @@ const MeetingListByCategory = ({ passCategory }) => {
                     height: "200px",
                     marginBottom: "10px",
                     cursor: "pointer", // 커서 포인터 추가
-                    transition: "all 0.3s ease", // 부드러운 전환 효과 추가
-                    "&:hover": {
-                      // 호버 스타일 추가
-                      backgroundColor: "#f0f0f0", // 호버 시 배경색 변경
-                      transform: "scale(1.01)", // 호버 시 살짝 확대
-                    },
                   }}
                 >
                   <Paper
@@ -95,6 +91,11 @@ const MeetingListByCategory = ({ passCategory }) => {
                       padding: "16px",
                       display: "flex",
                       borderRadius: "20px",
+                      transition: "all 0.3s ease", // 부드러운 전환 효과 추가
+                      "&:hover": {
+                        // 호버 스타일 추가
+                        transform: "scale(1.02)", // 호버 시 살짝 확대
+                      },
                     }}
                   >
                     <Grid item xs={12} sm={12} md={4}>
@@ -143,6 +144,7 @@ const MeetingListByCategory = ({ passCategory }) => {
                           margin: "10px 0px",
                         }}
                       >
+                        <AvatarGroup max={4}>{avatars}</AvatarGroup>
                         <Box
                           sx={{
                             display: "flex",
@@ -170,21 +172,15 @@ const MeetingListByCategory = ({ passCategory }) => {
         {/* 더보기 후 불러오는 모임리스트 4개씩 */}
         <Grid container spacing={2} sx={{ marginBottom: "20px" }}>
           {moreMeetingList &&
-            moreMeetingList.slice(0, 4).map((meeting, index) => {
-              const avatars = meeting.joinMember.map((member, i) => (
-                <Avatar
-                  key={i}
-                  alt={member.name}
-                  src={member.avatarUrl || "/static/images/avatar/default.jpg"} // 기본 이미지 URL 설정
-                />
-              ));
+            moreMeetingList.slice(0, moreMeetingListCount * 4).map((meeting, index) => {
+              const avatars = meeting?.joinMemberInfo.map((member, idx) => <Avatar key={idx} alt={member.img} src={member.thumbnailImage} sx={{ width: 32, height: 32 }} />);
               return (
                 <Grid
                   item
                   xs={6}
                   sm={6}
                   md={6}
-                  key={index} // meeting.clubNumber을 고유 키로 사용
+                  key={index}
                   onClick={() => {
                     navigate(`/clubs/main?clubNumber=${meeting.clubNumber}`);
                   }}
@@ -206,6 +202,11 @@ const MeetingListByCategory = ({ passCategory }) => {
                       padding: "16px",
                       display: "flex",
                       borderRadius: "20px",
+                      transition: "all 0.3s ease", // 부드러운 전환 효과 추가
+                      "&:hover": {
+                        // 호버 스타일 추가
+                        transform: "scale(1.02)", // 호버 시 살짝 확대
+                      },
                     }}
                   >
                     <Grid item xs={12} sm={12} md={4}>
