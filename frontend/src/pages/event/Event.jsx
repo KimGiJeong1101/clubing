@@ -141,7 +141,7 @@ const Event = () => {
     }
 
     return (
-        <Container sx={{ minHeight: '650px', mb: '40px', backgroundColor: '#f0f0f0' }}>
+        <Container sx={{ minHeight: '650px', mb: '40px', backgroundColor: 'white' }}>
             <h1>EVENT</h1>
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
                 <Button
