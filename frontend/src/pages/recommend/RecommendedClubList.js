@@ -1,20 +1,20 @@
 import React from "react";
 import { Box, Container, Grid, Typography, Tooltip, IconButton } from "@mui/material";
 import ClubListCard from "../../components/club/ClubListCard.js";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import axios from 'axios';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import axios from "axios";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 const fetchClubs = async ({ pageParam = 1, email }) => {
   const response = await axios.get(`http://localhost:4000/clubs/recommend/scroll/${pageParam}`, {
-    params: { email }
+    params: { email },
   });
   return response.data;
 };
 
 const ClubsList = () => {
-  const email = useSelector(state => state.user?.userData?.user?.email || null);
+  const email = useSelector((state) => state.user?.userData?.user?.email || null);
 
   const {
     data: clubList = [],
@@ -22,12 +22,12 @@ const ClubsList = () => {
     isLoading,
     isError,
     fetchNextPage,
-    hasNextPage
+    hasNextPage,
   } = useInfiniteQuery({
-    queryKey: ['clubList', email],
+    queryKey: ["clubList", email],
     queryFn: ({ pageParam = 1 }) => fetchClubs({ pageParam, email }),
-    getNextPageParam: (lastPage, allPages) => lastPage.length ? allPages.length + 1 : undefined,
-    keepPreviousData: true
+    getNextPageParam: (lastPage, allPages) => (lastPage.length ? allPages.length + 1 : undefined),
+    keepPreviousData: true,
   });
 
   // 무한 스크롤 구현
@@ -44,8 +44,8 @@ const ClubsList = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [hasNextPage, loadMore]);
 
   if (isLoading) {
@@ -65,21 +65,22 @@ const ClubsList = () => {
   return (
     <Box sx={{ width: "100%", paddingTop: "20px", backgroundColor: "#F2F2F2", position: "relative" }}>
       <Container maxWidth="lg" sx={{ paddingBottom: "40px" }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
-          <Typography variant="h5">정보 맞춤 추천</Typography>
+        <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
+          <Typography variant="h5">지역기반 추천</Typography>
+
           <Tooltip
             title={tooltipText}
             arrow
             sx={{
-              '& .MuiTooltip-tooltip': {
-                backgroundColor: 'rgba(0, 0, 0, 0.5)', // 흐린 회색 배경
-                color: 'white',
-                fontSize: '0.75rem',
-                borderRadius: '4px'
-              }
+              "& .MuiTooltip-tooltip": {
+                backgroundColor: "rgba(0, 0, 0, 0.5)", // 흐린 회색 배경
+                color: "white",
+                fontSize: "0.75rem",
+                borderRadius: "4px",
+              },
             }}
           >
-            <IconButton sx={{ color: 'gray', fontSize: '1.5rem' }}>
+            <IconButton sx={{ color: "gray", fontSize: "1.5rem" }}>
               <InfoOutlinedIcon />
             </IconButton>
           </Tooltip>

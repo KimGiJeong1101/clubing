@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const MessageSchema = new Schema({
-  chatRoom: {
-    type: Schema.Types.ObjectId,
-    ref: "ChatRoom",
+  clubId: {
+    type: Number, // ObjectId 대신 clubId를 숫자 타입으로 설정
+    ref: "ChatRoom", // ChatRoom의 clubId를 참조
     required: true,
     index: true,
   },
@@ -16,11 +16,10 @@ const MessageSchema = new Schema({
   },
   content: {
     type: String,
-    required: false, // 내용 필드를 선택적으로 설정
+    required: false,
   },
   images: [
     {
-      // 이미지 정보 배열
       original: { type: String },
       thumbnail: { type: String },
     },

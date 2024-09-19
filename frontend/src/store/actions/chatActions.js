@@ -35,7 +35,10 @@ export const fetchClubDetailByClubId = createAsyncThunk(
 
       console.log("여기로 오는지 확인해본다 진짜")
       console.log("난클럽아이디 ㅎㅎㅎ" + clubId)
+      console.log("난클럽아이디 전전전ㅎㅎㅎ" + clubId)
+
       const response = await axiosInstance.get(`/clubs/chatrooms/room/${clubId}`); // clubId를 사용하여 클럽 정보를 가져오는 엔드포인트
+      console.log("난클럽아이디 후후후 ㅎㅎㅎ" + clubId)
       console.log("난클럽아이디 ㅎㅎㅎ" + clubId)
       console.log("여기로 오는지 확인해본다 진짜")
       return response.data;
@@ -65,6 +68,8 @@ export const fetchInitialMessages = createAsyncThunk(
 export const fetchOlderMessages = createAsyncThunk(
   'chat/fetchOlderMessages',
   async ({ clubId, skip }, thunkAPI) => {
+
+    console.log("오키 해보자")
     try {
       const response = await axiosInstance.get(`/clubs/chatrooms/${clubId}/messages?skip=${skip}&limit=30`);
       return response.data;
