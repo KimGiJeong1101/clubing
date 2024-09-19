@@ -1,11 +1,11 @@
 import { Box, Button, Grid, Modal, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import clubCategories from './../main/CategoriesDataClub';
+import clubCategories from "./../main/CategoriesDataClub";
 
 const CategoryModalSub = ({ open, onClose, onSubCategorySelect, mainCategory }) => {
-  const [subCategory, setSubCategory] = useState(clubCategories); 
-  const [subCategoryList, setSubCategoryList] = useState([]); 
-  const [selectedCategories, setSelectedCategories] = useState([]); 
+  const [subCategory, setSubCategory] = useState(clubCategories);
+  const [subCategoryList, setSubCategoryList] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
 
   const buttonStyle = {
     fontSize: "1rem",
@@ -16,18 +16,18 @@ const CategoryModalSub = ({ open, onClose, onSubCategorySelect, mainCategory }) 
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.3)", // 그림자 효과 추가
   };
 
-  //카테고리 열었을 때 , 서브카테고리 초기화 
-  useEffect(()=>{
+  //카테고리 열었을 때 , 서브카테고리 초기화
+  useEffect(() => {
     setSelectedCategories([]);
-  },[open])
+  }, [open]);
   //카테고리 열었을 때 , 서브카테고리 초기화 .end
 
   const handleCategoryClick = (category) => {
-    setSelectedCategories(prevCategories => {
+    setSelectedCategories((prevCategories) => {
       // Check if the category is already selected
       if (prevCategories.includes(category)) {
         // Remove the category if it is already selected
-        return prevCategories.filter(cat => cat !== category);
+        return prevCategories.filter((cat) => cat !== category);
       } else {
         // Add the category if not selected and limit to 2
         if (prevCategories.length < 2) {
@@ -44,6 +44,7 @@ const CategoryModalSub = ({ open, onClose, onSubCategorySelect, mainCategory }) 
   };
 
   const handleSelectComplete = () => {
+    console.log(selectedCategories); // 이 부분 추가
     onSubCategorySelect(selectedCategories); // Pass selected categories
     onClose(); // Close modal after selection
   };
@@ -58,7 +59,10 @@ const CategoryModalSub = ({ open, onClose, onSubCategorySelect, mainCategory }) 
     <Box>
       <Modal
         open={open}
-        onClose={onClose}
+        onClose={() => {
+          console.log("Modal closed");
+          onClose();
+        }}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -76,32 +80,15 @@ const CategoryModalSub = ({ open, onClose, onSubCategorySelect, mainCategory }) 
             p: 4,
           }}
         >
-          <Typography
-            id="modal-modal-title"
-            variant="h5"
-            component="h2"
-            sx={{ textAlign: "center" }}
-          >
+          <Typography id="modal-modal-title" variant="h5" component="h2" sx={{ textAlign: "center" }}>
             관심사 선택
           </Typography>
-          <br/>
+          <br />
           <hr />
           <Grid container spacing={2}>
             {subCategoryList.map((item, index) => (
-              <Grid
-                item
-                xs={2}
-                key={index}
-                container
-                justifyContent="center"
-                alignItems="center"
-              >
-                <Button
-                  aria-label={item}
-                  onClick={ButtonHandleClick}
-                  sx={buttonStyle}
-                  style={{ color: selectedCategories.includes(item) ? "white" : "green", backgroundColor: selectedCategories.includes(item) ? "green" : "transparent" }}
-                >
+              <Grid item xs={2} key={index} container justifyContent="center" alignItems="center">
+                <Button aria-label={item} onClick={ButtonHandleClick} sx={buttonStyle} style={{ color: selectedCategories.includes(item) ? "white" : "green", backgroundColor: selectedCategories.includes(item) ? "green" : "transparent" }}>
                   {item}
                 </Button>
               </Grid>
@@ -111,7 +98,10 @@ const CategoryModalSub = ({ open, onClose, onSubCategorySelect, mainCategory }) 
             <Button
               variant="contained"
               color="primary"
-              onClick={handleSelectComplete}
+              onClick={() => {
+                console.log("Button clicked!"); // 클릭 여부 확인
+                handleSelectComplete();
+              }}
               disabled={selectedCategories.length === 0}
             >
               선택 완료
