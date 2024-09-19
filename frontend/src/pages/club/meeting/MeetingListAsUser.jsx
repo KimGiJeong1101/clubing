@@ -1,14 +1,14 @@
 /** @jsxImportSource @emotion/react */
 import { Avatar, AvatarGroup, Grid, Paper, Typography } from "@mui/material";
 import { Box, Container } from "@mui/system";
-import React, { useState } from "react";
+import React from "react";
 import axiosInstance from "../../../utils/axios";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import { useSelector } from "react-redux";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import { css, keyframes } from "@emotion/react";
+import { keyframes } from "@emotion/react";
 
 const MeetingListAsUser = () => {
   const spin = keyframes`
@@ -20,9 +20,6 @@ const MeetingListAsUser = () => {
   const getMeetingListAsUser = async () => {
     const response = await axiosInstance.get(`/meetings/suggestForUser`);
     const data = await response.data;
-    console.log(`data`);
-    console.log(data);
-    console.log(`data`);
     return data;
   };
 

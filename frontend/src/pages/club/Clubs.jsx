@@ -42,9 +42,7 @@ const Clubs = () => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [openSnackbar, setOpenSnackbar] = useState(false);
   useEffect(() => {
-    console.log("location:", location); // location 객체 확인
     if (location.state && location.state.snackbarMessage) {
-      console.log("여기 와??");
       setSnackbarMessage(location.state.snackbarMessage);
       setOpenSnackbar(true);
     }

@@ -1,5 +1,5 @@
 import React from "react";
-import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, Avatar, Button, Snackbar, SnackbarContent } from "@mui/material";
+import { Dialog, DialogActions, DialogContent, DialogTitle, Grid, Typography, Avatar, Button } from "@mui/material";
 import CustomButton from "../../../components/club/CustomButton";
 import axiosInstance from "../../../utils/axios";
 import { useSelector } from "react-redux";
@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 const MemberModal = ({ open, onClose, members, clubNumber, setSnackbarMessage, handleSnackbarClick }) => {
   const user = useSelector((state) => state.user);
   const deleteMemberInClub = async (nickName) => {
-    const response = await axiosInstance.post(`/clubs/deleteMember/${nickName}/${clubNumber}`);
+    await axiosInstance.post(`/clubs/deleteMember/${nickName}/${clubNumber}`);
     setSnackbarMessage("강퇴 완료되었습니다.");
     handleSnackbarClick();
     onClose();

@@ -18,9 +18,6 @@ router.get("/", async (req, res, next) => {
       res.status(200).json(clubs);
     } else {
       const clubs = await Club.find().sort({ _id: -1 }).limit(6); // 오름차순 솔팅
-      console.log(`clubs`);
-      console.log(clubs.length);
-      console.log(`clubs`);
       await memberInfoInsert(clubs);
 
       res.status(200).json(clubs);
@@ -163,9 +160,6 @@ router.get("/read2/:id", async (req, res, next) => {
 router.delete("/delete/:id", auth, async (req, res, next) => {
   try {
     const clubs = await Club.findByIdAndDelete({ _id: req.params.id });
-    console.log(`clubs`);
-    console.log(clubs);
-    console.log(`clubs`);
     return res.sendStatus(200);
   } catch (error) {
     next(error);
@@ -270,9 +264,6 @@ router.post("/deleteMember/:nickName/:clubNumber", async (req, res, next) => {
     const userinfo = await User.findOne({ nickName: req.params.nickName });
 
     const indexToRemove = club.members.indexOf(userinfo.email);
-    console.log(`indexToRemove`);
-    console.log(indexToRemove);
-    console.log(indexToRemove);
     if (indexToRemove !== -1) {
       club.members.splice(indexToRemove, 1);
       await club.save();
@@ -339,7 +330,6 @@ router.post("/addWish/:clubNumber", auth, async (req, res, next) => {
 
 //찜하기 해제
 router.post("/removeWish/:clubNumber", auth, async (req, res, next) => {
-  console.log("클럽 번호:", req.params.clubNumber);
   try {
     const user = req.user;
     if (!user) {

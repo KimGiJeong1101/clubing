@@ -1,5 +1,5 @@
 import { Avatar, AvatarGroup, Box, Container, Fab, Grid, Menu, MenuItem, Paper, Popover, Snackbar, SnackbarContent, Typography } from "@mui/material";
-import { QueryClient, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import WhereToVoteIcon from "@mui/icons-material/WhereToVote";
@@ -19,7 +19,6 @@ import ShareOutlinedIcon from "@mui/icons-material/ShareOutlined";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MenuIcon from "@mui/icons-material/Menu";
 import MemberModal from "./MemberModal.jsx";
-import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/system";
 
 dayjs.locale("ko");

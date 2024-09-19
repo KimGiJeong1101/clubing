@@ -169,25 +169,8 @@ router.get("/category/:passCategory", async (req, res, next) => {
 
 router.get("/suggestForUser", auth, async (req, res, next) => {
   try {
-    // let location = "";
-    // switch (true) {
-    //   case !!req.user.homeLocation?.district:
-    //     location = req.user.homeLocation.district;
-    //     break;
-    //   case !!req.user.interestLocation?.district:
-    //     location = req.user.interestLocation.district;
-    //     break;
-    //   case !!req.user.workplace?.district:
-    //     location = req.user.workplace.district;
-    //     break;
-    //   default:
-    //     location = "지역없음";
-    // }
     const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
     const categories = req.user.category.map((category) => category.main);
-    console.log(`categories`);
-    console.log(categories);
-    console.log(`categories`);
     const shuffledCategories = shuffleArray(categories);
     const category1Meetings = await Meeting.find({ category: categories[0] }).limit(6);
     const category2Meetings = await Meeting.find({ category: categories[1] }).limit(6);
@@ -201,6 +184,7 @@ router.get("/suggestForUser", auth, async (req, res, next) => {
     next(error);
   }
 });
+
 //리스트 보여주기
 router.get("/:clubNumber", async (req, res, next) => {
   try {
