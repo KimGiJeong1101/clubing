@@ -1,8 +1,8 @@
-// src/hooks/usePost.js 
+// src/hooks/usePost.js
 //게시글 등록
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 // Fetch a single post by ID
 const fetchPost = async (postId) => {
@@ -13,9 +13,9 @@ const fetchPost = async (postId) => {
 // Custom hook to fetch a post
 export const usePost = (postId) => {
   return useQuery({
-    queryKey: ['post', postId], // Query key setup
+    queryKey: ["post", postId], // Query key setup
     queryFn: () => fetchPost(postId), // Query function
-    enabled: !!postId // Only fetch if postId exists
+    enabled: !!postId, // Only fetch if postId exists
   });
 };
 

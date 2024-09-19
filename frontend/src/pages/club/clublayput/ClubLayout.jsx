@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import MainHeader from "../../../layout/Header"
-import MainFooter from "../../../layout/Footer"
+import MainHeader from "../../../layout/Header";
+import MainFooter from "../../../layout/Footer";
 import Header from "./Header";
 import NavBar from "./NavBar";
 import Footer from "./Footer";
@@ -12,7 +12,6 @@ import { fetchGetClub } from "../../../store/reducers/clubReducer";
 import { sendMessage } from "../../../store/actions/myMessageActions";
 import { useDispatch, useSelector } from "react-redux";
 import WishHearts from "../../../components/club/WishHearts.jsx";
-
 function ClubLayout() {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -35,7 +34,6 @@ function ClubLayout() {
       setJoinHandler(!getClub.clubs.members.includes(user.email));
     }
   }, [getClub, user.email, clubNumber]);
-
   const handleOpen = () => {
     if (user.email === "") {
       alert("로그인이 필요한 서비스입니다.");
@@ -46,52 +44,60 @@ function ClubLayout() {
         .then((response) => {
           alert("모임 가입성공");
 
-        // 모임 가입 성공 후 메시지 DB에 저장
-          const messages = [ 
+          // 모임 가입 성공 후 메시지 DB에 저장
+          const messages = [
             {
-            club: clubNumber,
-            recipient: user.email,
-            sender: getClub.clubs.title, // 클럽 이름
-            content: `${getClub.clubs.title} 모임 가입을 축하드립니다.`,
-            title: "모임 가입성공",
+              club: clubNumber,
+              recipient: user.email,
+              sender: getClub.clubs.title, // 클럽 이름
+              content: `${getClub.clubs.title} 모임 가입을 축하드립니다.`,
+              title: "모임 가입성공",
             },
             {
               club: clubNumber,
               recipient: getClub.clubs.admin,
               sender: user.email, // 클럽 이름
               content: `${user.email}에서 모임에 가입했습니다.`,
+<<<<<<< HEAD
               title: "${user.email}님 모임에 가입",
             }
+=======
+              title: "새 멤머",
+            },
+>>>>>>> d9007c1d7f1a042f30cba188ed72ce2bf518df58
             // 필요에 따라 추가 메시지 객체를 배열에 추가
           ];
-          // 메시지 전송을 위한 액션 디스패치    
+          // 메시지 전송을 위한 액션 디스패치
           dispatch(sendMessage(messages[0]));
           // 클럽 주인에게 메시지 전송 (axios 사용)
-          axiosInstance.post('/users/messages', messages[1])
-          // 모든 디스패치가 완료될 때까지 기다립니다.
-        .then(() => {
-          console.log("메시지 전송 성공");
-          navigate(`/mypage`);
+          axiosInstance
+            .post("/users/messages", messages[1])
+            // 모든 디스패치가 완료될 때까지 기다립니다.
+            .then(() => {
+              console.log("메시지 전송 성공");
+              navigate(`/mypage`);
+            })
+            .catch((err) => {
+              console.error("메시지 전송 실패", err);
+            });
         })
         .catch((err) => {
-          console.error("메시지 전송 실패", err);
+          console.log(err);
+          alert("모임 가입에 실패했습니다.");
         });
-    })
-    .catch((err) => {
-      console.log(err);
-      alert("모임 가입에 실패했습니다.");
-    });
-}
-};
+    }
+  };
 
   return (
     <Box>
-      <MainHeader/>
+      <MainHeader />
       {/* <Header />  */}
-      <NavBar /> 
-      <main >
-        <Outlet   />
-         {/* "#F0F0F0" */}
+
+      <NavBar />
+      <main>
+        <Outlet />
+        {/* "#F0F0F0" */}
+
         {joinHandler && (
           <Box
             sx={{
@@ -117,7 +123,7 @@ function ClubLayout() {
                     borderRadius: "20px 0px 0px 20px",
                   }}
                 >
-                   <WishHearts />
+                  <WishHearts />
                 </Grid>
                 <Grid item xs={11} sx={{ textAlign: "center" }}>
                   <Button
@@ -138,9 +144,8 @@ function ClubLayout() {
         )}
       </main>
       {/* <Footer /> */}
-      <MainFooter/>
+      <MainFooter />
     </Box>
   );
 }
-
 export default ClubLayout;

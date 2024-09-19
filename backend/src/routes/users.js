@@ -501,27 +501,30 @@ router.put('/introduction', auth, async (req, res, next) => {
 
 // 특정 ID를 가진 사용자의 정보를 가져오는 라우트 핸들러
 router.get("/:id", async (req, res) => {
-    try {
-      // 요청 URL에서 사용자 ID를 추출하고, 데이터베이스에서 해당 ID로 사용자 검색
-      const user = await User.findById(req.params.id);
-  
-      console.log("--------1244----------------");
-      console.log(user._id);
-      console.log("-------------1251251251-----------");
-      // 콘솔에 디버깅 메시지 출력 (필요에 따라 삭제 가능)
-      console.log("uuuuuuuuuusssssssseeeeeeerrrrrrrrrr");
-      // 사용자가 존재하지 않는 경우, 404 상태 코드와 함께 오류 메시지 반환
-      if (!user) {
-        return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
-      }
-      // 사용자가 존재하는 경우, 사용자 이름만 포함된 JSON 응답 반환
-      res.json({ name: user.name });
-    } catch (error) {
-      // 예외 발생 시, 콘솔에 오류 로그 출력 및 500 상태 코드와 함께 오류 메시지 반환
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "서버 오류" });
+  try {
+    // 요청 URL에서 사용자 ID를 추출하고, 데이터베이스에서 해당 ID로 사용자 검색
+    const user = await User.findById(req.params.id);
+
+    console.log("--------1244----------------");
+    console.log(user._id);
+    console.log("-------------1251251251-----------");
+    // 콘솔에 디버깅 메시지 출력 (필요에 따라 삭제 가능)
+    console.log("uuuuuuuuuusssssssseeeeeeerrrrrrrrrr");
+    // 사용자가 존재하지 않는 경우, 404 상태 코드와 함께 오류 메시지 반환
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
     }
-  });
+    // 사용자가 존재하는 경우, 사용자 이름만 포함된 JSON 응답 반환
+    console.log("안녕하세요요요요요요요요")
+    console.log(user.name)
+    console.log(user.profilePic)
+    res.json({ name: user.name, profilePic: user.profilePic.thumbnailImage });
+  } catch (error) {
+    // 예외 발생 시, 콘솔에 오류 로그 출력 및 500 상태 코드와 함께 오류 메시지 반환
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
   
   router.post('/update-location', async (req, res) => {
     try {
