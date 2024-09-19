@@ -6,12 +6,7 @@ const initialState = {
   messages: [
     {
       _id: "",          // 메시지 고유 ID
-      title: "",        // 메시지 제목
-      content: "",      // 메시지 내용
-      date: "",         // 메시지 날짜
       isRead: false,    // 읽음 여부
-      recipient: "",    // 수신자
-      sender: "",       // 발신자
       club: null,       // 클럽 ID (선택 사항)
     }
   ], 

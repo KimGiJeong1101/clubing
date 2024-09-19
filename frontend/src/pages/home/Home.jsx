@@ -182,7 +182,14 @@ const Home = () => {
             </Typography>
             <Typography 
               variant="body1" 
-              sx={{ color: 'gray' }}
+              sx={{ 
+                color: 'gray' ,
+                cursor: 'pointer', // 기본 커서 스타일
+                '&:hover': {
+                  color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                  cursor: 'pointer' // 호버 시 커서 모양 변경
+                }
+              }}
               onClick={() => navigate(`/clubList`)}
             >
               더보기
@@ -275,7 +282,14 @@ const Home = () => {
           </Box>
             <Typography 
               variant="body1" 
-              sx={{ color: 'gray' }}
+              sx={{ 
+                color: 'gray' ,
+                cursor: 'pointer', // 기본 커서 스타일
+                '&:hover': {
+                  color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                  cursor: 'pointer' // 호버 시 커서 모양 변경
+                }
+              }}
               onClick={() => navigate(`/recommendedClubList`)}
             >
               더보기
@@ -299,7 +313,14 @@ const Home = () => {
             </Typography>
             <Typography 
             variant="body1" 
-            sx={{ color: 'gray' }}
+            sx={{ 
+              color: 'gray' ,
+              cursor: 'pointer', // 기본 커서 스타일
+              '&:hover': {
+                color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                cursor: 'pointer' // 호버 시 커서 모양 변경
+              }
+            }}
             onClick={() => navigate(`/meetingList`)}
             >
               더보기
@@ -315,7 +336,14 @@ const Home = () => {
             </Typography>
             <Typography 
               variant="body1" 
-              sx={{ color: 'gray' }}
+              sx={{ 
+                color: 'gray' ,
+                cursor: 'pointer', // 기본 커서 스타일
+                '&:hover': {
+                  color: 'black', // 호버 시 색상도 변경하고 싶다면 추가
+                  cursor: 'pointer' // 호버 시 커서 모양 변경
+                }
+              }}
               onClick={() => navigate(`/event`)}
             >
               더보기
