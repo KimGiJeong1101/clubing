@@ -1,4 +1,5 @@
-import { Box, Grid, Paper, Typography } from "@mui/material";
+import React, { useCallback, useEffect, useState } from "react";
+import { Box, Button, Container, Grid, Paper, Typography } from "@mui/material";
 import CommentRoundedIcon from "@mui/icons-material/CommentRounded";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import Avatar from "@mui/material/Avatar";
@@ -8,11 +9,12 @@ import ModeNightIcon from "@mui/icons-material/ModeNight";
 import { useNavigate } from "react-router-dom";
 
 const ClubListCard = ({ clubList }) => {
+  
   const navigate = useNavigate();
-  // clubList가 undefined인 경우를 처리
-  if (!clubList || clubList.length === 0) {
-    return <div>No clubs available</div>;
-  }
+    // clubList가 undefined인 경우를 처리
+    if (!clubList || clubList.length === 0) {
+      return <div>No clubs available</div>;
+    }
   return (
     <>
       {clubList.map((club) => (
@@ -170,8 +172,8 @@ const ClubListCard = ({ clubList }) => {
                 }}
               >
                 <AvatarGroup max={4}>
-                  {club.members.map((member, idx) => (
-                    <Avatar key={idx} alt={`Member ${idx + 1}`} src={member.img} sx={{ width: 32, height: 32 }} />
+                  {club.memberInfo.map((member, idx) => (
+                    <Avatar key={idx} alt={member.img} src={member.thumbnailImage} sx={{ width: 32, height: 32 }} />
                   ))}
                 </AvatarGroup>
                 <Box
@@ -222,7 +224,7 @@ const ClubListCard = ({ clubList }) => {
                     "&:hover": {
                       transform: "scale(1.2)", // 호버 시 크기 확대
                       color: "#f2f2f2", // 색상 변경
-                      backgroundColor: "#3f51b5", // 배경색 변경
+                      backgroundColor: "#A67153", // 배경색 변경
                       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자 추가
                       cursor: "pointer",
                     },
@@ -258,7 +260,7 @@ const ClubListCard = ({ clubList }) => {
               <Box
                 sx={{
                   position: "absolute",
-                  bottom: 78,
+                  bottom: 80,
                   right: 0,
                   backgroundColor: "white",
                   width: "20px",

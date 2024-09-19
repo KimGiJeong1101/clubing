@@ -1,10 +1,11 @@
 // theme.js
-import { createTheme } from '@mui/material/styles';
-import { GlobalStyles } from '@mui/material';
+import { createTheme } from "@mui/material/styles";
+import { GlobalStyles } from "@mui/material";
+import { margin } from "@mui/system";
 
 const theme = createTheme({
   typography: {
-    fontFamily: 'NanumSquareNeoBold, NanumSquareNeoExtraBold, KCC-Hanbit', // 공통 글씨체 설정
+    fontFamily: "NanumSquareNeoBold, NanumSquareNeoExtraBold, KCC-Hanbit", // 공통 글씨체 설정
   },
   // 추가적인 테마 설정이 필요할 경우 여기에 작성
 });

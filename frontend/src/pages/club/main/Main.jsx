@@ -1,12 +1,11 @@
-import { Avatar, AvatarGroup, Box, Container, Fab, Grid, Menu, MenuItem, Paper, Popover, Typography } from "@mui/material";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Avatar, AvatarGroup, Box, Container, Fab, Grid, Menu, MenuItem, Paper, Popover, Snackbar, SnackbarContent, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import WhereToVoteIcon from "@mui/icons-material/WhereToVote";
 import PeopleIcon from "@mui/icons-material/People";
 import PeopleRoundedIcon from "@mui/icons-material/PeopleRounded";
 import AddIcon from "@mui/icons-material/Add";
-import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import "dayjs/locale/ko"; // 한국어 로케일 import
@@ -24,10 +23,59 @@ import MemberModal from "./MemberModal.jsx";
 import WishHearts from "../../../components/club/WishHearts.jsx";
 import { sendMessage } from "../../../store/actions/myMessageActions";
 import { saveVisitClub } from "../../../store/actions/RecentVisitAction";
-
-dayjs.locale("ko");
-
+import { styled } from "@mui/system";
 const Main = (wishHeart) => {
+  //Clubmember=3 이란 거 가져오기 위해서!
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const clubNumber = queryParams.get("clubNumber");
+  //Clubmember=3 이란 거 가져오기 위해서!.end
+
+  ////////////////스낵바
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar 메시지 관리
+
+  const StyledSnackbarContent = styled(SnackbarContent)(({ theme }) => ({
+    backgroundColor: "white", // 배경색 설정
+    color: "#A6836F", // 텍스트 색상 설정
+    borderRadius: "20px",
+    width: "250px",
+    height: "50px",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    opacity: 1, // 초기 투명도
+    transition: "opacity 0.5s ease-in-out", // 애니메이션 효과
+  }));
+
+  const handleSnackbarClick = () => {
+    setOpenSnackbar(true);
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+  // const action = (
+  //   <>
+  //     <IconButton size="small" aria-label="close" sx={{ backgroundColor: "#565903", color: "white" }} onClick={handleSnackbarClose}>
+  //       <CloseIcon fontSize="small" />
+  //     </IconButton>
+  //   </>
+  // );
+  useEffect(() => {
+    console.log("location:", location); // location 객체 확인
+    if (location.state && location.state.snackbarMessage) {
+      console.log("여기 와??");
+      setSnackbarMessage(location.state.snackbarMessage);
+      setOpenSnackbar(true);
+    }
+  }, [location]);
+  ////////////////스낵바.end
+
   const [memberModalOpen, setMemberModalOpen] = useState(false);
   const [memberModalOpen2, setMemberModalOpen2] = useState(false);
   //리덕스 함수 부르기 위해서
@@ -38,12 +86,6 @@ const Main = (wishHeart) => {
   const toggleExpand = () => {
     setIsExpanded((prev) => !prev);
   };
-
-  //Clubmember=3 이란 거 가져오기 위해서!
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const clubNumber = queryParams.get("clubNumber");
-  //Clubmember=3 이란 거 가져오기 위해서!.end
 
   //헤더에 있던 거 옮기기 .
   //헤더에 있던 거 옮기기 .
@@ -58,14 +100,11 @@ const Main = (wishHeart) => {
   };
   const cancellClub = () => {
     if (user.userData.user.email === "") {
-      alert("로그인이 필요한 서비스입니다.");
-      navigate("/login");
+      handleSnackbarClick();
     } else {
       axiosInstance
         .post(`http://localhost:4000/clubs/cencellMember/${clubNumber}`)
         .then((response) => {
-          alert("모임 탈퇴 성공");
-
           // 모임 가입 성공 후 메시지 DB에 저장
           const messages = [
             {
@@ -97,10 +136,12 @@ const Main = (wishHeart) => {
             .catch((err) => {
               console.error("메시지 전송 실패", err);
             });
+          navigate(`/clubList`, { state: { snackbarMessage: "모임 탈퇴가 완료되었습니다." } });
         })
         .catch((err) => {
           console.log(err);
-          alert("모임 탈퇴에 실패했습니다.");
+          setSnackbarMessage("모임 탈퇴가 실패되었습니다.");
+          handleSnackbarClick();
         });
     }
   };
@@ -130,7 +171,6 @@ const Main = (wishHeart) => {
   const handleOpen = () => setOpen(true);
   const FadHandleClick = (picCategory) => {
     setCategory(picCategory);
-    console.log(picCategory);
     setOpen(false);
     setSecondModal(true);
   };
@@ -162,7 +202,8 @@ const Main = (wishHeart) => {
   //미팅 지우기
   const deleteMeeting = async (meetingNumber) => {
     await fetch(`http://localhost:4000/meetings/delete/` + meetingNumber);
-    window.location.reload();
+    setSnackbarMessage("정기모임이 삭제되었습니다.");
+    handleSnackbarClick();
   };
   //미팅 지우기.end
 
@@ -181,7 +222,7 @@ const Main = (wishHeart) => {
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["readClub", clubNumber, memberModalOpen, memberModalOpen2],
+    queryKey: ["readClub", clubNumber, memberModalOpen, memberModalOpen2, secondModal],
     queryFn: getReadClub,
     enabled: !!clubNumber, //
   });
@@ -206,10 +247,9 @@ const Main = (wishHeart) => {
   //모임삭제 시 이동 핸들러
   const handleDelete2 = async () => {
     try {
-      await axios.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
+      await axiosInstance.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
       // 삭제 후 원하는 페이지로 이동
-      navigate("/clublist");
-      alert("삭제 완료");
+      navigate(`/clubList`, { state: { snackbarMessage: "모임 삭제가 완료되었습니다." } });
     } catch (error) {
       console.error("삭제 실패:", error);
     }
@@ -220,8 +260,9 @@ const Main = (wishHeart) => {
   //정모 참석하기 버튼 눌렀을 때 , 콜백함수
   const meetingJoin = (meetingId) => {
     if (!user.userData.user.email) {
-      alert("로그인이 필요한 서비스 입니다.");
-      navigate("/login");
+      setSnackbarMessage("로그인 정보가 없습니다.");
+      handleSnackbarClick();
+      // navigate("/login");
     } else {
       axiosInstance
         .post(`/meetings/join/${meetingId}`)
@@ -239,17 +280,21 @@ const Main = (wishHeart) => {
             setMeeetingListBoolean(copy);
           });
           if (response.data.message === "참석 취소") {
-            alert("참석 취소");
+            setSnackbarMessage("참석이 취소되었습니다.");
+            handleSnackbarClick();
           } else {
-            alert("참석 성공");
+            setSnackbarMessage("참석이 성공했습니다.");
+            handleSnackbarClick();
           }
         })
         .catch((err) => {
           console.error(err);
-          alert("참석 실패");
+          setSnackbarMessage("참석이 실패했습니다.");
+          handleSnackbarClick();
         });
     }
   };
+
   useEffect(() => {
     axiosInstance.get(`http://localhost:4000/meetings/${clubNumber}`).then((response) => {
       let copy = [];
@@ -316,27 +361,27 @@ const Main = (wishHeart) => {
   };
   //초대하기 끝
 
-//최근 방문 리스트
-useEffect(() => {
-  if (clubNumber && user.userData.user.email) {
-    // 서버로 보낼 데이터 객체
-    const body = {
-      clubs: clubNumber,
-      email: user.userData.user.email,
-    };
+  //최근 방문 리스트
+  useEffect(() => {
+    if (clubNumber && user.userData.user.email) {
+      // 서버로 보낼 데이터 객체
+      const body = {
+        clubs: clubNumber,
+        email: user.userData.user.email,
+      };
 
-    // saveVisitClub 액션 디스패치
-    dispatch(saveVisitClub(body))
-      .then((result) => {
-        // 액션 성공 처리
-        console.log('Visit saved successfully:', result);
-      })
-      .catch((error) => {
-        // 액션 실패 처리
-        console.error('Failed to save visit:', error);
-      });
-  }
-}, [clubNumber, user.userData.user.email, dispatch]);
+      // saveVisitClub 액션 디스패치
+      dispatch(saveVisitClub(body))
+        .then((result) => {
+          // 액션 성공 처리
+          console.log("Visit saved successfully:", result);
+        })
+        .catch((error) => {
+          // 액션 실패 처리
+          console.error("Failed to save visit:", error);
+        });
+    }
+  }, [clubNumber, user.userData.user.email, dispatch]);
 
   if (isLoading) {
     return <div>로딩 중...</div>; // 최초 로딩 시
@@ -352,7 +397,7 @@ useEffect(() => {
       {/* 모달창.end */}
 
       {/* 2번째 글등록 모달창 */}
-      {secondModal && <MeetingCreate2 clubNumber={clubNumber} secondModalClose={secondModalClose} secondModal={secondModal} category={category} />}
+      {secondModal && <MeetingCreate2 clubNumber={clubNumber} secondModalClose={secondModalClose} secondModal={secondModal} category={category} setSnackbarMessageMain={setSnackbarMessage} handleSnackbarClickMain={handleSnackbarClick} />}
       {/* 2번째 글등록 모달창.end */}
 
       <Container maxWidth="md" sx={{ padding: "0px !important" }}>
@@ -409,17 +454,10 @@ useEffect(() => {
         )}
 
         {/* 모달창 버튼.end */}
-        <Grid item xs={12} sx={{ paddingLeft: "20px", paddingRight: "20px" }}>
+        <Grid item xs={12} sx={{ paddingLeft: "20px", paddingRight: "20px", paddingTop: "20px" }}>
           <Grid container>
             <Grid item xs={1}>
-              <Box
-                sx={{
-                  width: "60px",
-                  height: "60px",
-                  backgroundColor: "pink",
-                  borderRadius: "30px",
-                }}
-              ></Box>
+              <Avatar sx={{ width: 50, height: 50 }} src={readClub.clubmembers[0].thumbnailImage || ""} />
             </Grid>
             <Grid item xs={11}>
               <Grid item xs={12}>
@@ -596,7 +634,7 @@ useEffect(() => {
                             meetingJoin(readClub.meeting[i]._id);
                           }}
                           variant={meeetingListBoolean[i] ? "outlined" : "contained"}
-                          sx={{ borderRadius: "20px", backgroundColor: "#DBC7B5" }}
+                          sx={{ borderRadius: "20px", backgroundColor: "#DBC7B5", border: "0px solid", marginRight: "5px" }}
                         >
                           {meeetingListBoolean[i] ? "취소" : "참석하기"}
                         </CustomButton>
@@ -634,11 +672,9 @@ useEffect(() => {
                         }}
                       >
                         <AvatarGroup max={4}>
-                          <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
-                          <Avatar alt="Travis Howard" src="/static/images/avatar/2.jpg" />
-                          <Avatar alt="Cindy Baker" src="/static/images/avatar/3.jpg" />
-                          <Avatar alt="Agnes Walker" src="/static/images/avatar/4.jpg" />
-                          <Avatar alt="Trevor Henderson" src="/static/images/avatar/5.jpg" />
+                          {meetingList[i]?.joinMemberInfo.map((member, idx) => (
+                            <Avatar key={idx} alt={member.img} src={member.thumbnailImage} sx={{ width: 32, height: 32 }} />
+                          ))}
                         </AvatarGroup>
                         <Box
                           sx={{
@@ -649,7 +685,9 @@ useEffect(() => {
                         >
                           <PeopleRoundedIcon sx={{ fontSize: "18px" }} />
                           <span style={{ marginLeft: "5px" }}>
-                            {meetingList[i]?.joinMember?.length}/{meetingList[i]?.totalCount}
+                            <>
+                              {meetingList[i]?.joinMember?.length}/{meetingList[i]?.totalCount}
+                            </>
                           </span>
                         </Box>
                       </Box>
@@ -692,14 +730,7 @@ useEffect(() => {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={1}>
-              <Box
-                sx={{
-                  width: "60px",
-                  height: "60px",
-                  backgroundColor: "pink",
-                  borderRadius: "30px",
-                }}
-              ></Box>
+              <Avatar sx={{ width: 50, height: 50 }} src={readClub.clubmembers[0].thumbnailImage || ""} />
             </Grid>
             <Grid item xs={11}>
               <Grid item xs={12}>
@@ -741,14 +772,14 @@ useEffect(() => {
                   <Grid item xs={4} sx={{ marginTop: "8px" }}>
                     <Typography variant="h6">{member.name}</Typography>
                   </Grid>
-                  {user.userData.user.email === adminEmail && index === 0 && (
+                  {(user.userData.user.email === adminEmail || readClub?.manager?.includes(user.userData.user.email)) && index === 0 && (
                     <Grid item xs={7} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
                       <CustomButton variant="contained" onClick={memberModalHandleropen} sx={{ color: "white", backgroundColor: "#DBC7B5", marginRight: "10px", borderRadius: "10px" }}>
                         멤버 관리
                       </CustomButton>
                     </Grid>
                   )}
-                  {!(user.userData.user.email === adminEmail) && index === 0 && (
+                  {!(user.userData.user.email === adminEmail || readClub?.manager?.includes(user.userData.user.email)) && index === 0 && (
                     <Grid item xs={7} sx={{ marginTop: "8px", display: "flex", justifyContent: "flex-end" }}>
                       <CustomButton variant="contained" sx={{ color: "white", backgroundColor: "#DBC7B5", marginRight: "10px", borderRadius: "10px" }}>
                         1:1 문의하기
@@ -902,6 +933,16 @@ useEffect(() => {
         {memberModalOpen && <MemberModal clubNumber={clubNumber} members={readClub.clubmembers} open={memberModalOpen} onClose={memberModalHandlerClose} />}
         {memberModalOpen2 && <MemberModal clubNumber={clubNumber} members={readClub.wishmembers} open={memberModalOpen2} onClose={memberModalHandlerClose2} />}
       </Container>
+      {/* 스낵바 */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={1000} // 사라지는 시간
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <StyledSnackbarContent message={snackbarMessage} />
+      </Snackbar>
+      {/* 스낵바.end */}
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { Box, Button, Container, Grid, TextField, Typography } from "@mui/material";
+import { Box, Button, Container, Grid, Snackbar, SnackbarContent, TextField, Typography } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -7,18 +7,95 @@ import HomeSearchClub from "./main/HomeSearchClub";
 import CategoryModal from "./meeting/CategoryModal";
 import CategoryModalSub from "./meeting/CategoryModalSub";
 import ImageCropper from "./ImageCropper.jsx"; // 크롭 컴포넌트 import
-import { useSelector } from "react-redux";
 import CropIcon from "@mui/icons-material/Crop";
+import MeetingCreate1 from "./meeting/MeetingCreate1.jsx";
+import { styled } from "@mui/system";
+
+const buttonStyles = {
+  "& .MuiButton-outlined": {
+    borderColor: "#A67153", // 기본 테두리 색상
+    "&:hover": {
+      borderColor: "#A67153", // 호버 시 테두리 색상
+      backgroundColor: "transparent", // 호버 시 배경 색상 (필요에 따라 조정)
+    },
+    "&.Mui-focused": {
+      borderColor: "#A6836F", // 포커스 시 테두리 색상
+    },
+  },
+  "&.MuiButton-contained": {
+    "&:hover": {
+      backgroundColor: "#A67153", // 호버 시 배경 색상 (선택 사항)
+      color: "white", // 호버 시 텍스트 색상 (선택 사항)
+    },
+  },
+};
+
+const textFieldStyles = {
+  // 기본 상태에서의 색상은 따로 설정하지 않음
+  "& .MuiOutlinedInput-root": {
+    // 호버 시 테두리 색상 변경
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#A67153", // 호버 시 테두리 색상
+    },
+    // 포커스 시 테두리 색상 변경
+    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+      borderColor: "#A6836F", // 포커스 시 테두리 색상
+    },
+  },
+  // 포커스 시 라벨 색상 변경
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "#A6836F", // 포커스 시 라벨 색상
+  },
+  // 포커스 시 플레이스홀더 색상 변경
+  "& .MuiInputBase-input::placeholder": {
+    color: "#A6836F", // 포커스 시 플레이스홀더 색상
+  },
+};
 
 const ClubCreate = () => {
+  //////////스낵바....
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar 메시지 관리
+
+  const StyledSnackbarContent = styled(SnackbarContent)(({ theme }) => ({
+    backgroundColor: "white", // 배경색 설정
+    color: "#A6836F", // 텍스트 색상 설정
+    borderRadius: "20px",
+    width: "250px",
+    height: "50px",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    opacity: 1, // 초기 투명도
+    transition: "opacity 0.5s ease-in-out", // 애니메이션 효과
+  }));
+
+  const handleSnackbarClick = () => {
+    setOpenSnackbar(true);
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+  //////////스낵바....end
+
   // 큰 카테고리 관련 코드
   const [openCategoryModal, setOpenCategoryModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("");
 
-  const handleOpenModal = () => setOpenCategoryModal(true);
+  const handleOpenModal = () => {
+    setOpenCategoryModal(true);
+  };
   const handleCloseModal = () => setOpenCategoryModal(false);
 
   const handleCategorySelect = (category) => {
+    console.log(`category`);
+    console.log(category);
+    console.log(`category`);
     setSelectedCategory(category);
     handleCloseModal();
     handleOpenSubModal();
@@ -32,6 +109,8 @@ const ClubCreate = () => {
   const handleCloseSubModal = () => setOpenSubCategoryModal(false);
 
   const handleSubCategorySelect = (subCategory) => {
+    console.log(subCategory);
+    console.log(subCategory);
     setSelectedSubCategory(subCategory);
     handleCloseSubModal();
   };
@@ -138,6 +217,10 @@ const ClubCreate = () => {
     // 이미지 파일이 있는 경우
     if (preview) {
       formData.append("img", file); // 이미지 파일 추가
+    } else if (!preview) {
+      setSnackbarMessage("대표 사진을 등록해주세요");
+      handleSnackbarClick();
+      return;
     }
 
     try {
@@ -147,28 +230,27 @@ const ClubCreate = () => {
         },
       });
 
-      alert("모임 만들기에 성공했습니다");
-      navigate("/clublist");
+      navigate(`/clubList`, { state: { snackbarMessage: "모임생성 완료했습니다." } });
     } catch (err) {
       console.error(err);
-      alert("모임 만들기에 실패했습니다");
+      navigate(`/clubList`, { state: { snackbarMessage: "모임생성 실패했습니다." } });
     }
   };
 
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmit)}>
-      <Typography
-        variant="h6"
-        sx={{
-          textAlign: "center",
-          fontWeight: "600",
-          padding: "10px",
-          marginTop: "10px",
-        }}
-      >
-        모임개설
-      </Typography>
-      <Container maxWidth="md" sx={{ marginTop: "20px" }}>
+      <Container maxWidth="lg" sx={{ paddingBottom: "20px", marginTop: "20px", marginBottom: "30px", boxShadow: 5, borderRadius: "20px", backgroundColor: "white" }}>
+        <Typography
+          variant="h6"
+          sx={{
+            textAlign: "center",
+            fontWeight: "600",
+            padding: "10px",
+            marginTop: "10px",
+          }}
+        >
+          모임개설
+        </Typography>
         <Grid container spacing={1} sx={{ alignItems: "center" }}>
           <Grid item xs={3} sx={{ padding: "0px" }}>
             <Typography sx={{ fontWeight: "600", padding: "0px" }}>지역</Typography>
@@ -181,20 +263,20 @@ const ClubCreate = () => {
             <Typography sx={{ fontWeight: "600", padding: "0px" }}>큰 관심사</Typography>
           </Grid>
           <Grid item xs={9}>
-            <TextField id="mainCategory" label="ex ) 큰 관심사 : 운동,여행,사교 등등" placeholder="눌럿을 때 모달띄워서 큰관심 선택 후 작은관심선택 후 자동기입까지" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedCategory} {...register("mainCategory", { required: " 필수입력 요소." })} />
+            <TextField id="mainCategory" label="ex ) 큰 관심사 : 운동,여행,사교 등등" placeholder="눌럿을 때 모달띄워서 큰관심 선택 후 작은관심선택 후 자동기입까지" sx={{ width: "100%", mb: 2, ...textFieldStyles }} onClick={handleOpenModal} value={selectedCategory} {...register("mainCategory", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={3} sx={{ padding: "0px" }}>
             <Typography sx={{ fontWeight: "600", padding: "0px" }}>상세 관심사</Typography>
           </Grid>
           <Grid item xs={9}>
-            <TextField id="subCategory" label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)" sx={{ width: "100%", mb: 2 }} onClick={handleOpenModal} value={selectedSubCategory} {...register("subCategory", { required: " 필수입력 요소." })} />
+            <TextField id="subCategory" label="상세관심사 : 자전거/야구/서핑/웨이크보드/요트 등등(최대3개)" sx={{ width: "100%", mb: 2, ...textFieldStyles }} onClick={handleOpenModal} value={selectedSubCategory} />
           </Grid>
           {/* 파일 입력 및 미리보기 */}
 
           <Grid item xs={12}>
             <input id="img" type="file" accept="image/png, image/gif, image/jpeg" onChange={handleFileChange} style={{ display: "none" }} />
             <label htmlFor="img">
-              <Button variant="outlined" component="span" sx={{ width: "100%" }}>
+              <Button variant="contained" component="span" sx={{ width: "100%", color: "white", backgroundColor: "#A6836F", ...buttonStyles }}>
                 여기를 클릭해 모임 대표사진을 설정해보세요
               </Button>
             </label>
@@ -209,7 +291,7 @@ const ClubCreate = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  border: "2px dashed gray",
+                  border: "1px solid #A6836F",
                 }}
               >
                 <Typography variant="h6" color="textSecondary">
@@ -238,30 +320,39 @@ const ClubCreate = () => {
           </Grid>
           {/* 파일 입력 및 미리보기.end */}
           <Grid item xs={12}>
-            <TextField id="title" label="모임 이름" sx={{ width: "100%", mb: 2 }} {...register("title", { required: " 필수입력 요소." })} />
+            <TextField id="title" label="모임 이름" sx={{ width: "100%", mb: 2, ...textFieldStyles }} {...register("title", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={12}>
-            <TextField id="subTitle" label="모임에 대한 간략한 설명을 넣어보세요" sx={{ width: "100%", mb: 2 }} {...register("subTitle", { required: " 필수입력 요소." })} />
+            <TextField id="subTitle" label="모임에 대한 간략한 설명을 넣어보세요" sx={{ width: "100%", mb: 2, ...textFieldStyles }} {...register("subTitle", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={12}>
-            <TextField id="content" label="내용 입력" multiline rows={10} variant="outlined" sx={{ width: "100%", mb: 2 }} {...register("content", { required: " 필수입력 요소." })} />
+            <TextField id="content" label="내용 입력" multiline rows={10} variant="outlined" sx={{ width: "100%", mb: 2, ...textFieldStyles }} {...register("content", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={2}>
-            <Typography sx={{ fontWeight: "600" }}>정원 (10~300명)</Typography>
+            <Typography sx={{ fontWeight: "600", ...textFieldStyles }}>정원 (10~300명)</Typography>
           </Grid>
           <Grid item xs={3}>
-            <TextField id="maxMember" label="숫자만 입력" inputProps={{ type: "number", min: 10, max: 300 }} sx={{ width: "100%" }} {...register("maxMember", { required: " 필수입력 요소." })} />
+            <TextField id="maxMember" label="숫자만 입력" inputProps={{ type: "number", min: 10, max: 300 }} sx={{ width: "100%", ...textFieldStyles }} {...register("maxMember", { required: " 필수입력 요소." })} />
           </Grid>
           <Grid item xs={12} sx={{ marginTop: "20px" }}>
-            <Button variant="outlined" sx={{ width: "100%" }} type="submit">
+            <Button variant="contained" sx={{ width: "100%", color: "white", backgroundColor: "#A6836F", ...buttonStyles }} type="submit">
               모임 만들기
             </Button>
           </Grid>
         </Grid>
-        <CategoryModal open={openCategoryModal} onClose={handleCloseModal} onCategorySelect={handleCategorySelect} />
+        {/* <CategoryModal open={openCategoryModal} onClose={handleCloseModal} onCategorySelect={handleCategorySelect} /> */}
+        <MeetingCreate1 open={openCategoryModal} handleCloseModal={handleCloseModal} FadHandleClick={handleCategorySelect} />
         <CategoryModalSub open={openSubCategoryModal} onClose={handleCloseSubModal} onSubCategorySelect={handleSubCategorySelect} mainCategory={selectedCategory} />
         {cropModalOpen && <ImageCropper src={preview} onCropComplete={handleCropComplete} onClose={() => setCropModalOpen(false)} />}
       </Container>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={1000} // 사라지는 시간
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <StyledSnackbarContent message={snackbarMessage} />
+      </Snackbar>
     </Box>
   );
 };
