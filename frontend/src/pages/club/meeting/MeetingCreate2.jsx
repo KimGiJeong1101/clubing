@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, Grid, Modal, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, Grid, Modal, Snackbar, SnackbarContent, TextField, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -8,15 +8,44 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs from "dayjs";
 import "dayjs/locale/ko"; // 한국어 로케일 import
 import axiosInstance from "./../../../utils/axios";
-import { fetchMeetingList } from "../../../store/reducers/clubReducer.js";
 import CustomButton from "../../../components/club/CustomButton.jsx";
 import { useNavigate } from "react-router-dom";
 import MeetingImageCropper from "./MeetingImageCropper.jsx";
 import CropIcon from "@mui/icons-material/Crop";
+import { styled } from "@mui/system";
 
 dayjs.locale("ko");
 
-const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category }) => {
+const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category, setSnackbarMessageMain, handleSnackbarClickMain }) => {
+  //////////////스낵바
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar 메시지 관리
+
+  const StyledSnackbarContent = styled(SnackbarContent)(({ theme }) => ({
+    backgroundColor: "white", // 배경색 설정
+    color: "#A6836F", // 텍스트 색상 설정
+    borderRadius: "20px",
+    width: "250px",
+    height: "50px",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    opacity: 1, // 초기 투명도
+    transition: "opacity 0.5s ease-in-out", // 애니메이션 효과
+  }));
+
+  const handleSnackbarClick = () => {
+    setOpenSnackbar(true);
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+  /////////스낵바 .end
   //정기모임 글 등록, 두번쨰 모달
   const [dateTime, setDateTime] = useState(null);
   const [dateTimeSort, setDateTimeSort] = useState(null);
@@ -42,8 +71,8 @@ const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category })
     // 일반 필드 추가
     console.log(dateTime);
     if (!dateTime) {
-      alert("날짜를 입력해주세요");
-
+      setSnackbarMessage("날짜를 입력해주세요");
+      handleSnackbarClick();
       return;
     }
     formData.append("dateTime", dateTime.$d.toString());
@@ -59,7 +88,8 @@ const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category })
     if (preview) {
       formData.append("img", file); // 이미지 파일 추가
     } else {
-      alert("대표사진을 등록해주세요");
+      setSnackbarMessage("대표사진을 등록해주세요");
+      handleSnackbarClick();
       return;
     }
 
@@ -70,10 +100,13 @@ const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category })
         },
       });
 
-      alert("정모 만들기 성공했습니다");
+      setSnackbarMessageMain("정모 생성을 완료했습니다.");
+      handleSnackbarClickMain();
+      secondModalClose();
     } catch (err) {
       console.error(err);
-      alert("정모 만들기에 실패했습니다");
+      setSnackbarMessage("정모 생성에 실패했습니다..");
+      handleSnackbarClick();
     }
   };
 
@@ -258,6 +291,16 @@ const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category })
         </Box>
       </Modal>
       {cropModalOpen && <MeetingImageCropper src={preview} onCropComplete={handleCropComplete} onClose={() => setCropModalOpen(false)} />}
+      {/* 스낵바 */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={1000} // 사라지는 시간
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <StyledSnackbarContent message={snackbarMessage} />
+      </Snackbar>
+      {/* 스낵바.end */}
     </Box>
   );
 };

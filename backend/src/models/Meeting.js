@@ -40,6 +40,16 @@ const meetingSchema = mongoose.Schema({
   img: {
     type: String, // 사진설정
   },
+  joinMemberInfo: {
+    type: [
+      {
+        name: String,
+        nickName: String,
+        thumbnailImage: String,
+      },
+    ],
+    default: [], // 기본값은 빈 배열
+  },
 });
 meetingSchema.pre("save", async function (next) {
   if (this.isNew) {
