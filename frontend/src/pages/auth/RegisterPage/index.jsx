@@ -791,7 +791,7 @@ const consentPopupClose = (type) => {
             readOnly: isVerified,
           }}
         />
-        <CustomButton2
+        <CustomButton
           variant="contained"
           color={isVerified ? 'grey' : 'primary'}
           onClick={handleVerifyClick}
@@ -800,7 +800,7 @@ const consentPopupClose = (type) => {
           sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정하여 텍스트 필드와 높이를 맞춤
         >
           {isVerified ? '인증확인' : '인증완료'}
-        </CustomButton2>
+        </CustomButton>
       </Box>
       {verifyError && (
         <Typography color="error" sx={{ mt: 1 }}>
