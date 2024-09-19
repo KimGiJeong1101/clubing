@@ -23,6 +23,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import MemberModal from "./MemberModal.jsx";
 import WishHearts from "../../../components/club/WishHearts.jsx";
 import { sendMessage } from "../../../store/actions/myMessageActions";
+import { saveVisitClub } from "../../../store/actions/RecentVisitAction";
 
 dayjs.locale("ko");
 
@@ -314,6 +315,28 @@ const Main = (wishHeart) => {
     }
   };
   //초대하기 끝
+
+//최근 방문 리스트
+useEffect(() => {
+  if (clubNumber && user.userData.user.email) {
+    // 서버로 보낼 데이터 객체
+    const body = {
+      clubs: clubNumber,
+      email: user.userData.user.email,
+    };
+
+    // saveVisitClub 액션 디스패치
+    dispatch(saveVisitClub(body))
+      .then((result) => {
+        // 액션 성공 처리
+        console.log('Visit saved successfully:', result);
+      })
+      .catch((error) => {
+        // 액션 실패 처리
+        console.error('Failed to save visit:', error);
+      });
+  }
+}, [clubNumber, user.userData.user.email, dispatch]);
 
   if (isLoading) {
     return <div>로딩 중...</div>; // 최초 로딩 시

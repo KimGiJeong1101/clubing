@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axios";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { toggleFavorite } from '../../store/reducers/wishSlice';
+import CustomSnackbarWithTimer from "../auth/Snackbar"; 
 
 const WishHearts = () => {
     const dispatch = useDispatch();
@@ -18,6 +19,14 @@ const WishHearts = () => {
     const clubNumber = Number(queryParams.get("clubNumber")); // URL 파라미터에서 clubNumber를 가져옵니다.
 
     const [isFavorite, setIsFavorite] = useState(false);
+    //스낵바
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false); // 스낵바 닫기
+      };
 
     useEffect(() => {
         // favoriteList와 clubNumber를 기반으로 isFavorite 상태 업데이트
@@ -39,11 +48,17 @@ const WishHearts = () => {
             .then(() => {
                 // 상태 업데이트
                 dispatch(toggleFavorite({ clubNumber }));
-                alert(isFavorite ? "모임의 찜을 해제했습니다." : "모임을 찜했습니다.");
+                setSnackbarMessage(
+                    isFavorite ? "모임의 찜을 해제했습니다." : "모임을 찜했습니다."
+                  );
+                  setSnackbarSeverity("success");
+                  setSnackbarOpen(true); // 스낵바 열기
             })
             .catch((err) => {
                 console.log(err);
-                alert("찜하기에 실패했습니다.");
+                setSnackbarMessage("찜하기에 실패했습니다.");
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true); // 실패 시 스낵바 열기
             });
     };
 
@@ -62,11 +77,22 @@ const WishHearts = () => {
     );
 
     return (
+        <>
         <FavoriteComponent 
-            isFavorite={isFavorite} 
-            onToggle={handleFavoriteToggle} 
+          isFavorite={isFavorite} 
+          onToggle={handleFavoriteToggle} 
         />
+        
+        {/* 스낵바 컴포넌트 추가 */}
+        <CustomSnackbarWithTimer
+          open={snackbarOpen}
+          message={snackbarMessage}
+          severity={snackbarSeverity}
+          onClose={handleSnackbarClose}
+          duration={5000} // 원하는 시간 동안 스낵바 유지
+        />
+      </>
     );
-};
+  };
 
 export default WishHearts;
