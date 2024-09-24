@@ -15,11 +15,11 @@ const InterestSearch = ({ setInterestSido, setInterestSigoon, setInterestDong })
  const  interestLocation = user?. interestLocation || { city: '', district: '', neighborhood: '' };
 
   // 초기 렌더링 시, workplace 데이터를 검색 필드에 반영합니다
-  useEffect(() => {
-   if ( interestLocation.neighborhood) {
-     setValue('interestSearchTerm',  interestLocation.neighborhood);
-   }
- }, [ interestLocation.neighborhood, setValue]);
+//   useEffect(() => {
+//    if ( interestLocation.neighborhood) {
+//      setValue('interestSearchTerm',  interestLocation.neighborhood);
+//    }
+//  }, [ interestLocation.neighborhood, setValue]);
 
 
   const interestSearchTerm = watch('interestSearchTerm');

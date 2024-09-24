@@ -15,11 +15,11 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
    const workplace = user?.workplace || { city: '', district: '', neighborhood: '' };
 
      // 초기 렌더링 시, workplace 데이터를 검색 필드에 반영합니다
-  useEffect(() => {
-    if (workplace.neighborhood) {
-      setValue('workplaceSearchTerm', workplace.neighborhood);
-    }
-  }, [workplace.neighborhood, setValue]);
+  // useEffect(() => {
+  //   if (workplace.neighborhood) {
+  //     setValue('workplaceSearchTerm', workplace.neighborhood);
+  //   }
+  // }, [workplace.neighborhood, setValue]);
 
   const workplaceSearchTerm = watch('workplaceSearchTerm'); 
   const port = process.env.REACT_APP_ADDRESS_API;

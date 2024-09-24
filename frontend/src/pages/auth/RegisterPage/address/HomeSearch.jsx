@@ -15,11 +15,11 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
   const homeLocation = user?.homeLocation || { city: '', district: '', neighborhood: '' };
 
    // 초기 렌더링 시, workplace 데이터를 검색 필드에 반영합니다
-   useEffect(() => {
-    if (homeLocation.neighborhood) {
-      setValue('searchTerm', homeLocation.neighborhood);
-    }
-  }, [homeLocation.neighborhood, setValue]);
+  //  useEffect(() => {
+  //   if (homeLocation.neighborhood) {
+  //     setValue('searchTerm', homeLocation.neighborhood);
+  //   }
+  // }, [homeLocation.neighborhood, setValue]);
 
   const searchTerm = watch('searchTerm'); // watch로 searchTerm의 값을 실시간으로 가져옵니다.
   const port = process.env.REACT_APP_ADDRESS_API;
