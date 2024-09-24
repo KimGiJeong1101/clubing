@@ -79,13 +79,13 @@ const RegisterPage = () => {
       return;
     }
 
-    if (!sido || !sigoon || !dong) {
-      // 필수 입력이 비어 있을 때
-      setSnackbarMessage('집 주소를 설정해 주세요.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
+    // if (!sido || !sigoon || !dong) {
+    //   // 필수 입력이 비어 있을 때
+    //   setSnackbarMessage('집 주소를 설정해 주세요.');
+    //   setSnackbarSeverity('error');
+    //   setSnackbarOpen(true);
+    //   return;
+    // }
 
     if (selectedJobs.length === 0) {
       // 카테고리 배열이 비어 있을 때
