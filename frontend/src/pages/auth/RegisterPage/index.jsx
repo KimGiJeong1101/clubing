@@ -80,27 +80,6 @@ const RegisterPage = () => {
       return;
     }
 
-    if (!year) {
-      setSnackbarMessage('출생년도는 필수입니다.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
-  
-    if (!month) {
-      setSnackbarMessage('월은 필수입니다.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
-  
-    if (!day) {
-      setSnackbarMessage('일은 필수입니다.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
-
     if (!sido || !sigoon || !dong) {
       // 필수 입력이 비어 있을 때
       setSnackbarMessage('집 주소를 설정해 주세요.');
@@ -117,13 +96,14 @@ const RegisterPage = () => {
       return;
     }
 
-    if (category.length === 0) {
-      // 카테고리 배열이 비어 있을 때
-      setSnackbarMessage('카테고리를 설정해 주세요');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
+     // main 카테고리 개수 확인
+     const mainCategories = category.filter(cat => cat.main);
+     if (mainCategories.length < 3) {
+       setSnackbarMessage('최소 3개의 메인 카테고리를 설정해 주세요.');
+       setSnackbarSeverity('error');
+       setSnackbarOpen(true);
+       return;
+     }
 
     if (!terms) {
       // 이용약관 동의가 없을 때
@@ -140,6 +120,8 @@ const RegisterPage = () => {
       setSnackbarOpen(true);
       return;
     }
+
+     
 
      const categoryObject = category.reduce((acc, cat) => {
       if (cat.main && Array.isArray(cat.sub)) {
