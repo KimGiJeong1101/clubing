@@ -6,7 +6,7 @@ import MyPageRoutes from "./pages/myPage/index"; // 마이페이지 관련 라�
 import ClubLayout from "./pages/club/clublayput/ClubLayout";
 import Clubs from "./pages/club/Clubs";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ProtectedRoutes from "./components/common/ProtectedRoutes";
 import NotAuthRoutes from "./components/common/NotAuthRoutes";
 import LoginPage from "./pages/auth/LoginPage";
@@ -15,6 +15,10 @@ import { authUser } from "./store/actions/userActions";
 import "./App.css";
 import ClubCreate from "./pages/club/ClubCreate";
 import MeetingList from "./pages/club/meeting/MeetingList";
+import Board from "./pages/club/board/Board";
+import Home from "./pages/home/Home"
+import Event from "./pages/event/Event";
+import RecommendedClubList from './pages/recommend/RecommendedClubList'
 
 
 function App() {
@@ -42,15 +46,19 @@ function App() {
   return (
     <Routes>
       {/* ClubLayout을 사용하는 경로 */}
-      <Route path="/clubs/*" element={<ClubLayout />}>
+      <Route path="/clubs" element={<ClubLayout />}>
+        <Route path="/clubs/board" element={<Board />} />
         <Route path="*" element={<ClubRoutes />} />
       </Route>
 
       {/* 기본 Layout을 사용하는 경로 */}
       <Route path="/" element={<Layout />}>
+        <Route path="" element={<Home />} />
         <Route path="/clublist" element={<Clubs />} />
         <Route path="/meetingList" element={<MeetingList />} />
+        <Route path="/recommendedClubList" element={<RecommendedClubList/>}></Route>
         <Route path="*" element={<NotFound />} />
+        <Route path="/event" element={<Event/>}/>
 
         {/* 로그인한 사람만 갈 수 있는 경로 */}
         <Route element={<ProtectedRoutes isAuth={isAuth} />}>

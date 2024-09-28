@@ -15,18 +15,19 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
    const workplace = user?.workplace || { city: '', district: '', neighborhood: '' };
 
      // 초기 렌더링 시, workplace 데이터를 검색 필드에 반영합니다
-  useEffect(() => {
-    if (workplace.neighborhood) {
-      setValue('workplaceSearchTerm', workplace.neighborhood);
-    }
-  }, [workplace.neighborhood, setValue]);
+  // useEffect(() => {
+  //   if (workplace.neighborhood) {
+  //     setValue('workplaceSearchTerm', workplace.neighborhood);
+  //   }
+  // }, [workplace.neighborhood, setValue]);
 
-  const workplaceSearchTerm = watch('workplaceSearchTerm'); 
+  const apiKey= process.env.REACT_APP_KEY_API
   const port = process.env.REACT_APP_ADDRESS_API;
+  const workplaceSearchTerm = watch('workplaceSearchTerm'); 
 
   useEffect(() => {
     if (workplaceSearchTerm) {
-      fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${workplaceSearchTerm}`)
+      fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=${apiKey}&domain=${port}&attrFilter=emd_kor_nm:like:${workplaceSearchTerm}`)
         .then(response => response.json())
         .then(data => {
           if (data.response && data.response.status === 'OK' && data.response.result && data.response.result.featureCollection.features) {
@@ -63,6 +64,28 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
     }
   };
 
+  const handleChange = (e) => {
+    const inputValue = e.target.value;
+    const parts = inputValue.split(' ').filter(Boolean); // 공백만 있는 경우 제거
+
+    if (parts.length > 3) {
+      parts.length = 3; // 첫 3개로 제한
+    }
+
+    const w_sido = parts[0] || ''; // 첫 번째 값은 시도 (없으면 빈 문자열)
+    const w_sigoon = parts[1] || ''; // 두 번째 값은 시군 (없으면 빈 문자열)
+    const w_dong = parts[2] || ''; // 세 번째 값은 읍면동 (없으면 빈 문자열)
+
+    console.log('직장','시도:', w_sido, '시군:', w_sigoon, '읍면동:', w_dong); // 각 값 출력
+
+    // 선택된 값 반영
+    setWorkplaceSido(w_sido);
+    setWorkplaceSigoon(w_sigoon);
+    setWorkplaceDong(w_dong);
+
+    setValue('workplaceSearchTerm', inputValue, { shouldValidate: true }); // 입력된 값을 검색 필드에 반영
+};
+
   const StyledListItem = styled(ListItem)(({ theme }) => ({
     '&:hover': {
       backgroundColor: theme.palette.action.hover,
@@ -85,10 +108,11 @@ const WorkplaceSearch = ({ setWorkplaceSido, setWorkplaceSigoon, setWorkplaceDon
           }
         })}
         onKeyDown={handleWorkplaceKeyDown} 
-        onChange={(e) => {
-          setValue('workplaceSearchTerm', e.target.value, { shouldValidate: true }); // 변경된 값을 즉시 검증하도록 설정합니다
-        }}
+        onChange={handleChange}
         placeholder='*읍면동 중 하나 입력해주세요 예) 옥천면'
+        sx={{
+          bgcolor: 'white',
+        }}
         error={!!errors.workplaceSearchTerm} // 수정: errors.searchTerm을 직접 사용하여 에러 상태를 표시합니다.
         helperText={errors.workplaceSearchTerm ? errors.workplaceSearchTerm.message : ''} // 수정: errors.searchTerm 메시지를 helperText로 표시합니다.
         />

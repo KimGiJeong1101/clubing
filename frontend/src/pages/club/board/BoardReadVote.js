@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -8,7 +7,6 @@ import {
   ListItem,
   ListItemText,
   Container,
-  Typography,
   Button,
   Dialog,
   DialogTitle,
@@ -16,7 +14,10 @@ import {
   DialogActions,
   styled
 } from '@mui/material';
+import ChatIcon from '@mui/icons-material/Chat';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { fetchVote, fetchVoteSummary, voteForOption, removeVote, deleteVote } from '../../../api/ClubBoardApi';
+import Reply from './Reply'; // 댓글 컴포넌트 추가
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
   display: 'flex',
@@ -42,45 +43,43 @@ const ReadVote = ({ voteId, onDelete }) => {
   const [isAuthor, setIsAuthor] = useState(false);
   const [votedOptions, setVotedOptions] = useState([]);
   const [isVoteEnded, setIsVoteEnded] = useState(false);
+  const [openReply, setOpenReply] = useState(false); // 댓글 컴포넌트 열기 상태
   const queryClient = useQueryClient();
 
   const email = useSelector(state => state.user?.userData?.user?.email || null);
 
   useEffect(() => {
-    const fetchVote = async () => {
+    const fetchVoteData = async () => {
       try {
-        const response = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}`);
-        setVote(response.data);
+        const voteData = await fetchVote(voteId);
+        setVote(voteData);
         
-        // Determine if the vote has ended
         const currentTime = new Date();
-        const endTime = new Date(response.data.endTime);
+        const endTime = new Date(voteData.endTime);
         setIsVoteEnded(currentTime > endTime);
 
-        const summaryResponse = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}/summary`);
-        setSummary(summaryResponse.data);
+        const summaryData = await fetchVoteSummary(voteId);
+        setSummary(summaryData);
 
-        const userHasVoted = response.data.votes.some(vote => vote.emails.includes(email));
+        const userHasVoted = voteData.votes.some(vote => vote.emails.includes(email));
         setHasVoted(userHasVoted);
 
-        const votedOptions = response.data.votes
+        const votedOptionsList = voteData.votes
           .filter(vote => vote.emails.includes(email))
           .map(vote => vote.option);
-        setVotedOptions(votedOptions);
+        setVotedOptions(votedOptionsList);
 
-        setIsAuthor(response.data.author === email);
+        setIsAuthor(voteData.author === email);
       } catch (error) {
-        console.error('투표를 가져오는 중 오류 발생:', error);
+        console.error('투표 데이터를 가져오는 중 오류 발생:', error);
       }
     };
 
-    fetchVote();
+    fetchVoteData();
   }, [voteId, email]);
 
-  const { mutate: deleteVote } = useMutation({
-    mutationFn: async () => {
-      await axios.delete(`http://localhost:4000/clubs/boards/votes/${voteId}`);
-    },
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteVote(voteId),
     onSuccess: () => {
       queryClient.invalidateQueries(['posts']);
       if (onDelete) onDelete();
@@ -90,28 +89,48 @@ const ReadVote = ({ voteId, onDelete }) => {
     }
   });
 
-  const formatToLocalDatetime = (dateString) => {
-    const date = new Date(dateString);
-    // 로컬 시간대로 변환
-    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-    // yyyy-MM-ddTHH:mm 형식으로 변환
-    return localDate.toISOString().slice(0, 16);
+  const voteMutation = useMutation({
+    mutationFn: () => voteForOption(voteId, selectedOption, email),
+    onSuccess: () => {
+      setHasVoted(true);
+      setVotedOptions([...votedOptions, selectedOption]);
+
+      const updatedSummary = summary.map(item =>
+        item.option === selectedOption ? { ...item, count: item.count + 1 } : item
+      );
+      setSummary(updatedSummary);
+
+      setIsVoteEnded(true);
+    },
+    onError: (error) => {
+      console.error('투표하기 중 오류 발생:', error);
+    }
+  });
+
+  const removeVoteMutation = useMutation({
+    mutationFn: () => removeVote(voteId, selectedOption, email),
+    onSuccess: async () => {
+      setHasVoted(false);
+      setSelectedOption(null);
+      setVotedOptions(votedOptions.filter(option => option !== selectedOption));
+
+      const updatedSummary = await fetchVoteSummary(voteId);
+      setSummary(updatedSummary);
+    },
+    onError: (error) => {
+      console.error('투표 취소 중 오류 발생:', error);
+    }
+  });
+
+  const handleVote = () => {
+    if (selectedOption && !hasVoted) {
+      voteMutation.mutate();
+    }
   };
 
-  const handleVote = async () => {
-    if (selectedOption && !hasVoted) {
-      try {
-        await axios.post(`http://localhost:4000/clubs/boards/votes/${voteId}/vote`, { option: selectedOption, email });
-        setHasVoted(true);
-        setVotedOptions([...votedOptions, selectedOption]);
-
-        const updatedSummary = summary.map(item =>
-          item.option === selectedOption ? { ...item, count: item.count + 1 } : item
-        );
-        setSummary(updatedSummary);
-      } catch (error) {
-        console.error('Error updating vote count:', error);
-      }
+  const handleRemoveVote = () => {
+    if (selectedOption && hasVoted) {
+      removeVoteMutation.mutate();
     }
   };
 
@@ -123,11 +142,11 @@ const ReadVote = ({ voteId, onDelete }) => {
 
   const handleSummaryOpen = async () => {
     try {
-      const response = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}/summary`);
-      setSummary(response.data);
+      const summaryData = await fetchVoteSummary(voteId);
+      setSummary(summaryData);
       setOpenSummary(true);
     } catch (error) {
-      console.error('Error fetching vote summary:', error);
+      console.error('투표 요약 정보를 가져오는 중 오류 발생:', error);
     }
   };
 
@@ -135,38 +154,20 @@ const ReadVote = ({ voteId, onDelete }) => {
     setOpenSummary(false);
   };
 
-  const handleRemoveVote = async () => {
-    if (selectedOption && hasVoted) {
-      try {
-        await axios.put(`http://localhost:4000/clubs/boards/votes/${voteId}`, {
-          option: selectedOption,
-          email
-        });
-
-        setHasVoted(false);
-        setSelectedOption(null);
-        setVotedOptions(votedOptions.filter(option => option !== selectedOption));
-
-        const updatedSummaryResponse = await axios.get(`http://localhost:4000/clubs/boards/votes/${voteId}/summary`);
-        setSummary(updatedSummaryResponse.data);
-      } catch (error) {
-        console.error('투표 취소 중 오류 발생:', error);
-      }
-    }
-  };
-
   const handleDelete = () => {
-    deleteVote();
+    deleteMutation.mutate();
   };
-  
-  console.log('vote:',vote)
 
+  const formatToLocalDatetime = (dateString) => {
+    const date = new Date(dateString);
+    const localDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    return localDate.toISOString().slice(0, 16);
+  };
+
+  const handleToggleReply = () => setOpenReply(prev => !prev); // 댓글 컴포넌트 열기/닫기
 
   return (
     <Container>
-      <Typography variant="h4" component="h1" gutterBottom>
-        투표 내용
-      </Typography>
       {vote && (
         <>
           <Box sx={{ padding: 2 }}>
@@ -188,12 +189,12 @@ const ReadVote = ({ voteId, onDelete }) => {
                       onClick={() => handleOptionClick(option)}
                     >
                       <ListItemText primary={option} />
-                      {/* <ListItemText secondary={`선택 수: ${count}`} /> */}
                     </StyledListItem>
                   );
                 })}
               </List>
             )}
+
             <Box my={2}>
               {!isVoteEnded ? (
                 <>
@@ -204,6 +205,13 @@ const ReadVote = ({ voteId, onDelete }) => {
                       onClick={handleVote}
                       disabled={!selectedOption}
                       mr={2}
+                      sx={{
+                        backgroundColor: '#DBC7B5',
+                        color: '#000',
+                        '&:hover': {
+                          backgroundColor: '#A67153'
+                        }
+                      }}
                     >
                       투표하기
                     </Button>
@@ -211,10 +219,17 @@ const ReadVote = ({ voteId, onDelete }) => {
                     <Button
                       variant="contained"
                       color="primary"
-                      onClick={handleRemoveVote}
+                      onClick={handleSummaryOpen}
                       mr={2}
+                      sx={{
+                        backgroundColor: '#DBC7B5',
+                        color: '#000',
+                        '&:hover': {
+                          backgroundColor: '#A67153'
+                        }
+                      }}
                     >
-                      투표 취소하기
+                      투표 결과 보기
                     </Button>
                   )}
                 </>
@@ -224,6 +239,13 @@ const ReadVote = ({ voteId, onDelete }) => {
                   color="primary"
                   onClick={handleSummaryOpen}
                   mr={2}
+                  sx={{
+                    backgroundColor: '#DBC7B5',
+                    color: '#000',
+                    '&:hover': {
+                      backgroundColor: '#A67153'
+                    }
+                  }}
                 >
                   투표 결과 보기
                 </Button>
@@ -234,11 +256,19 @@ const ReadVote = ({ voteId, onDelete }) => {
                   color="error"
                   onClick={handleDelete}
                   mr={2}
+                  sx={{
+                    backgroundColor: '#6E3C21',
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: '#A67153'
+                    }
+                  }}
                 >
                   투표 삭제
                 </Button>
               )}
             </Box>
+
             <TextField
               label="투표 종료 시간"
               type="datetime-local"
@@ -249,30 +279,54 @@ const ReadVote = ({ voteId, onDelete }) => {
               readOnly
             />
           </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              width: '100%'
+            }}
+          >
+            <ChatIcon
+              sx={{
+                color: '#999999',
+                fontSize: '30px',
+                marginRight: '15px',
+                cursor: 'pointer'
+              }}
+              onClick={handleToggleReply} // 댓글 컴포넌트 열기/닫기
+            />
+          </Box>
+
+          {/* 댓글 컴포넌트를 ReadVote 위치에 렌더링 */}
+          {openReply && (
+            <Box sx={{ padding: 2 }}>
+              <Reply postType="Board" postId={voteId} />
+            </Box>
+          )}
+
+          <Dialog open={openSummary} onClose={handleSummaryClose} fullWidth maxWidth="lg">
+            <DialogTitle>투표 결과</DialogTitle>
+            <DialogContent>
+              <List>
+                {summary.map((item, index) => (
+                  <ListItem key={index}>
+                    <ListItemText primary={item.option} />
+                    <ListItemText secondary={`선택 수: ${item.count}`} />
+                    {!vote.anonymous && (
+                      <ListItemText secondary={`투표한 사람: ${item.emails}`} />
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleSummaryClose} color="primary">
+                닫기
+              </Button>
+            </DialogActions>
+          </Dialog>
         </>
       )}
-      <Dialog open={openSummary} onClose={handleSummaryClose} fullWidth maxWidth="md">
-        <DialogTitle>투표 결과</DialogTitle>
-        <DialogContent>
-          <List>
-            {summary.map((item, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={item.option} />
-                <ListItemText secondary={`선택 수: ${item.count}`} />
-                {/* `anonymous`가 true일 때 `투표한 사람` 부분 숨기기 */}
-                {!vote.anonymous && (
-                  <ListItemText secondary={`투표한 사람: ${item.emails}`} />
-                )}
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleSummaryClose} color="primary">
-            닫기
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Container>
   );
 };

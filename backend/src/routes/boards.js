@@ -1,4 +1,5 @@
 const express = require('express');
+const auth = require("../middleware/auth");
 const router = express.Router();
 const Board = require('../models/ClubBoard'); 
 const Club = require('../models/Club'); 
@@ -48,7 +49,7 @@ const upload = multer({
 });
 
 // Routes
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/upload',upload.single('file'), (req, res) => {
     res.status(200).json(req.file);
 });
 
@@ -142,16 +143,68 @@ router.delete('/posts/:id', async (req, res) => {
     }
 });
 
-router.get('/all', async (req, res) => {
-  const { clubNumber } = req.query;
+router.get('/membership', auth, async (req, res) => {
+  console.log(req.query); // 요청 쿼리 확인을 위한 로그
+
+  const { clubNumber, email, page = 1, limit = 12 } = req.query; // 기본 페이지 번호는 1, 기본 limit는 12
+
+  console.log('쿼리', req.query);
+  console.log('클럽번호', clubNumber);
+  console.log('이메일', email);
+
   try {
-      const boards = await Board.find({ clubNumber });
-      res.status(200).json(boards);
+      const club = await Club.findById(clubNumber);
+      if (!club) {
+          return res.status(404).json({ error: '클럽을 찾을 수 없습니다.' });
+      }
+
+      const members = club.members; // 모든 회원 가져오기
+      const totalMembers = members.length; // 전체 회원 수
+      const startIndex = (page - 1) * limit; // 시작 인덱스
+      const endIndex = Math.min(startIndex + limit, totalMembers); // 종료 인덱스
+
+      // 페이지에 맞는 회원 리스트 생성
+      const paginatedMembers = members.slice(startIndex, endIndex);
+
+      const isMember = paginatedMembers.includes(email.trim()); // 이메일 확인
+
+      res.status(200).json({ isMember, members: paginatedMembers, totalMembers });
   } catch (error) {
-      console.error('Error fetching data:', error);
-      res.status(500).send('Failed to fetch data');
+      console.error('회원 여부 확인 오류:', error);
+      res.status(500).json({ error: '서버 오류' });
   }
 });
+
+
+router.get('/all', async (req, res) => {
+  const { clubNumber, page = 1, limit = 12 } = req.query; // 기본 페이지 번호는 1, 기본 limit는 12
+  const skip = (page - 1) * limit; // 건너뛸 수
+
+  try {
+    // 총 게시글 수를 먼저 가져옵니다.
+    const totalBoards = await Board.countDocuments({ clubNumber });
+
+    // 페이지에 맞는 게시글을 가져옵니다.
+    const boards = await Board.find({ clubNumber })
+                              .sort({ _id: -1 }) // 최신순으로 정렬
+                              .skip(skip)
+                              .limit(parseInt(limit));
+    
+    // 총 페이지 수 계산
+    const totalPages = Math.ceil(totalBoards / limit);
+
+    res.status(200).json({ boards, totalBoards, totalPages });
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    res.status(500).send('Failed to fetch data');
+  }
+});
+
+
+
+
+
+
 
 router.post('/votes', async (req, res) => {
     const {clubNumber, create_at,author,title, category, options, allowMultiple, anonymous, endTime } = req.body;

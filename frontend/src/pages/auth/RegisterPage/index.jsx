@@ -6,6 +6,7 @@ import { registerUser } from '../../../store/actions/userActions'
 import HomeSearch from './address/HomeSearch';
 import WorkplaceSearch from './address/WorkplaceSearch';
 import InterestSearch from './address/InterestSearch';
+import LocationSelector from './address/LocationSelector';
 import CategoryPopup from './category/CategoryPopup';
 import categories from './category/CategoriesData';
 import JobPopup from './job/JobPopup';
@@ -16,17 +17,21 @@ import PrivacyPopup from './consent/Privacy';
 import MarketingPopup from './consent/Marketing';
 import { TextField, Button, Typography, Box, Stack, IconButton, InputAdornment, FormControlLabel,
           FormControl, InputLabel, Select, MenuItem, FormHelperText, DialogActions,
-          Chip, Checkbox, Paper, Link
+          Chip, Checkbox, Paper, Link,
         } from '@mui/material';
 import {Visibility, VisibilityOff} from '@mui/icons-material';
 import color from '../../../color'; // 색상를 정의한 파일
 import '../../../assets/styles/LoginCss.css'
+import CustomCheckbox from '../../../components/club/CustomCheckbox'
+import CustomButton from '../../../components/club/CustomButton'
+import CustomButton2 from '../../../components/club/CustomButton2'
+import CustomSnackbar from '../../../components/auth/Snackbar';
 
 const RegisterPage = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
   useForm({  
             defaultValues: {
-              age: { year: '1990', month: '9', day: '10' },
+              age: { year: '', month: '', day: '' },
               gender: '',
               homeLocation: { sido: '', sigoon: '', dong: '' },
               workplace: { w_sido: '', w_sigoon: '', w_dong: '' },
@@ -53,28 +58,89 @@ const RegisterPage = () => {
 
     // 체크박스 상태를 직접 가져옵니다
   const { terms, privacy, marketing } = checkboxState;
+  const { year = '', month = '', day = '' } = age;
+  const { sido = '', sigoon = '', dong = '' } = homeLocation;
+  const { w_sido = '', w_sigoon = '', w_dong = '' } = workplace;
+  const { i_sido = '', i_sigoon = '', i_dong = '' } = interestLocation;
   // 온서밋에 안 넣어도 되네 얘 때문에 몇시간을 버린거야 ㅠㅠ
 
     if (!isVerified) {
-      alert('이메일 인증이 완료되지 않았습니다.');
-      return; // 인증이 완료되지 않았으면 폼 제출을 중지합니다.
+      // 이메일 인증이 완료되지 않았을 때
+      setSnackbarMessage('이메일 인증이 완료되지 않았습니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
-    // 약관 동의 확인
-    if (!terms) {
-      alert('clubing 이용약관에 동의해야 합니다.');
-      return; // 이용약관에 동의하지 않았으면 폼 제출을 중지합니다.
+
+    if (!isNickNameChecked) {
+      // 닉네임 중복 검사를 하지 않았을 때
+      setSnackbarMessage('닉네임 중복 검사를 해야 합니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
-    
-    if (!privacy) {
-      alert('개인정보 수집 및 이용에 동의해야 합니다.');
-      return; // 개인정보 수집 및 이용에 동의하지 않았으면 폼 제출을 중지합니다.
+
+    if (!year) {
+      setSnackbarMessage('출생년도는 필수입니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
     }
-    
-    const { year = '', month = '', day = '' } = age;
-    const { sido = '', sigoon = '', dong = '' } = homeLocation;
-    const { w_sido = '', w_sigoon = '', w_dong = '' } = workplace;
-    const { i_sido = '', i_sigoon = '', i_dong = '' } = interestLocation;
   
+    if (!month) {
+      setSnackbarMessage('월은 필수입니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+  
+    if (!day) {
+      setSnackbarMessage('일은 필수입니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (!sido || !sigoon || !dong) {
+      // 필수 입력이 비어 있을 때
+      setSnackbarMessage('집 주소를 설정해 주세요.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (selectedJobs.length === 0) {
+      // 카테고리 배열이 비어 있을 때
+      setSnackbarMessage('직종을 설정해 주세요');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (category.length === 0) {
+      // 카테고리 배열이 비어 있을 때
+      setSnackbarMessage('카테고리를 설정해 주세요');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (!terms) {
+      // 이용약관 동의가 없을 때
+      setSnackbarMessage('Clubing 이용약관에 동의해야 합니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    if (!privacy) {
+      // 개인정보 수집 및 이용에 동의하지 않았을 때
+      setSnackbarMessage('개인정보 수집 및 이용에 동의해야 합니다.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
      const categoryObject = category.reduce((acc, cat) => {
       if (cat.main && Array.isArray(cat.sub)) {
         acc.push({
@@ -130,12 +196,20 @@ const RegisterPage = () => {
 
     dispatch(registerUser(body))
       .then(() => {
-        // 회원가입 성공 후 리다이렉트 처리
-        navigate('/'); // 성공 페이지로 리다이렉트
+       setSnackbarMessage('회원가입에 성공하셨습니다.');
+        setSnackbarSeverity('success'); // 성공 상태로 변경
+        setSnackbarOpen(true);
+
+        // 스낵바가 표시된 후 페이지를 이동하도록 타이머를 설정합니다.
+        setTimeout(() => {
+          navigate('/'); // 성공 페이지로 리다이렉트
+        }, 1000); // 스낵바 표시 시간과 일치하도록 설정
       })
       .catch((error) => {
         console.error('회원가입 실패:', error);
-        // 에러 처리 로직
+        setSnackbarMessage('회원가입에 실패하였습니다.');
+        setSnackbarSeverity('error'); // 에러 상태로 변경
+        setSnackbarOpen(true);
       });
 
     // registerUser(body) thunk함수
@@ -145,8 +219,19 @@ const RegisterPage = () => {
     reset(); // 폼 초기화
   };
   
+
   //api
   const apiUrl = process.env.REACT_APP_API_URL;
+
+  // 스낵바 상태를 추가합니다.
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('error');
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+  
 
   // 상태 정의
    const [homeLocation, setHomeLocation] = useState({ sido: '', sigoon: '', dong: '' });
@@ -192,6 +277,7 @@ const RegisterPage = () => {
 
   // 닉네임
   const nickName = {
+    required: "필수 필드입니다.",
     maxLength: {
       value: 20,
       message: "닉네임은 최대 20자까지 입력할 수 있습니다."
@@ -200,27 +286,27 @@ const RegisterPage = () => {
 
   // 비밀번호 유효성 검사 규칙
   const userPassword = {
-    // required: "필수 필드입니다.",
-    // minLength: {
-    //   value: 8,
-    //   message: "최소 8자입니다."
-    // },validate: value => {
-    //   // 비밀번호 유효성 검사 정규 표현식
-    //    const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
-    //    if (!regex.test(value)) {
-    //      return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
-    //    }
-    //    return true; // 유효성 검사 통과
-    // }
+    required: "필수 필드입니다.",
+    minLength: {
+      value: 8,
+      message: "최소 8자입니다."
+    },validate: value => {
+      // 비밀번호 유효성 검사 정규 표현식
+       const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
+       if (!regex.test(value)) {
+         return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
+       }
+       return true; // 유효성 검사 통과
+    }
   };
 
   const userPasswordCheck = {
-    // required: 0,
-    // minLength: {
-    //   value: 8,
-    //   message: "최소 8자입니다."
-    // },
-    // validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
+    required: 0,
+    minLength: {
+      value: 8,
+      message: "최소 8자입니다."
+    },
+    validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
   };
 
   // 연도, 월, 일을 위한 옵션 생성
@@ -347,13 +433,15 @@ useEffect(() => {
   const handleCheckDuplicate = async () => {
      // 이메일 주소가 null이거나 빈 문자열인 경우 처리
     if (!emailValue || emailValue.trim() === '') {
-      alert('이메일 주소를 입력해주세요.'); // 사용자에게 이메일 입력을 요청하는 얼럿 표시
+      setSnackbarMessage('이메일 주소를 입력해주세요.');
+      setSnackbarOpen(true); // 스낵바 열기
       return; // 오류가 있을 경우 함수 실행 중지
     }
 
     if (errors.email) {
       // 이메일 필드에 오류가 있을 경우 얼럿을 띄움
-      alert('유효한 이메일 주소를 입력하세요.');
+      setSnackbarMessage('유효한 이메일 주소를 입력하세요.');
+      setSnackbarOpen(true); // 스낵바 열기
       return; // 오류가 있을 경우 함수 실행 중지
     }
     const email = emailValue;
@@ -449,9 +537,7 @@ const [verifyError, setVerifyError] = useState('');
             if (response.data.ok) {
                 // 인증 성공
                 setIsVerified(true); 
-                alert('인증에 성공하였습니다.');
                 setVerifyError(''); // 인증 성공 시 에러 메시지 초기화
-                //추가
                 setMessage(''); // 인증 성공 시 메시지 초기화
                 setTimer(0); // 타이머를 0으로 설정
                 setHasExpired(false); // 만료 상태 초기화
@@ -459,6 +545,10 @@ const [verifyError, setVerifyError] = useState('');
                   clearInterval(intervalId); // 인터벌 클리어
                   setIntervalId(null);
                 }
+
+                // 스낵바 메시지 설정
+                setSnackbarMessage('인증에 성공하였습니다.');
+                setSnackbarOpen(true); // 스낵바 열기
             } else {
                 // 인증 실패
                 setVerifyError(response.data.msg);
@@ -468,6 +558,49 @@ const [verifyError, setVerifyError] = useState('');
             setVerifyError('인증번호가 틀렸습니다.');
         }
     }
+
+    const nickNameValue = watch('nickName');
+    const [isNickNameChecked, setIsNickNameChecked] = useState(false);
+    const [isNickNameReset, setIsNickNameReset] = useState(false); // 수정 버튼 상태
+
+    const handleCheckNickName = async () => {
+      if (!nickNameValue || nickNameValue.trim() === '') {
+        setSnackbarMessage('닉네임을 입력해주세요.');
+        setSnackbarOpen(true); // 닫지 말고 열어야 함
+        return;
+      }
+    
+      if (errors.nickName) {
+        setSnackbarMessage('유효한 닉네임을 입력하세요.');
+        setSnackbarOpen(true); // 닫지 말고 열어야 함
+        return;
+      }
+    
+      const nickName = nickNameValue;
+      try {
+        const response = await axios.post(`${apiUrl}/users/check-nickname`, { nickName });
+        setSnackbarMessage(response.data.message);
+        setSnackbarSeverity('success'); // 성공 메시지
+        setSnackbarOpen(true);
+
+        // 닉네임이 유효한 경우 상태 업데이트
+        setIsNickNameChecked(true);  // 닉네임 확인 후 버튼 상태 변경
+        setIsNickNameReset(true); // 수정 버튼 상태로 변경
+      } catch (err) {
+        setSnackbarMessage(err.response ? err.response.data.message : '서버 오류');
+        setSnackbarSeverity('error'); // 오류 메시지
+        setSnackbarOpen(true);
+
+         // 중복 검사가 실패한 경우 상태 유지
+        setIsNickNameChecked(false);  // 오류 발생 시 버튼 상태 유지
+        setIsNickNameReset(false);
+      }
+    };
+
+    const handleNickNameReset = () => {
+      setIsNickNameChecked(false);
+      setIsNickNameReset(false); // 상태 초기화
+    };
 
 // 전화번호 하이픈  자동생성
 const formatPhoneNumber = (value) => {
@@ -537,8 +670,12 @@ const consentPopupClose = (type) => {
 };
 
 
-  return (
+//xptmxm
+const [workplaceSido, setWorkplaceSido] = useState('');  // 도(시도)
+const [workplaceSigoon, setWorkplaceSigoon] = useState('');  // 시군구
+const [workplaceDong, setWorkplaceDong] = useState('');  // 읍면동
 
+  return (
     <Box 
       sx={{ 
           display: 'flex', 
@@ -553,8 +690,24 @@ const consentPopupClose = (type) => {
             mb: 2 ,
             mt: 2,
             }}>          
-      <Typography variant="h4" component="h1" align="center">
-       로고자리
+     <Typography
+        variant="h3"
+        component="h1"
+        sx={{
+          mt: 2,
+          mb: 2,
+          textAlign: "center",
+        }}
+      >
+        <img
+          src="/logo/khaki_long_h.png"
+          style={{
+            display: "block",
+            margin: "auto auto 40px auto",
+            width: "300px", // 원하는 크기로 설정
+            height: "auto",
+          }}
+        />
       </Typography>
     </Box>  
     <Box 
@@ -594,30 +747,36 @@ const consentPopupClose = (type) => {
         />
          <Stack direction="row" spacing={2}>
           {!isEmailChecked && (
-            <Button 
+            <CustomButton2 
             variant="contained" 
             color="primary" 
             className="buttonMain"
             sx={{ height: '50px' }}
             onClick={handleCheckDuplicate}>
               중복검사
-            </Button>
+            </CustomButton2>
           )}
               {isEmailChecked && (
         <Stack direction="column" spacing={0}>
-          <Button variant="outlined"  
+          <CustomButton2  variant="outlined"  
           className="buttonSub1"
-          sx={{ height: '25px' }}
+          sx={{ 
+            height: '25px',
+            borderColor: 'transparent',
+            '&:hover': {
+              borderColor: 'transparent',
+            } 
+          }}
             onClick={handleReset}>
             메일수정
-          </Button>
-          <Button 
+          </CustomButton2 >
+          <CustomButton  
           variant="contained"
           className="buttonSub2"
           sx={{ height: '25px' }}
             onClick={handleSendAuthEmail}>
             인증하기
-          </Button>
+          </CustomButton>
         </Stack>
           )}
         </Stack>
@@ -664,7 +823,7 @@ const consentPopupClose = (type) => {
             readOnly: isVerified,
           }}
         />
-        <Button
+        <CustomButton2
           variant="contained"
           color={isVerified ? 'grey' : 'primary'}
           onClick={handleVerifyClick}
@@ -673,7 +832,7 @@ const consentPopupClose = (type) => {
           sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정하여 텍스트 필드와 높이를 맞춤
         >
           {isVerified ? '인증확인' : '인증완료'}
-        </Button>
+        </CustomButton2>
       </Box>
       {verifyError && (
         <Typography color="error" sx={{ mt: 1 }}>
@@ -694,6 +853,9 @@ const consentPopupClose = (type) => {
           fullWidth
           variant="outlined"
           {...register('password', userPassword)}
+          sx={{
+            bgcolor: 'white',
+          }}
           error={!!errors.password}
           helperText={errors.password ? errors.password.message : ''}
           InputProps={{
@@ -724,6 +886,9 @@ const consentPopupClose = (type) => {
           fullWidth
           variant="outlined"
           {...register('passwordCheck',  userPasswordCheck)}
+          sx={{
+            bgcolor: 'white',
+          }}
           error={!!errors.passwordCheck}
           helperText={errors.passwordCheck ? errors.passwordCheck.message : ''}
           InputProps={{
@@ -758,7 +923,13 @@ const consentPopupClose = (type) => {
             type="text"
             fullWidth
             variant="outlined"
-            {...register('name', userName)}
+            {...register('name', {
+              required: "필수 필드입니다.",
+              validate: userName
+            })}
+            sx={{
+              bgcolor: 'white',
+            }}
             error={!!errors.name}
             helperText={errors.name ? errors.name.message : ''}
           />
@@ -774,7 +945,7 @@ const consentPopupClose = (type) => {
       >
       닉네임
       </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2, }}>
       <TextField
         id='nickName'
         label="닉네임"
@@ -782,10 +953,52 @@ const consentPopupClose = (type) => {
         fullWidth
         variant="outlined"
         {...register('nickName', nickName)}
-        error={!!errors.nickName}
-        helperText={errors.nickName ? errors.nickName.message : ''}
+        InputProps={{
+          readOnly: isNickNameChecked,
+          sx: {
+            bgcolor: isNickNameChecked ? 'grey.200' : 'white',
+            '& .MuiInputBase-input': {
+              color: isNickNameChecked ? 'text.disabled' : 'text.primary',
+            },
+          },
+        }}
+        sx={{
+          flex: 1,
+          mr: 1,
+        }}
         />
+       <Stack direction="row" spacing={2}>
+        {!isNickNameReset ? (
+          !isNickNameChecked && (
+            <CustomButton2 
+              variant="contained" 
+              color="primary" 
+              className="buttonMain"
+              sx={{ height: '50px' }}
+              onClick={handleCheckNickName}
+            >
+              중복검사
+            </CustomButton2>
+          )
+        ) : (
+          <>
+            <CustomButton2  
+              variant="outlined"  
+              className="buttonSub1"
+              sx={{ height: '50px' }}
+              onClick={handleNickNameReset}
+            >
+              닉네임 수정
+            </CustomButton2>
+            </>
+        )}
+      </Stack>
       </Box>
+        {errors?.nickName && (
+      <Typography color="error" sx={{ mt: 1 }}>
+        {errors.nickName.message}
+      </Typography>
+      )}
     </Box>         
 {/*생년월일 */}
 <Box mb={2}>
@@ -811,6 +1024,9 @@ const consentPopupClose = (type) => {
           {...field}
           labelId="year-label"
           label="연도"
+          sx={{
+            bgcolor: 'white',
+          }}
         >
           <MenuItem value="">선택</MenuItem>
           {years.map((year) => (
@@ -836,6 +1052,9 @@ const consentPopupClose = (type) => {
           {...field}
           labelId="month-label"
           label="월"
+          sx={{
+            bgcolor: 'white',
+          }}
         >
           <MenuItem value="">선택</MenuItem>
           {months.map((month) => (
@@ -862,6 +1081,9 @@ const consentPopupClose = (type) => {
           {...field}
           labelId="day-label"
           label="일"
+          sx={{
+            bgcolor: 'white',
+          }}
         >
           <MenuItem value="">선택</MenuItem>
           {days.map((day) => (
@@ -946,8 +1168,8 @@ const consentPopupClose = (type) => {
           rules={{
             required: '전화번호는 필수입니다.',
             pattern: {
-              value: /^\d{3}-\d{4}-\d{4}$/, // 예: 010-7430-3504
-              message: '전화번호 형식을 확인해 주세요.\n 예) 010-7430-3504',
+              value: /^\d{3}-\d{4}-\d{4}$/, // 예: 010-0000-0000
+              message: '전화번호 형식을 확인해 주세요.\n 예) 010-0000-0000',
             }
           }}
           render={({ field }) => (
@@ -957,7 +1179,7 @@ const consentPopupClose = (type) => {
                 id="phone"
                 fullWidth
                 variant="outlined"
-                placeholder="010-7430-3504"
+                placeholder="010-0000-0000"
                 error={!!errors.phone}
                 helperText={errors.phone ? errors.phone.message : ''}
                 onChange={(e) => {
@@ -965,6 +1187,9 @@ const consentPopupClose = (type) => {
                   setValue('phone', formattedValue, { shouldValidate: true }); // 포맷된 값을 폼 상태에 설정
                 }}
                 value={watch('phone')}
+                sx={{
+                  bgcolor: 'white',
+                }}
               />
             </>
           )}
@@ -984,7 +1209,8 @@ const consentPopupClose = (type) => {
       <HomeSearch 
         setSelectedSido={(sido) => setHomeLocation(prev => ({ ...prev, sido }))} 
         setSelectedSigoon={(sigoon) => setHomeLocation(prev => ({ ...prev, sigoon }))} 
-        setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))} />
+        setSelectedDong={(dong) => setHomeLocation(prev => ({ ...prev, dong }))} 
+        />
  
 {/*직장 */}
 <Box sx={{ display: 'flex', alignItems: 'center', mt: 2  }}>
@@ -1013,18 +1239,38 @@ const consentPopupClose = (type) => {
         setInterestSido={(sido) => setInterestLocation(prev => ({ ...prev, i_sido: sido }))} 
         setInterestSigoon={(sigoon) => setInterestLocation(prev => ({ ...prev, i_sigoon: sigoon }))} 
         setInterestDong={(dong) => setInterestLocation(prev => ({ ...prev, i_dong: dong }))} />
-</Box>     
+</Box> 
+
+
+{/*테스트 
+<Box sx={{ display: 'flex', alignItems: 'center', mt: 2  }}>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    도: {workplaceSido}
+    </Typography>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    시군구: {workplaceSigoon}
+    </Typography>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    읍면동: {workplaceDong}
+    </Typography>
+    <LocationSelector
+        setWorkplaceSido={setWorkplaceSido}
+        setWorkplaceSigoon={setWorkplaceSigoon}
+        setWorkplaceDong={setWorkplaceDong}
+    />
+</Box> */}
+
 {/*직종 */}
 <Box>
       {/* 직종 선택 버튼 */}
       <Box mb={2} display="flex" alignItems="center" gap={2}>
-        <Button
+        <CustomButton2
           variant="contained"
           color="primary"
           onClick={() => handlePopupOpen('job')}
         >
           직종 선택
-        </Button>
+        </CustomButton2>
         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
           (최대 3개 선택 가능)
         </Typography>
@@ -1067,13 +1313,13 @@ const consentPopupClose = (type) => {
 <Box>
       {/* 카테고리 선택 버튼 */}
       <Box mb={2} display="flex" alignItems="center" gap={2}>
-        <Button
+        <CustomButton2
           variant="contained"
           color="primary"
           onClick={() => handlePopupOpen('category')}
         >
           카테고리 선택
-        </Button>
+        </CustomButton2>
         <Typography variant="body2" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
           3개 이상 선택해 주세요
         </Typography>
@@ -1128,7 +1374,7 @@ const consentPopupClose = (type) => {
       <Box mb={2}>
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               checked={checkboxState.all}
               onChange={handleAllCheck}
               color="primary"
@@ -1161,7 +1407,7 @@ const consentPopupClose = (type) => {
       <Box display="flex" alignItems="center">
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               id="terms-checkbox"
               checked={checkboxState.terms}
               onChange={() => handleCheck('terms')}
@@ -1190,7 +1436,7 @@ const consentPopupClose = (type) => {
       <Box display="flex" alignItems="center">
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               id="privacy-checkbox"
               checked={checkboxState.privacy}
               onChange={() => handleCheck('privacy')}
@@ -1219,7 +1465,7 @@ const consentPopupClose = (type) => {
       <Box display="flex" alignItems="center">
         <FormControlLabel
           control={
-            <Checkbox
+            <CustomCheckbox
               id="marketing-checkbox"
               checked={checkboxState.marketing}
               onChange={() => handleCheck('marketing')}
@@ -1266,14 +1512,13 @@ const consentPopupClose = (type) => {
       )}
 {/*회원가입 버튼 */}
           <Box mt={6}>
-            <Button
+            <CustomButton2
               type="submit"
               variant="contained"
-              color="primary"
-              sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px', backgroundColor: 'black', '&:hover': { backgroundColor: 'gray.700' } }}
+              sx={{ width: '100%', px: 4, py: 2, borderRadius: '8px' }}
             >
               회원가입
-            </Button>
+            </CustomButton2>
 
             <Typography
               mt={8}
@@ -1290,6 +1535,13 @@ const consentPopupClose = (type) => {
           </Box>
         </form>
       </Box>
+       {/* 스낵바 컴포넌트 호출 */}
+       <CustomSnackbar
+        open={snackbarOpen}
+        message={snackbarMessage}
+        severity="success"
+        onClose={handleSnackbarClose}
+      />
       </Box>
   );
 };

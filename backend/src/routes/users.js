@@ -1,5 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
+const MyMessage = require('../models/MyMessage');
+const RecentVisit = require('../models/RecentVisit');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 //const sessionAuth = require('../middleware/sessionAuth');
@@ -13,7 +15,6 @@ const fs = require('fs');
 
 //sns
 const passport = require('passport');
-
 
 router.get('/auth', auth, async (req, res, next) => {
     try {
@@ -35,6 +36,29 @@ router.get('/auth', auth, async (req, res, next) => {
 });
 
 // Email Check Route
+router.post('/check-nickname', async (req, res) => {
+    const { nickName } = req.body;
+    try {
+        // 이메일이 데이터베이스에 존재하는지 확인
+        const user = await User.findOne({ nickName });
+
+        if (user) {
+            return res.status(400).json({ message: '이미 사용 중인 닉네임입니다.' });
+        }
+
+        return res.status(200).json({ message: '사용 가능한 닉네임입니다.' });
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: '서버 오류' });
+    }
+});
+
+// 인증 이메일 보내기
+router.post('/email-auth', sendAuthEmail);
+// 인증 번호 확인
+router.post('/verifyAuth', verifyAuthCode);
+
+// 닉네임 Check Route
 router.post('/check-email', async (req, res) => {
     const { email } = req.body;
     try {
@@ -51,11 +75,6 @@ router.post('/check-email', async (req, res) => {
         return res.status(500).json({ message: '서버 오류' });
     }
 });
-
-// 인증 이메일 보내기
-router.post('/email-auth', sendAuthEmail);
-// 인증 번호 확인
-router.post('/verifyAuth', verifyAuthCode);
 
 router.post('/register', async (req, res, next) => {
     try {
@@ -86,12 +105,14 @@ router.post('/login', async (req, res, next) => {
         }
         const payload = {
             userId: user._id.toHexString(),
-            // 몽고db objectid는 지멋대로 생성하기 때문에 이것을 스트링화 하는 것
+            // MongoDB의 ObjectId는 기본적으로 16진수로 된 고유 식별자입니다. 
+            // 이 식별자를 문자열로 변환해야 JWT의 페이로드에 저장할 수 있습니다.
         }
         console.log(payload);
         // token을 생성
         const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' })
-        // 유효기간 15분
+        //유저아이디 + 시크릿키 + 유효기간 15분 이란 뜻
+        // 저 세 가지를 결합하는게 jwt.sign() 이놈
 
          // 리프레시 토큰 생성
          const refreshToken = jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
@@ -154,7 +175,7 @@ router.post('/refresh-token', async (req, res, next) => {
     }
 });
 
-//8.22 쿠키랑 세션 삭제
+//8.22 쿠키랑 jwt 삭제
 router.post('/logout', (req, res, next) => {
     try {
         // 클라이언트 측에서 쿠키 삭제
@@ -171,8 +192,8 @@ router.post('/logout', (req, res, next) => {
         });
 
          // 로그 출력
-    console.log('AccessToken 쿠키 삭제:', req.cookies.accessToken); // null이어야 함
-    console.log('RefreshToken 쿠키 삭제:', req.cookies.refreshToken); // null이어야 함
+        console.log('AccessToken 쿠키 삭제:', req.cookies.accessToken); // null이어야 함
+        console.log('RefreshToken 쿠키 삭제:', req.cookies.refreshToken); // null이어야 함
 
         // 로그아웃 성공 응답
         return res.sendStatus(200);
@@ -180,6 +201,11 @@ router.post('/logout', (req, res, next) => {
         next(error);
     }
 });
+
+// 클럽 ID 배열의 길이를 반환
+const getMyGroupsCount = async (clubIds) => {
+    return clubIds.length; // clubIds 배열의 길이를 반환
+};
 
 // src/routes/users.js
 router.get('/myPage', auth, async (req, res, next) => {
@@ -200,8 +226,19 @@ router.get('/myPage', auth, async (req, res, next) => {
                 user.profilePic.thumbnailImage = `${user.profilePic.thumbnailImage.replace(/\\/g, '/')}`;
             }
         }
+        const myGroupsCount = await getMyGroupsCount(user.clubs); // 사용자의 '내 모임' 클럽 개수
+        const wishGroupsCount = await getMyGroupsCount(user.wish); // 사용자의 '내 모임' 클럽 개수
+        const inviteGroupsCount = await getMyGroupsCount(user.invite); // 사용자의 '초대' 클럽 개수
+
+        return res.json({ 
+            user,
+            counts: {
+                myGroups: myGroupsCount,
+                wishGroups: wishGroupsCount,
+                inviteGroups: inviteGroupsCount,
+            } 
         
-        return res.json({ user }); // user 객체를 그대로 반환
+        }); // user 객체를 그대로 반환
     } catch (error) {
         next(error);
     }
@@ -459,6 +496,315 @@ router.put('/introduction', auth, async (req, res, next) => {
 
     } catch (error) {
         next(error);
+    }
+});
+
+// 특정 ID를 가진 사용자의 정보를 가져오는 라우트 핸들러
+router.get("/:id", async (req, res) => {
+  try {
+    // 요청 URL에서 사용자 ID를 추출하고, 데이터베이스에서 해당 ID로 사용자 검색
+    const user = await User.findById(req.params.id);
+
+    console.log("--------1244----------------");
+    console.log(user._id);
+    console.log("-------------1251251251-----------");
+    // 콘솔에 디버깅 메시지 출력 (필요에 따라 삭제 가능)
+    console.log("uuuuuuuuuusssssssseeeeeeerrrrrrrrrr");
+    // 사용자가 존재하지 않는 경우, 404 상태 코드와 함께 오류 메시지 반환
+    if (!user) {
+      return res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+    }
+    // 사용자가 존재하는 경우, 사용자 이름만 포함된 JSON 응답 반환
+    console.log("안녕하세요요요요요요요요")
+    console.log(user.name)
+    console.log(user.profilePic)
+    res.json({ name: user.name, profilePic: user.profilePic.thumbnailImage });
+  } catch (error) {
+    // 예외 발생 시, 콘솔에 오류 로그 출력 및 500 상태 코드와 함께 오류 메시지 반환
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "서버 오류" });
+  }
+});
+  
+  router.post('/update-location', async (req, res) => {
+    try {
+        const { homeLocation, workplace, interestLocation } = req.body;
+        const { email } = req.body; // 인증된 사용자의 이메일을 가져옵니다.
+
+        // 필수 데이터 확인
+        if (!email) {
+            return res.status(400).json({ ok: false, msg: '이메일이 누락되었습니다.' });
+        }
+
+        // 사용자 조회
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ ok: false, msg: '사용자를 찾을 수 없습니다.' });
+        }
+
+        // 위치 정보가 요청된 경우에만 업데이트
+        if (homeLocation && (homeLocation.city || homeLocation.district || homeLocation.neighborhood)) {
+        user.homeLocation = homeLocation;
+        }
+        if (workplace && (workplace.city || workplace.district || workplace.neighborhood)) {
+            user.workplace = workplace;
+        }
+        if (interestLocation && (interestLocation.city || interestLocation.district || interestLocation.neighborhood)) {
+            user.interestLocation = interestLocation;
+        }
+
+        await user.save();
+
+        return res.json({ ok: true, msg: '위치 정보가 성공적으로 업데이트되었습니다.' });
+    } catch (error) {
+        console.error('서버 오류:', error);
+        return res.status(500).json({ ok: false, msg: '서버 오류가 발생했습니다.' });
+    }
+});
+
+  // 초대 거절 라우트
+  router.post('/reject-invite', auth, async (req, res) => {
+    try {
+        const user = req.user;
+        const { clubId } = req.body; // 클럽 ID를 요청 본문에서 받음
+    
+        if (!user) {
+            return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+        }
+        if (!clubId) {
+            return res.status(400).json({ success: false, message: '클럽 ID가 제공되지 않았습니다.' });
+        }
+        // 초대 목록에서 clubId를 제거
+        user.invite = user.invite.filter(id => id !== clubId);
+        await user.save(); // 사용자 정보 저장
+        
+        res.json({ success: true, message: '초대를 거절했습니다.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: '초대를 거절 중 오류가 발생했습니다.', error });
+    }
+});
+
+// 유저 ID로 메시지 조회
+router.get('/messages/:email', async (req, res) => {
+    try {
+      const messages = await MyMessage.find({ recipient: req.params.email })
+      .sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+      res.status(200).json(
+        messages
+    );
+    } catch (error) {
+        res.status(500).json({ error: error.message }); // 수정된 부분
+    }
+  });
+
+  // Express 서버 측 라우트 예시
+router.get('/messages/counts/:email', async (req, res) => {
+    try {
+        const readCount = await MyMessage.countDocuments({ recipient: req.params.email, isRead: true });
+        const unreadCount = await MyMessage.countDocuments({ recipient: req.params.email, isRead: false });
+        
+        res.status(200).json({
+            readCount,
+            unreadCount
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+  // 유저 ID로 읽지 않은 메시지 조회
+router.get('/messages/:email/false', async (req, res) => {
+    try {
+      const messages = await MyMessage.find({
+        recipient: req.params.email,
+        isRead: false
+      });
+      res.status(200).json(messages);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // 유저 ID로 읽지 읽은 메시지 조회
+  router.get('/messages/:email/true', async (req, res) => {
+    try {
+        const messages = await MyMessage.find({
+            recipient: req.params.email,
+            isRead: true
+        }).sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+      res.status(200).json(messages);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+// // 메시지 읽음 상태로 변경
+router.put('/messages/changestate', async (req, res) => {
+    try {
+        let { ids } = req.body; // 클라이언트에서 전송한 메시지 IDs 배열 또는 단일 ID
+        console.log('받은 IDs:', ids);
+
+        // IDs가 이중 배열일 경우 평탄화
+        if (Array.isArray(ids[0])) {
+            ids = ids.flat();
+        }
+
+        // IDs가 배열인지 확인하고, 단일 값일 경우 배열로 변환
+        if (!Array.isArray(ids)) {
+            ids = [ids];
+        }
+
+        // 문자열 IDs를 그대로 사용하여 업데이트
+        const result = await MyMessage.updateMany(
+            { _id: { $in: ids } }, // IDs 배열에 포함된 메시지를 찾기 위한 조건
+            { $set: { isRead: true } } // 업데이트할 내용
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'No messages found' });
+        }
+
+        return res.status(200).json({ message: 'Messages updated successfully' });
+
+    } catch (error) {
+        console.error('Error updating message state:', error); // 서버 로그로 오류 확인
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+// 메시지 삭제
+router.post('/messages/delete', async (req, res) => {
+    try {
+    const { ids, email } = req.body;
+  
+      // IDs 배열이 제공되지 않았거나 비어있는 경우 오류 반환
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({ error: 'Invalid message IDs' });
+      }
+  
+      // IDs가 올바른 형식인지 확인 (MongoDB ObjectId 형식 체크)
+      if (!ids.every(id => typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/))) {
+        return res.status(400).json({ error: 'Invalid ID format' });
+      }
+  
+      // 여러 메시지 삭제
+      const result = await MyMessage.deleteMany({ _id: { $in: ids } });
+  
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: 'No messages found to delete' });
+      }
+  
+    // 삭제 후 안 읽음 메시지 재조회
+    const updatedMessages = await MyMessage.find({
+        recipient: email,
+        isRead: false
+    });
+
+    res.status(200).json({ message: 'Messages deleted successfully', messages: updatedMessages });
+    } catch (error) {
+      console.error('Error deleting messages:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+
+//메시지 보내기
+router.post("/messages", async (req, res) => {
+    console.log("Received request body:", req.body); // 요청 본문 로그 출력
+
+    const { club, recipient, sender, content, title } = req.body;
+  
+    try {
+      const newMessage = new MyMessage({
+        club,
+        recipient,
+        sender,
+        content,
+        title,
+      });
+  
+      await newMessage.save();
+  
+      res.status(201).json(newMessage);
+    } catch (err) {
+      res.status(500).json({ message: "메시지 저장에 실패했습니다." });
+    }
+  });
+
+// 유저 ID로 방문 클럽 조회
+router.get('/recentvisit/:email', async (req, res) => {
+    const email = req.params.email;
+    console.log("받아온 이메일:", email);
+    try {
+        // 해당 이메일로 RecentVisit 항목 조회
+        const RecentVisitList = await RecentVisit.find({ email: email })
+            .sort({ date: -1 }); // 내림차순으로 정렬 (가장 최근 메시지 먼저)
+        
+        // 각 RecentVisit 항목에 클럽 수를 추가
+        const responseData = RecentVisitList.map(item => ({
+            ...item.toObject(), // Mongoose 문서를 일반 객체로 변환
+            clubCount: item.clubs.flat().filter(club => typeof club === 'number').length // 중첩 배열 평탄화 후 숫자만 필터링하여 카운트
+        }));
+        // responseData를 콘솔에 찍기
+        console.log("왜 안되는데:", responseData);
+
+        // 데이터와 총 항목 수를 객체로 반환
+        res.status(200).json({
+            RecentVisitList: responseData, // 조회된 데이터
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message }); // 에러 처리
+    }
+});
+
+//최근 본 모임 저장
+router.post("/recentvisit", async (req, res) => {
+    let { clubs, email } = req.body;
+
+    // clubs가 배열인지 확인하고, 배열이 아닐 경우 단일 값을 배열로 변환
+    if (!Array.isArray(clubs)) {
+        clubs = [clubs];
+    }
+
+    try {
+        // 이메일로 RecentVisit 문서 찾기
+        let recentVisit = await RecentVisit.findOne({ email });
+
+        // 클라이언트에서 보내온 clubs 값을 문자열 배열로 변환
+        const incomingClubs = clubs.map(club => Number(club));
+        
+        if (recentVisit) {
+            // 기존 clubs 값을 문자열 배열로 변환
+            const existingClubs = recentVisit.clubs.map(club => Number(club));
+
+            // 중복 제거 및 추가
+            const updatedClubs = [...new Set([...existingClubs, ...incomingClubs])];
+
+             // 최대 6개 제한: 6개 초과 시 가장 오래된 기록 제거
+             if (updatedClubs.length > 6) {
+                 updatedClubs.sort((a, b) => b - a); // 클럽 ID가 큰 것이 최신
+                updatedClubs.splice(6); // 가장 오래된 기록 제거
+            }
+
+            console.log("Updated clubs:", updatedClubs); // 업데이트된 clubs 배열 로그 출력
+
+            recentVisit.clubs = updatedClubs;
+            recentVisit.date = Date.now();
+            await recentVisit.save(); // 문서 업데이트
+        } else {
+            // 문서가 존재하지 않으면 새로운 문서 생성
+            recentVisit = new RecentVisit({
+                clubs: incomingClubs,
+                email,
+            });
+            await recentVisit.save(); // 문서 저장
+        }
+
+        res.status(201).json(recentVisit); // 응답 반환
+    } catch (err) {
+        console.error(err); // 오류 로그 출력
+        res.status(500).json({ message: "목록 저장에 실패했습니다." }); // 오류 응답
     }
 });
 

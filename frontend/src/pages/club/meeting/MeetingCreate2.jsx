@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, Grid, Modal, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, Grid, Modal, Snackbar, SnackbarContent, TextField, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -8,19 +8,48 @@ import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
 import dayjs from "dayjs";
 import "dayjs/locale/ko"; // 한국어 로케일 import
 import axiosInstance from "./../../../utils/axios";
-import { fetchMeetingList } from "../../../store/reducers/clubReducer.js";
 import CustomButton from "../../../components/club/CustomButton.jsx";
 import { useNavigate } from "react-router-dom";
 import MeetingImageCropper from "./MeetingImageCropper.jsx";
 import CropIcon from "@mui/icons-material/Crop";
+import { styled } from "@mui/system";
 
 dayjs.locale("ko");
 
-const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal }) => {
+const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal, category, setSnackbarMessageMain, handleSnackbarClickMain }) => {
+  //////////////스낵바
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar 메시지 관리
+
+  const StyledSnackbarContent = styled(SnackbarContent)(({ theme }) => ({
+    backgroundColor: "white", // 배경색 설정
+    color: "#A6836F", // 텍스트 색상 설정
+    borderRadius: "20px",
+    width: "250px",
+    height: "50px",
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    opacity: 1, // 초기 투명도
+    transition: "opacity 0.5s ease-in-out", // 애니메이션 효과
+  }));
+
+  const handleSnackbarClick = () => {
+    setOpenSnackbar(true);
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+  /////////스낵바 .end
   //정기모임 글 등록, 두번쨰 모달
   const [dateTime, setDateTime] = useState(null);
+  const [dateTimeSort, setDateTimeSort] = useState(null);
   const [checked, setChecked] = useState(false); // 정기모임 전체알림 스테이트
-  const [category, setCategory] = useState("");
   const navigate = useNavigate();
   const checkedChange = (event) => {
     setChecked(event.target.checked);
@@ -30,47 +59,61 @@ const MeetingCreate2 = ({ clubNumber, secondModalClose, secondModal }) => {
     handleSubmit,
     formState: { errors },
     reset,
-    setValue
+    setValue,
   } = useForm({ mode: "onChange" });
 
-///비교삭제 추가하기
-const onSubmit = async (data) => {
-  const blob = await blobUrlToBlob(preview);
-  const file = blobToFile(blob, uploadFileName);
+  ///비교삭제 추가하기
+  const onSubmit = async (data) => {
+    const blob = await blobUrlToBlob(preview);
+    const file = blobToFile(blob, uploadFileName);
 
-  const formData = new FormData();
-  // 일반 필드 추가
-  formData.append("dateTime", dateTime.$d.toString());
-  formData.append("alertAll", checked);
-  formData.append("title", data.title);
-  formData.append("category", category);
-  formData.append("clubNumber", clubNumber);
-  formData.append("where", data.where);
-  formData.append("totalCount", data.totalCount);
-  formData.append("cost", data.cost);
-  // 이미지 파일이 있는 경우
-  if (preview) {
-    formData.append("img", file); // 이미지 파일 추가
-  }
+    const formData = new FormData();
+    // 일반 필드 추가
+    console.log(dateTime);
+    if (!dateTime) {
+      setSnackbarMessage("날짜를 입력해주세요");
+      handleSnackbarClick();
+      return;
+    }
+    formData.append("dateTime", dateTime.$d.toString());
+    formData.append("dateTimeSort", dateTimeSort);
+    formData.append("alertAll", checked);
+    formData.append("title", data.title);
+    formData.append("category", category);
+    formData.append("clubNumber", clubNumber);
+    formData.append("where", data.where);
+    formData.append("totalCount", data.totalCount);
+    formData.append("cost", data.cost);
+    // 이미지 파일이 있는 경우
+    if (preview) {
+      formData.append("img", file); // 이미지 파일 추가
+    } else {
+      setSnackbarMessage("대표사진을 등록해주세요");
+      handleSnackbarClick();
+      return;
+    }
 
-  try {
-    const response = await axiosInstance.post("/meetings/create", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    try {
+      const response = await axiosInstance.post("/meetings/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    alert("정모 만들기 성공했습니다");
-  } catch (err) {
-    console.error(err);
-    alert("정모 만들기에 실패했습니다");
-  }
-};
+      setSnackbarMessageMain("정모 생성을 완료했습니다.");
+      handleSnackbarClickMain();
+      secondModalClose();
+    } catch (err) {
+      console.error(err);
+      setSnackbarMessage("정모 생성에 실패했습니다..");
+      handleSnackbarClick();
+    }
+  };
 
   ////////////////////////////////////////////////////////////////
-  const cropButtonClick = ()=>{
+  const cropButtonClick = () => {
     setCropModalOpen(true); // 크롭 모달 열기
-  }
+  };
   //파일이 체인지 되었을 때
   const [uploadFileName, setUploadFileName] = useState("");
 
@@ -86,8 +129,6 @@ const onSubmit = async (data) => {
     }
   };
   //파일이 체인지 되었을 때.end
-
-
 
   //파일이 드래그앤 드롭 되었을 때
   const handleDrop = (event) => {
@@ -142,62 +183,62 @@ const onSubmit = async (data) => {
         >
           <Grid container spacing={2}>
             <Grid item xs={5}>
-            <input id="img" type="file" accept="image/png, image/gif, image/jpeg" onChange={handleFileChange} style={{ display: "none" }} />
-            <label htmlFor="img">
-              <Button variant="outlined" component="span" sx={{ width: "100%" }}>
-                정모 대표사진 선택하기
-              </Button>
-            </label>
-            {!preview && (
-              <Box
-                mt={2}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-                sx={{
-                  width: "280px",
-                  height: "200px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  border: "2px dashed gray",
-                }}
-              >
-                <Typography variant="h6" color="textSecondary">
-                  이미지 미리보기가 없습니다. 이미지를 업로드하세요.
-                </Typography>
-              </Box>
-            )}
-            {preview && (
-              <Box mt={2} sx={{ width: "280px", height: "200px", position: "relative"  }}>
-                <img src={preview} alt="미리보기" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                <CropIcon
+              <input id="img" type="file" accept="image/png, image/gif, image/jpeg" onChange={handleFileChange} style={{ display: "none" }} />
+              <label htmlFor="img">
+                <Button variant="outlined" component="span" sx={{ width: "100%" }}>
+                  정모 대표사진 선택하기
+                </Button>
+              </label>
+              {!preview && (
+                <Box
+                  mt={2}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
                   sx={{
-                    position: "absolute",
-                    bottom: 8,
-                    right: 8,
-                    color: "white",
-                    backgroundColor: "rgba(0, 0, 0, 0.5)",
-                    borderRadius: "50%",
-                    padding: "4px",
-                    cursor: "pointer",
+                    width: "280px",
+                    height: "200px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "2px dashed gray",
                   }}
-                  onClick={cropButtonClick}
-
-                />
-              </Box>
-            )}
+                >
+                  <Typography variant="h6" color="textSecondary">
+                    이미지 미리보기가 없습니다. 이미지를 업로드하세요.
+                  </Typography>
+                </Box>
+              )}
+              {preview && (
+                <Box mt={2} sx={{ width: "280px", height: "200px", position: "relative" }}>
+                  <img src={preview} alt="미리보기" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <CropIcon
+                    sx={{
+                      position: "absolute",
+                      bottom: 8,
+                      right: 8,
+                      color: "white",
+                      backgroundColor: "rgba(0, 0, 0, 0.5)",
+                      borderRadius: "50%",
+                      padding: "4px",
+                      cursor: "pointer",
+                    }}
+                    onClick={cropButtonClick}
+                  />
+                </Box>
+              )}
             </Grid>
             <Grid item xs={7} container spacing={1}>
               <Grid item xs={12}>
                 <TextField id="title" label="정모 제목" sx={{ width: "100%" }} {...register("title", { required: " 필수입력 요소." })} />
               </Grid>
-              <Grid item xs={12} sx={{marginBottom:'5px'}}>
+              <Grid item xs={12} sx={{ marginBottom: "5px" }}>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DemoContainer components={["DateTimePicker"]}>
                     <DateTimePicker
                       id="dateTime"
                       label="만나는 날짜 및 시간"
                       onChange={(date) => {
+                        setDateTimeSort(date.toISOString());
                         setDateTime(date);
                       }}
                     />
@@ -205,7 +246,7 @@ const onSubmit = async (data) => {
                 </LocalizationProvider>
               </Grid>
               <Grid item xs={12}>
-                <TextField id="cost" label="비용" multiline sx={{ width: "100%"}} {...register("cost", { required: " 필수입력 요소." })} />
+                <TextField id="cost" label="비용" multiline sx={{ width: "100%" }} {...register("cost", { required: " 필수입력 요소." })} />
               </Grid>
             </Grid>
             <Grid item xs={12}>
@@ -250,6 +291,16 @@ const onSubmit = async (data) => {
         </Box>
       </Modal>
       {cropModalOpen && <MeetingImageCropper src={preview} onCropComplete={handleCropComplete} onClose={() => setCropModalOpen(false)} />}
+      {/* 스낵바 */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={1000} // 사라지는 시간
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <StyledSnackbarContent message={snackbarMessage} />
+      </Snackbar>
+      {/* 스낵바.end */}
     </Box>
   );
 };

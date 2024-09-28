@@ -1,8 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import ImageEditor from '@toast-ui/react-image-editor';
 import 'tui-image-editor/dist/tui-image-editor.css';
-import { Button, Box, Grid, Snackbar, Alert } from '@mui/material';
-import FloatingLabelInput from '../../../components/commonEffect/GalleryInput';
+import { Button, Box, Grid, Snackbar, Alert, TextField } from '@mui/material';
 import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 import { useSelector } from 'react-redux';
 import './CustomImageEditor.css';
@@ -238,11 +237,18 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           />
           <Button
             variant="contained"
-            color="primary"
             onClick={() => fileInputRef.current.click()} // 버튼 클릭 시 파일 입력 창 열기
-            sx={{ top: -20, right: 0, margin: '0px' }}
+            sx={{
+              top: -20,
+              right: 0,
+              margin: '0px',
+              backgroundColor: '#DBC7B5', // 버튼 기본 색상
+              '&:hover': {
+                backgroundColor: '#A67153', // 버튼 호버 색상
+              },
+            }}
           >
-            Select Image
+            눌러서 이미지를 선택해주세요
           </Button>
 
           {/* 드래그 앤 드롭 컨텍스트 */}
@@ -307,24 +313,39 @@ const GalleryCreate = ({ onRegisterComplete, initialData = {} }) => {
           </DragDropContext>
 
           {/* 제목과 내용 입력 필드 */}
-          <FloatingLabelInput
-            label="Title"
-            sx={{ width: '500px', marginTop: '-10px' }}
+          <TextField
+            label="제목"
+            variant="outlined"
+            fullWidth
             value={title}
-            onChange={(e) => setTitle(e.target.value)} // 제목 입력 핸들러
+            onChange={(e) => setTitle(e.target.value)}
+            sx={{ marginTop: '16px' }}
           />
-          <FloatingLabelInput
-            label="Content"
+
+          <TextField
+            label="내용"
+            variant="outlined"
             multiline
-            rows={7}
-            sx={{ width: '500px', marginTop: '0px' }}
+            rows={4}
+            fullWidth
             value={content}
-            onChange={(e) => setContent(e.target.value)} // 내용 입력 핸들러
+            onChange={(e) => setContent(e.target.value)}
+            sx={{ marginTop: '16px' }}
           />
 
           {/* 저장 버튼 */}
-          <Button variant="contained" color="primary" onClick={handleSaveAll} sx={{ marginTop: '0px' }}>
-            Save
+          <Button
+            variant="contained"
+            onClick={handleSaveAll}
+            sx={{
+              marginTop: '0px',
+              backgroundColor: '#DBC7B5', // 버튼 기본 색상
+              '&:hover': {
+                backgroundColor: '#A67153', // 버튼 호버 색상
+              },
+            }}
+          >
+            저 장
           </Button>
         </Box>
       </Box>

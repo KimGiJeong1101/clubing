@@ -2,13 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { loginUser } from "../../../store/actions/userActions";
-import { Container, TextField, Button, Typography, Box, Checkbox, FormControlLabel, InputAdornment, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
+import { Container, TextField, Typography, Box, FormControlLabel, } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined"; // 아이콘
 import Mail from "@mui/icons-material/MailOutline"; // 아이콘
 import { useNavigate } from "react-router-dom"; // useNavigate 임포트
 import FindEmailPage from "./FindEmail";
 import FindPasswordPage from "./FindPassword"; // 수정된 부분
 import { styled } from "@mui/material/styles";
+import '../../../App.css';
+import '../../../assets/styles/LoginCss.css';
+import CustomButton2 from '../../../components/club/CustomButton2.jsx'
+import CustomCheckbox from '../../../components/club/CustomCheckbox.jsx'
 
 const LoginPage = () => {
   const {
@@ -147,6 +151,7 @@ const LoginPage = () => {
           xs: "8 8px", // 모바일 화면: 좌우 패딩 8px
           sm: "8 10px", // 작은 화면: 좌우 패딩 16px
         },
+        fontFamily: 'KCC-Hanbit', // 글씨체 적용
       }}
     >
       <Typography
@@ -158,7 +163,15 @@ const LoginPage = () => {
           textAlign: "center",
         }}
       >
-        로고 넣자요asdfasdfasdfasdfasdf
+        <img
+          src="/logo/khaki_long_h.png"
+          style={{
+            display: "block",
+            margin: "auto auto 40px auto",
+            width: "300px", // 원하는 크기로 설정
+            height: "auto",
+          }}
+        />
       </Typography>
       <Box
         sx={{
@@ -180,7 +193,7 @@ const LoginPage = () => {
             fontWeight: "bold",
           }}
         >
-          로그인
+      
         </Typography>
         {/* 아이디 */}
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -188,13 +201,13 @@ const LoginPage = () => {
             display="flex"
             alignItems="center"
             sx={{
-              width: "120%", // 부모 요소의 너비를 100%로 설정
+              width: "160%", // 부모 요소의 너비를 160%로 설정
             }}
           >
             <Mail
               style={{
                 marginRight: "5px",
-                marginLeft: "-50px",
+                marginLeft: "-80px",
                 marginBottom: "10px",
                 color: "gray",
                 fontSize: "40px",
@@ -215,13 +228,13 @@ const LoginPage = () => {
             display="flex"
             alignItems="center"
             sx={{
-              width: "120%", // 부모 요소의 너비를 100%로 설정
+              width: "160%", // 부모 요소의 너비를 160%로 설정
             }}
           >
             <LockOutlinedIcon
               style={{
                 marginRight: "5px",
-                marginLeft: "-50px",
+                marginLeft: "-80px",
                 marginBottom: "10px",
                 color: "gray",
                 fontSize: "40px",
@@ -238,29 +251,43 @@ const LoginPage = () => {
               {...register("password", userPassword)}
             />
           </Box>
-          {/* 아이디 기억 */}
+           {/* 아이디 기억 */}
+          <Box
+            display="flex"
+            sx={{
+              width: "100%", // 부모 요소의 너비를 100%로 설정
+              marginLeft: "-60px",
+            }}
+          >
           <FormControlLabel
             control={
-              <Checkbox
+              <CustomCheckbox
                 {...register("rememberMe")}
                 checked={watch("rememberMe") ? true : false} // register로 상태 관리
               />
             }
             label="아이디 기억하기"
+            sx={{
+              // 체크박스와 라벨 간의 간격 조정
+              '& .MuiFormControlLabel-label': {
+                marginLeft: '-20px', // 라벨과 체크박스 간의 간격을 조정합니다.
+              },
+            }}
           />
-
-          <Button
+          </Box>
+          <CustomButton2
             type="submit"
             fullWidth
             variant="contained"
-            color="primary"
             sx={{
-              mt: 3,
-              mb: 2,
+              mt: 1,
+              mb: 1,
+              width: "160%", // 부모 요소의 너비를 160%로 설정
+              marginLeft: "-50px",
             }}
           >
             로그인
-          </Button>
+          </CustomButton2>
           <Typography
             variant="body2"
             align="center"

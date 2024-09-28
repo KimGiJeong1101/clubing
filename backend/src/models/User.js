@@ -119,10 +119,6 @@ const userSchema = mongoose.Schema({
     type: Boolean,
     default: false, // 기본값은 false
   },
-  wish: {//모임 찜
-    type: Array,
-    default: [],
-  },
   history: {//최근 본 모임
     type: Array,
     default: [],
@@ -131,6 +127,18 @@ const userSchema = mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true, // 기본값은 true, 즉 활성화 상태
+  },
+  clubs: {
+    type: [Number], // 클럽 ID들을 저장하는 배열
+    default: [], // 기본값은 빈 배열
+  },
+  wish: {
+    type: [Number], // 클럽 ID들을 저장하는 배열
+    default: [], // 기본값은 빈 배열
+  },
+  invite: {
+    type: [Number], // 클럽 ID들을 저장하는 배열
+    default: [], // 기본값은 빈 배열
   },
 });
 

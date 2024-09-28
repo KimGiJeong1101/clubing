@@ -49,6 +49,7 @@ function NavBar() {
 
   return (
     <Box sx={{ width: "100%", height: "114px" }}>
+      <div>네브바지렁</div>
       <Box
         sx={{
           position: "fixed",
@@ -112,6 +113,7 @@ function NavBar() {
           </Grid>
         </Container>
       </Box>
+      <div>네브바출력완</div>
     </Box>
   );
 }

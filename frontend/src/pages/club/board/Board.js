@@ -1,130 +1,96 @@
-import React, { useState } from 'react';
-import { Container, Typography,Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Container, Fab, Button, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert, Box } from '@mui/material';
 import AddIcon from "@mui/icons-material/Add";
 import CKEditor5Editor from '../../../components/club/ClubBoardEditor';
 import VoteCreationForm from '../../../components/club/ClubVote';
 import ListPosts from './BoardList';
-import axiosInstance from "./../../../utils/axios";
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-
+import { checkMembership, savePost, saveVote } from '../../../api/ClubBoardApi';
 
 const Board = () => {
   const [open, setOpen] = useState(false);
   const [editorData, setEditorData] = useState('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
-  const [showPost, setShowPost] = useState(false);
-  const [showList, setShowList] = useState(true);
   const [image, setImage] = useState('');
-
-  // 투표 관련 상태
-  const [options, setOptions] = useState(['']);
+  const [options, setOptions] = useState(['', '']);
   const [allowMultiple, setAllowMultiple] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const [endTime, setEndTime] = useState('');
-
+  const [isMember, setIsMember] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const clubNumber = queryParams.get("clubNumber");
   const author = useSelector(state => state.user?.userData?.user?.email || null);
 
+  useEffect(() => {
+    if (author && clubNumber) {
+      checkMembership(clubNumber, author)
+        .then(setIsMember)
+        .catch(() => setIsMember(false));
+    }
+  }, [author, clubNumber]);
+
   const getCurrentDate = () => {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return now.toISOString().split('T')[0];
   };
 
   const handleSave = async () => {
-    if (!title) {
-      alert('제목을 입력해주세요.');
-      return;
-    }
-    if (!category) {
-      alert('카테고리를 입력해주세요.');
-      return;
-    }
-    if (!editorData) {
-      alert('내용을 입력해주세요.');
+    if (!title || !category || !editorData) {
+      showSnackbar('모든 필드를 입력해주세요.', 'error');
       return;
     }
     try {
-      await axiosInstance.post('http://localhost:4000/clubs/boards/posts', { 
-        clubNumber, 
-        create_at: getCurrentDate(), 
-        author, 
-        title, 
-        category, 
-        content: editorData 
+      await savePost({
+        clubNumber,
+        create_at: getCurrentDate(),
+        author,
+        title,
+        category,
+        content: editorData
       });
       handleClose();
-    } catch (error) {
-      if (error.response) {
-        alert(error.response.data.error);
-      } else {
-        alert('서버와의 연결에 문제가 발생했습니다.');
-      }
-      console.error('Error saving content:', error.message);
+    } catch {
+      showSnackbar('게시글 저장에 실패했습니다.', 'error');
     }
   };
-  
 
   const handleVoteSave = async () => {
-    if (!title) {
-      alert('제목을 입력해주세요.');
-      return;
-    }
-    if (!category) {
-      alert('카테고리를 입력해주세요.');
-      return;
-    }
-    if (options.some(option => !option.trim())) { // 옵션이 비어 있는지 확인
-      alert('모든 항목을 입력해주세요.');
-      return;
-    }
-    if (!endTime) {
-      alert('종료 시간을 입력해주세요.');
+    if (!title || !category || options.some(option => !option.trim()) || !endTime) {
+      showSnackbar('모든 필드를 입력해주세요.', 'error');
       return;
     }
     try {
-      await axiosInstance.post('http://localhost:4000/clubs/boards/votes', { 
-        clubNumber, 
-        create_at: getCurrentDate(), 
-        author, 
-        title, 
-        category, 
-        options, 
-        allowMultiple, 
-        anonymous, 
-        endTime 
+      await saveVote({
+        clubNumber,
+        create_at: getCurrentDate(),
+        author,
+        title,
+        category,
+        options,
+        allowMultiple,
+        anonymous,
+        endTime
       });
       handleClose();
-    } catch (error) {
-      console.error('Error saving vote:', error.message);
+    } catch {
+      showSnackbar('투표 저장에 실패했습니다.', 'error');
     }
-  };
-
-
-  const handleEditorChange = (data) => {
-    setEditorData(data);
   };
 
   const handleClickOpen = () => {
     setOpen(true);
-    setShowList(false);
   };
 
   const handleClose = () => {
     setOpen(false);
-    setShowList(true);
-    if (category === '투표') {
-      resetVoteState();
-    } else {
-      resetEditorState();
-    }
+    category === '투표' ? resetVoteState() : resetEditorState();
   };
 
   const resetEditorState = () => {
@@ -136,32 +102,62 @@ const Board = () => {
   const resetVoteState = () => {
     setTitle('');
     setCategory('');
-    setOptions(['']);
+    setOptions(['', '']);
     setAllowMultiple(false);
     setAnonymous(false);
     setEndTime('');
   };
 
+  const showSnackbar = (message, severity) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   return (
-    <Container>
-      <Fab
-        onClick={handleClickOpen}
-        color="primary"
-        aria-label="add"
-        style={{
-          position: "fixed",
-          bottom: "50px",
-          right: "50px",
+    <Container >
+      {isMember && (
+        <Fab
+          onClick={handleClickOpen}
+          aria-label="add"
+          sx={{ 
+                backgroundColor: "#DBC7B5",
+                color: "white",
+                position: "fixed",
+                bottom: "50px",
+                right: "100px",
+                "&:hover": {
+                  backgroundColor: "#A67153", // hover 시 배경 색상 변경
+                },
+              }}
+        >
+          <AddIcon />
+        </Fab>
+      )}
+
+      <ListPosts />
+
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        fullWidth
+        maxWidth="lg"
+        PaperProps={{
+          style: {
+            height: '80%', // 전체 높이를 80%로 설정
+            maxHeight: '80%', // 최대 높이 설정
+          },
         }}
       >
-        <AddIcon />
-      </Fab>
-
-      {showList && <ListPosts />}
-
-      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
         <DialogTitle>글쓰기</DialogTitle>
-        <DialogContent>
+        <DialogContent
+          dividers // 내용에 구분선 추가
+          sx={{ maxHeight: 'calc(80vh - 100px)', overflowY: 'auto' }} // 내용 영역의 최대 높이 설정
+        >
           {category === '투표' ? (
             <VoteCreationForm
               title={title}
@@ -179,7 +175,7 @@ const Board = () => {
             />
           ) : (
             <CKEditor5Editor
-              onChange={handleEditorChange}
+              onChange={setEditorData}
               title={title}
               setTitle={setTitle}
               category={category}
@@ -189,20 +185,22 @@ const Board = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} color="primary">
-            닫기
-          </Button>
-          {category === '투표' ? (
-            <Button onClick={handleVoteSave} color="primary">
-              저장
-            </Button>
-          ) : (
-            <Button onClick={handleSave} color="primary">
-              저장
-            </Button>
-          )}
+          <Button onClick={handleClose} color="primary">닫기</Button>
+          <Button onClick={category === '투표' ? handleVoteSave : handleSave} color="primary">저장</Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+      <Box m={5}></Box>
     </Container>
   );
 };

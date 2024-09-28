@@ -33,9 +33,7 @@ function Header() {
 
   const handleDelete = async () => {
     try {
-      await axiosInstance.delete(
-        `http://localhost:4000/clubs/delete/${clubNumber}`
-      );
+      await axiosInstance.delete(`http://localhost:4000/clubs/delete/${clubNumber}`);
       // 삭제 후 원하는 페이지로 이동
       navigate("/clublist");
       alert("삭제 완료");
@@ -44,16 +42,6 @@ function Header() {
     }
     handleClose();
   };
-  // 클럽 리스트 불러오는 거 ! redux 이용
-  // const getClubList = useSelector((state) => state.clubList);
-  // const [clubList, setClubList] = useState([]);
-  // useEffect(() => {
-  //   if (getClubList.status === "succeeded") {
-  //     setClubList(getClubList.clubs);
-  //   }
-  // }, [getClubList]);
-  // 클럽 리스트 불러오는 거 ! redux 이용.end
-
   //하트 아이콘 색깔 state
   const [isFavorite, setIsFavorite] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -72,7 +60,7 @@ function Header() {
         .post(`http://localhost:4000/clubs/cencellMember/${clubNumber}`)
         .then((response) => {
           alert("모임 탈퇴 성공");
-          navigate(`/mypage/wish`);
+          navigate(`/mypage`);
         })
         .catch((err) => {
           console.log(err);
@@ -85,7 +73,7 @@ function Header() {
   const id = open ? "simple-popover" : undefined;
   //hyk 추가 언디파인에 대한 에러 값을 설정
   const clubs = getClub.clubs || {};
-  const adminEmail = clubs.admin || '';
+  const adminEmail = clubs.admin || "";
   const members = Array.isArray(clubs.members) ? clubs.members : [];
 
   return (
@@ -95,7 +83,7 @@ function Header() {
         top: 0,
         left: 0,
         width: "100%",
-        height: "64px",
+        height: "70px",
         backgroundColor: "white",
         color: "black",
         display: "flex",
@@ -104,7 +92,7 @@ function Header() {
         zIndex: 1100, // Material-UI의 기본 z-index보다 높은 값 설정
       }}
     >
-      <Container maxWidth="md" sx={{ padding: "0px !important" }}>
+      <Container maxWidth="lg" sx={{ padding: "0px !important" }}>
         <Box>
           <Toolbar sx={{ padding: "0px !important" }}>
             <ArrowBackIosIcon
@@ -120,11 +108,7 @@ function Header() {
                 navigate("/clublist");
               }}
             ></ArrowBackIosIcon>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{ flexGrow: 1, color: "black" }}
-            >
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: "black" }}>
               {getClub.clubs.title}
             </Typography>
             <FavoriteIcon
@@ -140,12 +124,7 @@ function Header() {
               }}
             />
             <ShareOutlinedIcon sx={{ padding: "7px", color: "black" }} />
-            <MenuIcon
-              aria-describedby={id}
-              variant="contained"
-              onClick={handleClick}
-              sx={{ padding: "7px", color: "black" }}
-            />
+            <MenuIcon aria-describedby={id} variant="contained" onClick={handleClick} sx={{ padding: "7px", color: "black" }} />
           </Toolbar>
         </Box>
         <Popover
@@ -168,22 +147,21 @@ function Header() {
               클럽 삭제하기
             </Box>
           )}
-          {user.email !== adminEmail &&
-           members.includes(user.email) && (
-              <Box
-                onClick={() => {
-                  cancellClub();
-                }}
-                sx={{ padding: "10px" }}
-              >
-                클럽 탈퇴하기
-              </Box>
-            )}
 
-          <Box onClick={() => { }} sx={{ padding: "10px" }}>
+          {user.email !== getClub.clubs.admin && getClub?.clubs?.members?.includes(user.email) && (
+            <Box
+              onClick={() => {
+                cancellClub();
+              }}
+              sx={{ padding: "10px" }}
+            >
+              클럽 탈퇴하기
+            </Box>
+          )}
+          <Box onClick={() => {}} sx={{ padding: "10px" }}>
             모임 url 공유하기
           </Box>
-          <Box onClick={() => { }} sx={{ padding: "10px" }}>
+          <Box onClick={() => {}} sx={{ padding: "10px" }}>
             모임 신고하기
           </Box>
         </Popover>
