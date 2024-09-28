@@ -12,7 +12,7 @@ const StyledButton = styled(Button)(({ theme, variant }) => ({
 }));
 
 // CustomButton 컴포넌트 정의
-const CustomButton2 = ({ children, variant = 'contained', ...props }) => {
+const CustomButton2 = ({ children, ...props }) => {
   return (
     // StyledButton 컴포넌트에 전달된 props를 모두 넘겨주고, children을 버튼 안에 렌더링
     <StyledButton {...props}>{children}</StyledButton>
