@@ -21,13 +21,13 @@ const InterestSearch = ({ setInterestSido, setInterestSigoon, setInterestDong })
 //    }
 //  }, [ interestLocation.neighborhood, setValue]);
 
-
-  const interestSearchTerm = watch('interestSearchTerm');
+  const apiKey= process.env.REACT_APP_KEY_API
   const port = process.env.REACT_APP_ADDRESS_API;
+  const interestSearchTerm = watch('interestSearchTerm');
 
   useEffect(() => {
     if (interestSearchTerm) {
-      fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${interestSearchTerm}`)
+      fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=${apiKey}&domain=${port}&attrFilter=emd_kor_nm:like:${interestSearchTerm}`)
         .then(response => response.json())
         .then(data => {
           if (data.response && data.response.status === 'OK' && data.response.result && data.response.result.featureCollection.features) {
@@ -64,6 +64,28 @@ const InterestSearch = ({ setInterestSido, setInterestSigoon, setInterestDong })
     }
   };
 
+  const handleChange = (e) => {
+    const inputValue = e.target.value;
+    const parts = inputValue.split(' ').filter(Boolean); // 공백만 있는 경우 제거
+
+    if (parts.length > 3) {
+      parts.length = 3; // 첫 3개로 제한
+    }
+
+    const i_sido = parts[0] || ''; // 첫 번째 값은 시도 (없으면 빈 문자열)
+    const i_sigoon = parts[1] || ''; // 두 번째 값은 시군 (없으면 빈 문자열)
+    const i_dong = parts[2] || ''; // 세 번째 값은 읍면동 (없으면 빈 문자열)
+
+    console.log('관심','시도:', i_sido, '시군:', i_sigoon, '읍면동:', i_dong); // 각 값 출력
+
+    // 선택된 값 반영
+    setInterestSido(i_sido);
+    setInterestSigoon(i_sigoon);
+    setInterestDong(i_dong);
+
+    setValue('interestSearchTerm', inputValue, { shouldValidate: true }); // 입력된 값을 검색 필드에 반영
+};
+
   const StyledListItem = styled(ListItem)(({ theme }) => ({
     '&:hover': {
       backgroundColor: theme.palette.action.hover,
@@ -87,9 +109,7 @@ return (
           }
         })}
         onKeyDown={handleInterestKeyDown} 
-        onChange={(e) => {
-          setValue('interestSearchTerm', e.target.value, { shouldValidate: true }); // 변경된 값을 즉시 검증하도록 설정합니다
-        }}
+        onChange={handleChange}
         placeholder='*읍면동 중 하나 입력해주세요 예) 강화읍'
         sx={{
           bgcolor: 'white',

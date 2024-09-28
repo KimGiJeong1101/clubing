@@ -20,13 +20,13 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
   //     setValue('searchTerm', homeLocation.neighborhood);
   //   }
   // }, [homeLocation.neighborhood, setValue]);
-
-  const searchTerm = watch('searchTerm'); // watch로 searchTerm의 값을 실시간으로 가져옵니다.
+  const apiKey= process.env.REACT_APP_KEY_API
   const port = process.env.REACT_APP_ADDRESS_API;
+  const searchTerm = watch('searchTerm'); // watch로 searchTerm의 값을 실시간으로 가져옵니다.
 
   useEffect(() => {
     if (searchTerm) {
-      fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=286E5CAE-A8D1-3D02-AB4E-2DF927614303&domain=${port}&attrFilter=emd_kor_nm:like:${searchTerm}`)
+      fetch(`/api/req/data?service=data&request=GetFeature&data=LT_C_ADEMD_INFO&key=${apiKey}&domain=${port}&attrFilter=emd_kor_nm:like:${searchTerm}`)
         .then(response => response.json())
         .then(data => {
           if (data.response && data.response.status === 'OK' && data.response.result && data.response.result.featureCollection.features) {
@@ -59,9 +59,31 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
       e.preventDefault();
       if (results.length > 0) {
         handleSelect(results[0]);
-      }
+      } 
     }
   };
+
+  const handleChange = (e) => {
+    const inputValue = e.target.value;
+    const parts = inputValue.split(' ').filter(Boolean); // 공백만 있는 경우 제거
+
+    if (parts.length > 3) {
+      parts.length = 3; // 첫 3개로 제한
+    }
+
+    const sido = parts[0] || ''; // 첫 번째 값은 시도 (없으면 빈 문자열)
+    const sigoon = parts[1] || ''; // 두 번째 값은 시군 (없으면 빈 문자열)
+    const dong = parts[2] || ''; // 세 번째 값은 읍면동 (없으면 빈 문자열)
+
+    console.log('집주소','시도:', sido, '시군:', sigoon, '읍면동:', dong); // 각 값 출력
+
+    // 선택된 값 반영
+    setSelectedSido(sido);
+    setSelectedSigoon(sigoon);
+    setSelectedDong(dong);
+
+    setValue('searchTerm', inputValue, { shouldValidate: true }); // 입력된 값을 검색 필드에 반영
+};
 
   const StyledListItem = styled(ListItem)(({ theme }) => ({
     '&:hover': {
@@ -85,9 +107,7 @@ const HomeSearch = ({ setSelectedSido, setSelectedSigoon, setSelectedDong }) => 
           }
         })}
         onKeyDown={handleKeyDown} // Enter 키 처리
-        onChange={(e) => {
-          setValue('searchTerm', e.target.value, { shouldValidate: true }); // 변경된 값을 즉시 검증하도록 설정합니다
-        }}
+        onChange={handleChange}
         placeholder="*읍면동 중 하나 입력해주세요 예) 상도동"
         sx={{
           bgcolor: 'white',
