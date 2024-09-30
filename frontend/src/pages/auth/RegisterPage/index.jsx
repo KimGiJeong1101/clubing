@@ -739,7 +739,7 @@ const consentPopupClose = (type) => {
             메일수정
           </CustomButton2 >
           <CustomButton  
-          variant="contained"
+      ㅋㅋ
           className="buttonSub2"
           sx={{ height: '25px' }}
             onClick={handleSendAuthEmail}>
