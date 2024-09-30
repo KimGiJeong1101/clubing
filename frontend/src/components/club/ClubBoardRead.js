@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
+import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
 import {
   DecoupledEditor,
   AccessibilityHelp,
@@ -65,14 +65,14 @@ import {
   TextTransformation,
   TodoList,
   Underline,
-  Undo
-} from 'ckeditor5';
-import translations from 'ckeditor5/translations/ko.js';
-import 'ckeditor5/ckeditor5.css';
-import '../../assets/styles/ClubBoard.css';
-import { Box } from '@mui/material';
+  Undo,
+} from "ckeditor5";
+import translations from "ckeditor5/translations/ko.js";
+import "ckeditor5/ckeditor5.css";
+import "../../assets/styles/ClubBoard.css";
+import { Box } from "@mui/material";
 
-const categories = ['자유글', '관심사공유', '모임후기', '가입인사','공지사항(전체알림)','투표']; // 카테고리 옵션
+const categories = ["자유글", "관심사공유", "모임후기", "가입인사", "공지사항(전체알림)", "투표"]; // 카테고리 옵션
 
 export default function CKEditor5Editor({ onChange, content, setImage, readOnly }) {
   const editorContainerRef = useRef(null);
@@ -89,7 +89,8 @@ export default function CKEditor5Editor({ onChange, content, setImage, readOnly 
           const data = new FormData();
           loader.file.then((file) => {
             data.append("file", file);
-            axios.post('http://localhost:4000/clubs/boards/upload', data)
+            axios
+              .post("http://localhost:4000/clubs/boards/upload", data)
               .then((res) => {
                 setImage(res.data.filename); // 업로드된 이미지의 파일명 저장
                 const dateFolder = getFormattedDate(); // getFormattedDate() 함수가 필요합니다.
@@ -99,20 +100,20 @@ export default function CKEditor5Editor({ onChange, content, setImage, readOnly 
               .catch((err) => reject(err));
           });
         });
-      }
+      },
     };
   };
 
   function getFormattedDate() {
     const now = new Date();
     const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 
   function uploadPlugin(editor) {
-    editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+    editor.plugins.get("FileRepository").createUploadAdapter = (loader) => {
       return customUploadAdapter(loader);
     };
   }
@@ -187,70 +188,69 @@ export default function CKEditor5Editor({ onChange, content, setImage, readOnly 
       TodoList,
       Underline,
       Undo,
-      uploadPlugin 
+      uploadPlugin,
     ],
     fontFamily: {
-      supportAllValues: true
+      supportAllValues: true,
     },
     fontSize: {
-      options: [10, 12, 14, 'default', 18, 20, 22],
-      supportAllValues: true
+      options: [10, 12, 14, "default", 18, 20, 22],
+      supportAllValues: true,
     },
     heading: {
       options: [
-        {model: 'paragraph',title: 'Paragraph',class: 'ck-heading_paragraph'},
-        {model: 'heading1',view: 'h1',title: 'Heading 1',class: 'ck-heading_heading1'},
-        {model: 'heading2',view: 'h2',title: 'Heading 2',class: 'ck-heading_heading2'},
-        {model: 'heading3',view: 'h3',title: 'Heading 3',class: 'ck-heading_heading3'},
-        {model: 'heading4',view: 'h4',title: 'Heading 4',class: 'ck-heading_heading4'},
-        {model: 'heading5',view: 'h5',title: 'Heading 5',class: 'ck-heading_heading5'},
-        {model: 'heading6',view: 'h6',title: 'Heading 6',class: 'ck-heading_heading6'}
-      ]
+        { model: "paragraph", title: "Paragraph", class: "ck-heading_paragraph" },
+        { model: "heading1", view: "h1", title: "Heading 1", class: "ck-heading_heading1" },
+        { model: "heading2", view: "h2", title: "Heading 2", class: "ck-heading_heading2" },
+        { model: "heading3", view: "h3", title: "Heading 3", class: "ck-heading_heading3" },
+        { model: "heading4", view: "h4", title: "Heading 4", class: "ck-heading_heading4" },
+        { model: "heading5", view: "h5", title: "Heading 5", class: "ck-heading_heading5" },
+        { model: "heading6", view: "h6", title: "Heading 6", class: "ck-heading_heading6" },
+      ],
     },
-   
-    initialData: content || '', // 기본값을 빈 문자열로 설정
-    language: 'ko',
+
+    initialData: content || "", // 기본값을 빈 문자열로 설정
+    language: "ko",
     link: {
       addTargetToExternalLinks: true,
-      defaultProtocol: 'https://',
+      defaultProtocol: "https://",
       decorators: {
         toggleDownloadable: {
-          mode: 'manual',
-          label: 'Downloadable',
+          mode: "manual",
+          label: "Downloadable",
           attributes: {
-            download: 'file'
-          }
-        }
-      }
+            download: "file",
+          },
+        },
+      },
     },
     list: {
       properties: {
         styles: true,
         startIndex: true,
-        reversed: true
-      }
+        reversed: true,
+      },
     },
-    placeholder: '내용을 입력해주세요😆',
-    translations: [translations]
+    placeholder: "내용을 입력해주세요😆",
+    translations: [translations],
   };
 
   useEffect(() => {
     if (editorInstance) {
-      editorInstance.model.document.on('change:data', () => {
+      editorInstance.model.document.on("change:data", () => {
         const data = editorInstance.getData();
         onChange(data);
       });
 
       // Set the editor to readOnly mode if readOnly prop is true
       if (readOnly) {
-        editorInstance.enableReadOnlyMode('readOnly');
+        editorInstance.enableReadOnlyMode("readOnly");
       } else {
-        editorInstance.disableReadOnlyMode('readOnly');
+        editorInstance.disableReadOnlyMode("readOnly");
       }
     }
   }, [editorInstance, onChange, readOnly]);
 
-  
   return (
     <Box mb={2}>
       <div className="main-container">
@@ -261,7 +261,7 @@ export default function CKEditor5Editor({ onChange, content, setImage, readOnly 
                 onReady={(editor) => {
                   setEditorInstance(editor);
                   if (readOnly) {
-                    editor.enableReadOnlyMode('readOnly');
+                    editor.enableReadOnlyMode("readOnly");
                   }
                 }}
                 onChange={(event, editor) => {
@@ -269,15 +269,15 @@ export default function CKEditor5Editor({ onChange, content, setImage, readOnly 
                   onChange(data);
                 }}
                 onBlur={(event, editor) => {
-                  console.log('Blur.', editor);
+                  console.log("Blur.", editor);
                 }}
                 onFocus={(event, editor) => {
-                  console.log('Focus.', editor);
+                  console.log("Focus.", editor);
                 }}
                 editor={DecoupledEditor}
                 config={{
                   ...editorConfig,
-                  extraPlugins: [uploadPlugin] // 수정된 부분
+                  extraPlugins: [uploadPlugin], // 수정된 부분
                 }}
               />
             )}

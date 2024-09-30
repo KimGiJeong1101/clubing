@@ -6,11 +6,11 @@ import Avatar from "@mui/material/Avatar";
 import AvatarGroup from "@mui/material/AvatarGroup";
 import ModeNightIcon from "@mui/icons-material/ModeNight";
 import ClubListCard from "../../components/club/ClubListCard.js";
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-import { useSelector } from 'react-redux';
+import { useSelector } from "react-redux";
 
 const ClubsList = () => {
   const [category, setCategory] = useState("");
@@ -20,11 +20,8 @@ const ClubsList = () => {
 
   const navigate = useNavigate();
 
-  const email = useSelector(state => state.user?.userData?.user?.email || null);
-  const user = useSelector(state => state.user?.userData?.user?.email || null);
-
-  
-
+  const email = useSelector((state) => state.user?.userData?.user?.email || null);
+  const user = useSelector((state) => state.user?.userData?.user?.email || null);
 
   // 데이터 요청 함수
   const fetchClubs = async ({ pageParam = 1 }) => {
@@ -45,7 +42,7 @@ const ClubsList = () => {
     isLoading,
     isError,
     fetchNextPage,
-    hasNextPage
+    hasNextPage,
   } = useInfiniteQuery({
     queryKey: ["clubList", category, searchRegion],
     queryFn: fetchClubs,
@@ -53,7 +50,7 @@ const ClubsList = () => {
       return lastPage.length >= 3 ? allPages.length + 1 : undefined;
     },
     keepPreviousData: true,
-  }); 
+  });
 
   const clubsList = clubListData?.pages.flat() || [];
 
@@ -107,10 +104,12 @@ const ClubsList = () => {
   }
 
   return (
-    <Box sx={{ width: "100%", paddingTop:"20px", backgroundColor: "#F2F2F2", position: "relative" }}>
-      <Container maxWidth="lg" sx={{ paddingBottom: "40px"}}>
+    <Box sx={{ width: "100%", paddingTop: "20px", backgroundColor: "#F2F2F2", position: "relative" }}>
+      <Container maxWidth="lg" sx={{ paddingBottom: "40px" }}>
         <Box>
-        <Typography mb={4} variant="h5">지역기반 추천</Typography>
+          <Typography mb={4} variant="h5">
+            지역기반 추천
+          </Typography>
         </Box>
         <Grid container spacing={2} sx={{ display: "flex" }}>
           {searchRegion && (
@@ -372,12 +371,7 @@ const ClubsList = () => {
           ))}
         </Grid>
         {hasNextPage && (
-          <Button
-            onClick={loadMoreClubs}
-            variant="contained"
-            color="primary"
-            sx={{ marginTop: "20px" }}
-          >
+          <Button onClick={loadMoreClubs} variant="contained" color="primary" sx={{ marginTop: "20px" }}>
             더보기
           </Button>
         )}

@@ -6,6 +6,7 @@ import { registerUser } from '../../../store/actions/userActions'
 import HomeSearch from './address/HomeSearch';
 import WorkplaceSearch from './address/WorkplaceSearch';
 import InterestSearch from './address/InterestSearch';
+import LocationSelector from './address/LocationSelector';
 import CategoryPopup from './category/CategoryPopup';
 import categories from './category/CategoriesData';
 import JobPopup from './job/JobPopup';
@@ -95,13 +96,14 @@ const RegisterPage = () => {
       return;
     }
 
-    if (category.length === 0) {
-      // 카테고리 배열이 비어 있을 때
-      setSnackbarMessage('카테고리를 설정해 주세요');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
+     // main 카테고리 개수 확인
+     const mainCategories = category.filter(cat => cat.main);
+     if (mainCategories.length < 3) {
+       setSnackbarMessage('최소 3개의 메인 카테고리를 설정해 주세요.');
+       setSnackbarSeverity('error');
+       setSnackbarOpen(true);
+       return;
+     }
 
     if (!terms) {
       // 이용약관 동의가 없을 때
@@ -118,6 +120,8 @@ const RegisterPage = () => {
       setSnackbarOpen(true);
       return;
     }
+
+     
 
      const categoryObject = category.reduce((acc, cat) => {
       if (cat.main && Array.isArray(cat.sub)) {
@@ -197,6 +201,7 @@ const RegisterPage = () => {
     reset(); // 폼 초기화
   };
   
+
   //api
   const apiUrl = process.env.REACT_APP_API_URL;
 
@@ -559,12 +564,16 @@ const [verifyError, setVerifyError] = useState('');
         setSnackbarMessage(response.data.message);
         setSnackbarSeverity('success'); // 성공 메시지
         setSnackbarOpen(true);
+
+        // 닉네임이 유효한 경우 상태 업데이트
         setIsNickNameChecked(true);  // 닉네임 확인 후 버튼 상태 변경
         setIsNickNameReset(true); // 수정 버튼 상태로 변경
       } catch (err) {
         setSnackbarMessage(err.response ? err.response.data.message : '서버 오류');
         setSnackbarSeverity('error'); // 오류 메시지
         setSnackbarOpen(true);
+
+         // 중복 검사가 실패한 경우 상태 유지
         setIsNickNameChecked(false);  // 오류 발생 시 버튼 상태 유지
         setIsNickNameReset(false);
       }
@@ -642,6 +651,11 @@ const consentPopupClose = (type) => {
   setIsPopupOpen(prev => ({ ...prev, [type]: false }));
 };
 
+
+//xptmxm
+const [workplaceSido, setWorkplaceSido] = useState('');  // 도(시도)
+const [workplaceSigoon, setWorkplaceSigoon] = useState('');  // 시군구
+const [workplaceDong, setWorkplaceDong] = useState('');  // 읍면동
 
   return (
     <Box 
@@ -1207,7 +1221,27 @@ const consentPopupClose = (type) => {
         setInterestSido={(sido) => setInterestLocation(prev => ({ ...prev, i_sido: sido }))} 
         setInterestSigoon={(sigoon) => setInterestLocation(prev => ({ ...prev, i_sigoon: sigoon }))} 
         setInterestDong={(dong) => setInterestLocation(prev => ({ ...prev, i_dong: dong }))} />
-</Box>     
+</Box> 
+
+
+{/*테스트 
+<Box sx={{ display: 'flex', alignItems: 'center', mt: 2  }}>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    도: {workplaceSido}
+    </Typography>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    시군구: {workplaceSigoon}
+    </Typography>
+    <Typography variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
+    읍면동: {workplaceDong}
+    </Typography>
+    <LocationSelector
+        setWorkplaceSido={setWorkplaceSido}
+        setWorkplaceSigoon={setWorkplaceSigoon}
+        setWorkplaceDong={setWorkplaceDong}
+    />
+</Box> */}
+
 {/*직종 */}
 <Box>
       {/* 직종 선택 버튼 */}

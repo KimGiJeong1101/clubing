@@ -21,22 +21,7 @@ const chatSlice = createSlice({
   initialState, // 초기 상태
   reducers: {}, // 이 slice에서 사용하는 동기 액션은 없음
   extraReducers: (builder) => {
-    // 클럽 세부정보를 가져오는 비동기 액션 처리
-    builder
-    .addCase(fetchClubDetailByClubId.pending, (state) => {
-      console.log('Fetching club detail...');
-      state.status = 'loading';
-    })
-    .addCase(fetchClubDetailByClubId.fulfilled, (state, action) => {
-      console.log('Fetch successful:', action.payload);
-      state.status = 'succeeded';
-      state.clubDetail = action.payload;
-    })
-    .addCase(fetchClubDetailByClubId.rejected, (state, action) => {
-      console.log('Fetch failed:', action.payload);
-      state.status = 'failed';
-      state.error = action.payload;
-      });
+    
 
     // 채팅방 생성
     builder
@@ -51,6 +36,23 @@ const chatSlice = createSlice({
       .addCase(enterChatRoom.rejected, (state, action) => {
         state.status = 'failed'; // 요청 실패 시 상태를 실패로 변경
         state.error = action.payload; // 에러 메시지를 state에 저장
+      });
+
+      // 클럽 세부정보를 가져오는 비동기 액션 처리
+    builder
+    .addCase(fetchClubDetailByClubId.pending, (state) => {
+      console.log('Fetching club detail...');
+      state.status = 'loading';
+    })
+    .addCase(fetchClubDetailByClubId.fulfilled, (state, action) => {
+      console.log('Fetch successful:', action.payload);
+      state.status = 'succeeded';
+      state.clubDetail = action.payload;
+    })
+    .addCase(fetchClubDetailByClubId.rejected, (state, action) => {
+      console.log('Fetch failed:', action.payload);
+      state.status = 'failed';
+      state.error = action.payload;
       });
 
     // 초기 메시지 가져오기

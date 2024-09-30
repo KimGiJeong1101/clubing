@@ -15,7 +15,7 @@ const server = http.createServer(app);
 // 미들웨어 설정
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin:  ["https://hykworld.github.io", "http://localhost:3000"],
     credentials: true,
     //클라이언트에서 서버로 요청을 보낼 때 쿠키와 인증 헤더를 포함할 수 있게 해주는 설정입니다.
     //이 옵션은 클라이언트와 서버 간의 인증된 세션 유지에 중요한 역할을 합니다.
@@ -24,7 +24,7 @@ app.use(
 
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000", // 소켓 통신을 허용할 출처
+    origin: ["https://hykworld.github.io", "http://localhost:3000"], // 소켓 통신을 허용할 출처
     methods: ["GET", "POST"], // 허용할 HTTP 메소드
   },
 });
