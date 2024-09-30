@@ -33,9 +33,6 @@ const io = socketIo(server, {
 app.use(express.json()); // JSON 파싱
 app.use(express.urlencoded({ extended: true })); // URL-encoded 파싱
 
-// 세션 설정 적용
-//app.use(session);
-
 // 쿠키 파서 미들웨어
 app.use(cookieParser());
 
