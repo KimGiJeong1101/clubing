@@ -3,12 +3,11 @@
 
 const express = require("express");
 const router = express.Router();
-const ChatRoom = require("../models/ChatRoom"); // ChatRoom 모델 불러오기
+const ChatRoom = require("../models/ChatRoom");
 const Club = require("../models/Club"); // Club 모델 불러오기
 const Message = require("../models/Message"); // Message 모델 불러오기
 const User = require("../models/User"); // User 모델 불러오기
 const mongoose = require("mongoose");
-const ReadBy = require("../models/ReadBy"); // ReadBy 모델 불러오기
 const auth = require("../middleware/auth"); // auth 미들웨어 임포트
 
 // 사용자 ID로 사용자 정보를 가져오는 함수
@@ -35,7 +34,6 @@ router.post("/room", auth, async (req, res) => {
     console.log("Received request body:", req.body);
     console.log("Received clubId:", clubId);
     console.log("Received participants:", participants);
-    console.log("-----------------------");
 
     // clubId가 제공되지 않은 경우, 클라이언트에게 에러 메시지를 반환
     if (!clubId) {
@@ -51,7 +49,6 @@ router.post("/room", auth, async (req, res) => {
 
     const userId = req.user.email; // 요청한 사용자의 ID (로그인 정보를 req.user로 받아왔을 때)
 
-    console.log("지금로그인한사람 누구니~?" + userId);
     if (!clubExists.members.includes(userId.toString())) {
       return res.status(403).json({ message: "모임에 가입된 멤버만 채팅방에 접근할 수 있습니다." });
     }
@@ -142,10 +139,8 @@ router.post("/room", auth, async (req, res) => {
 
 router.get("/room/:clubId", auth, async (req, res) => {
   try {
-    console.log("하하하하하하");
     console.log(req.query.clubNumber);
     console.log(req.params.clubNumber);
-    console.log("하하하하하하");
 
     const clubId = req.params.clubId;
     // URL에서 clubNumber를 가져옴
@@ -172,7 +167,6 @@ router.get("/room/:clubId", auth, async (req, res) => {
     // 모임에 참가한 멤버인지 확인
     const userId = req.user.email; // 로그인 정보를 통해 가져온 사용자 ID
 
-    console.log("지금 로그인 누구? 2번째" + userId);
     if (!club.members.includes(userId.toString())) {
       return res.status(403).json({ message: "모임에 가입된 멤버만 채팅방에 접근할 수 있습니다." });
     }
@@ -199,9 +193,6 @@ router.get("/:clubId/messages", auth, async (req, res) => {
     // 2. 요청한 사용자의 ID로 참가 기록을 확인
     const userId = req.user._id;
 
-    console.log("리퀘스트유저아이디 뭘로 뜨는지 " + userId);
-    
-
     const participant = chatRoom.participants.find((p) => p.userId.equals(userId));
 
     if (!participant) {
@@ -223,76 +214,5 @@ router.get("/:clubId/messages", auth, async (req, res) => {
     res.status(500).json({ error: "메시지를 불러오는데 실패했습니다." });
   }
 });
-
-// router.post('/:messageId/read', async (req, res) => {
-//   const { messageId } = req.params;
-//   const { userId } = req.body;
-
-//   console.log("POST request received. Message ID:", messageId, "User ID:", userId);
-
-//   try {
-//     // 메시지가 존재하는지 확인
-//     const message = await Message.findById(messageId);
-//     if (!message) {
-//       console.log("Message not found for ID:", messageId);
-//       return res.status(404).json({ message: '메시지가 존재하지 않습니다.' });
-//     }
-
-//     let readBy = await ReadBy.findOne({ messageId });
-
-//     if (readBy) {
-//       console.log("ReadBy document found:", readBy);
-//       const userIndex = readBy.users.findIndex(user => user.userId.toString() === userId);
-//       if (userIndex === -1) {
-//         console.log("User not found in readBy.users, adding new user.");
-//         readBy.users.push({ userId, readAt: new Date() });
-//         await readBy.save();
-//       } else {
-//         console.log("User found in readBy.users, updating readAt.");
-//         readBy.users[userIndex].readAt = new Date();
-//         await readBy.save();
-//       }
-//     } else {
-//       console.log("No ReadBy document found, creating new one.");
-//       readBy = new ReadBy({
-//         messageId,
-//         users: [{ userId, readAt: new Date() }]
-//       });
-//       await readBy.save();
-//     }
-
-//     res.status(200).json({ message: '읽음 상태가 업데이트되었습니다.' });
-//   } catch (error) {
-//     console.error("Error in POST /:messageId/read:", error);
-//     res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-//   }
-// });
-
-// router.get('/chatrooms/messages/:messageId/read', async (req, res) => {
-//   const { messageId } = req.params;
-
-//   console.log("GET request received for message ID:", messageId);
-
-//   try {
-//     // 메시지가 존재하는지 확인
-//     const message = await Message.findById(messageId);
-//     if (!message) {
-//       console.log("Message not found for ID:", messageId);
-//       return res.status(404).json({ message: '메시지가 존재하지 않습니다.' });
-//     }
-
-//     const readBy = await ReadBy.findOne({ messageId });
-//     if (readBy) {
-//       console.log("ReadBy document found:", readBy);
-//       res.status(200).json({ readBy: readBy.users });
-//     } else {
-//       console.log("No readBy document found for message ID:", messageId);
-//       res.status(404).json({ message: '읽음 기록이 없습니다.' });
-//     }
-//   } catch (error) {
-//     console.error("Error in GET /chatrooms/messages/:messageId/read:", error);
-//     res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-//   }
-// });
 
 module.exports = router;
