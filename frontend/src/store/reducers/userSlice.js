@@ -6,6 +6,7 @@ import {
   logoutUser,
   myPage,
   updateUser,
+  kakaoLoginUser,
 } from "../actions/userActions";
 import { Snackbar, Alert } from "@mui/material";
 
@@ -114,6 +115,25 @@ const userSlice = createSlice({
         message: '로그인 실패',
         severity: 'error',
     };
+    })
+
+    // 카카오 로그인 처리
+    .addCase(kakaoLoginUser.pending, (state) => {
+      state.isLoading = true; // 로그인 요청 시작 시 로딩 상태 설정
+    })
+    .addCase(kakaoLoginUser.fulfilled, (state, action) => {
+      state.isLoading = false; // 로그인 요청이 성공적으로 완료되면 로딩 해제
+      state.userData = action.payload; // 로그인한 사용자 데이터 저장
+      state.isAuth = true; // 인증 상태 설정
+    })
+    .addCase(kakaoLoginUser.rejected, (state, action) => {
+      state.isLoading = false; // 로그인 요청이 실패하면 로딩 해제
+      state.error = action.payload || '로그인 실패'; // 에러 메시지 저장
+      state.snackbar = {
+        open: true, // 스낵바 열기
+        message: '로그인 실패', // 표시할 메시지
+        severity: 'error', // 에러 유형
+      };
     })
 
     // 인증

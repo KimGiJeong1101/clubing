@@ -6,7 +6,6 @@ import { registerUser } from '../../../store/actions/userActions'
 import HomeSearch from './address/HomeSearch';
 import WorkplaceSearch from './address/WorkplaceSearch';
 import InterestSearch from './address/InterestSearch';
-import LocationSelector from './address/LocationSelector';
 import CategoryPopup from './category/CategoryPopup';
 import categories from './category/CategoriesData';
 import JobPopup from './job/JobPopup';
@@ -27,13 +26,14 @@ import CustomButton from '../../../components/club/CustomButton'
 import CustomButton2 from '../../../components/club/CustomButton2'
 import CustomSnackbar from '../../../components/auth/Snackbar';
 
-const RegisterPage = () => {
+const SnsRegister = () => { 
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
   useForm({  
             defaultValues: {
-              age: { year: '', month: '', day: '' },
-              gender: '',
-              homeLocation: { sido: '', sigoon: '', dong: '' },
+              email: 'hwangyk0910@kakao.com',
+              age: { year: '1990', month: '9', day: '10' },
+              gender: '남성',
+              homeLocation: { sido: '서울특별시', sigoon: '동작구', dong: '상도동' },
               workplace: { w_sido: '', w_sigoon: '', w_dong: '' },
               interestLocation: { i_sido: '', i_sigoon: '', i_dong: '' },
               category: [],
@@ -48,10 +48,28 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const emailParam = queryParams.get('email'); // URL에서 이메일 값을 가져옴
+
+    if (emailParam) {
+        setEmail(emailParam); // 이메일을 상태에 설정
+        console.log('가져온 이메일:', emailParam); // 이메일 값 확인
+    }
+}, []); // 빈 배열로 설정하여 한 번만 실행되도록 함
+
+// email 상태가 업데이트될 때마다 로그 출력 (필요 시 추가)
+useEffect(() => {
+    console.log('이메일 값:', email); // URL에서 가져온 이메일 값
+}, [email]);
+
   // 회원가입 폼 제출 시 실행되는 함수
   const onSubmit = (data) => {
     console.log('폼 제출 데이터:', data);
-    const { email, password, name, age = {}, 
+    console.log('이메일 데이터:', data.email); 
+    const { email, name, age = {}, 
             gender, homeLocation = {}, workplace = {}, interestLocation = {}, 
             category = [], selectedJobs = [], phone = '', nickName } = data;
             
@@ -64,14 +82,6 @@ const RegisterPage = () => {
   const { w_sido = '', w_sigoon = '', w_dong = '' } = workplace;
   const { i_sido = '', i_sigoon = '', i_dong = '' } = interestLocation;
   // 온서밋에 안 넣어도 되네 얘 때문에 몇시간을 버린거야 ㅠㅠ
-
-    if (!isVerified) {
-      // 이메일 인증이 완료되지 않았을 때
-      setSnackbarMessage('이메일 인증이 완료되지 않았습니다.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      return;
-    }
 
     if (!isNickNameChecked) {
       // 닉네임 중복 검사를 하지 않았을 때
@@ -122,8 +132,6 @@ const RegisterPage = () => {
       return;
     }
 
-     
-
      const categoryObject = category.reduce((acc, cat) => {
       if (cat.main && Array.isArray(cat.sub)) {
         acc.push({
@@ -137,7 +145,6 @@ const RegisterPage = () => {
     // 언디파인드 대비해서 초기값 넣기
     const body = {
       email,
-      password,
       name,
       nickName,
       age: {
@@ -172,10 +179,9 @@ const RegisterPage = () => {
         thumbnailImage: 'https://via.placeholder.com/600x400?text=no+user+image',
         introduction: ''
       },
-      registrationMethod: 0 // 회원가입 경로 추가, 기본값은 자체 회원가입 (0)
+      registrationMethod: 1 // 회원가입 경로 추가, 카카오
     }
    
-  
     console.log('들어간 값 확인', body);
 
     dispatch(registerUser(body))
@@ -186,7 +192,7 @@ const RegisterPage = () => {
 
         // 스낵바가 표시된 후 페이지를 이동하도록 타이머를 설정합니다.
         setTimeout(() => {
-          navigate('/'); // 성공 페이지로 리다이렉트
+          //navigate('/'); // 성공 페이지로 리다이렉트
         }, 1000); // 스낵바 표시 시간과 일치하도록 설정
       })
       .catch((error) => {
@@ -200,7 +206,7 @@ const RegisterPage = () => {
     //dispatch 함수를 받아와서 액션을 전달할 수 있게 해줍니다. 
     //Redux를 사용하면 이 상태를 **하나의 전역 저장소(store)**에서 관리할 수 있게 됩니다.
 
-    reset(); // 폼 초기화
+    //reset(); // 폼 초기화
   };
   
 
@@ -216,7 +222,6 @@ const RegisterPage = () => {
     setSnackbarOpen(false);
   };
   
-
   // 상태 정의
    const [homeLocation, setHomeLocation] = useState({ sido: '', sigoon: '', dong: '' });
    const [workplace, setWorkplace] = useState({ w_sido: '', w_sigoon: '', w_dong: '' });
@@ -227,16 +232,6 @@ const RegisterPage = () => {
     setValue('gender', value);
   };
 // register가 사용되지 않았지만 성별 값이 폼에 포함되는 이유는 setValue 함수와 watch 함수 덕분입니다.
-
-
-  // 이메일 유효성 검사 규칙
-  const userEmail = {
-    required: "필수 필드입니다.",
-    pattern: {
-      value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      message: "유효한 이메일 주소를 입력하세요."
-    }
-  };
 
   // 이름 유효성 검사 규칙
   const userName = (name) => {
@@ -268,31 +263,6 @@ const RegisterPage = () => {
     }
   };
 
-  // 비밀번호 유효성 검사 규칙
-  const userPassword = {
-    required: "필수 필드입니다.",
-    minLength: {
-      value: 8,
-      message: "최소 8자입니다."
-    },validate: value => {
-      // 비밀번호 유효성 검사 정규 표현식
-       const regex = /^(?=.*[a-zA-Z\u3131-\uD79D])(?=.*[\W_]).{6,}$/;
-       if (!regex.test(value)) {
-         return '안전한 비밀번호를 위해 영문 대/소문자, 특수문자 사용해 주세요.';
-       }
-       return true; // 유효성 검사 통과
-    }
-  };
-
-  const userPasswordCheck = {
-    required: 0,
-    minLength: {
-      value: 8,
-      message: "최소 8자입니다."
-    },
-    validate: (value) => value === watch('password') || '비밀번호가 일치하지 않습니다.'
-  };
-
   // 연도, 월, 일을 위한 옵션 생성
   const generateOptions = (start, end) => {
     const options = [];
@@ -301,12 +271,6 @@ const RegisterPage = () => {
     }
     return options;
   };
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordCheck, setShowPasswordCheck] = useState(false);
-
-  const handleClickShowPassword = () => setShowPassword(!showPassword);
-  const handleClickShowPasswordCheck = () => setShowPasswordCheck(!showPasswordCheck);
 
 
 // 생년월일 범주
@@ -357,7 +321,6 @@ function groupCategories(categories) {
  // 카테고리 상태가 변경될 때 폼 데이터와 동기화
  useEffect(() => {
   const grouped = groupCategories(selectedCategories);
-  console.log("카테고리 확인", grouped);
 
   // grouped 데이터를 categoryData 형식으로 변환
   const categoryData = Object.keys(grouped).map(main => ({
@@ -367,7 +330,6 @@ function groupCategories(categories) {
 
   setGroupedCategories(grouped); // 상태 업데이트
   setValue('category', categoryData); // 폼 데이터와 상태 동기화
-  console.log("카테고리 확인222", categoryData);
 }, [selectedCategories, setValue]);
 
 // 직종
@@ -403,145 +365,6 @@ useEffect(() => {
       setIsJobPopupOpen(false);
     }
   };
-
-  // 이메일 중복 체크
-  const emailValue = watch('email');
-  const [error, setError] = React.useState('');
-  const [message, setMessage] = React.useState('');
-  const [isEmailChecked, setIsEmailChecked] = useState(false);
-  const [authNumber, setAuthNumber] = useState('');
-  const [timer, setTimer] = useState(0); // 타이머 상태 (초 단위)
-  const [intervalId, setIntervalId] = useState(null); // 타이머 인터벌 ID
-  const [hasExpired, setHasExpired] = useState(false); // 만료 여부 상태
-
-  const handleCheckDuplicate = async () => {
-     // 이메일 주소가 null이거나 빈 문자열인 경우 처리
-    if (!emailValue || emailValue.trim() === '') {
-      setSnackbarMessage('이메일 주소를 입력해주세요.');
-      setSnackbarOpen(true); // 스낵바 열기
-      return; // 오류가 있을 경우 함수 실행 중지
-    }
-
-    if (errors.email) {
-      // 이메일 필드에 오류가 있을 경우 얼럿을 띄움
-      setSnackbarMessage('유효한 이메일 주소를 입력하세요.');
-      setSnackbarOpen(true); // 스낵바 열기
-      return; // 오류가 있을 경우 함수 실행 중지
-    }
-    const email = emailValue;
-    try {
-      const response = await axios.post(`${apiUrl}/users/check-email`, { email });
-      setMessage(response.data.message);
-      setError('');
-      setIsEmailChecked(true);  // 이메일 확인 후 버튼 상태 변경
-    } catch (err) {
-      setMessage('');
-      setError(err.response ? err.response.data.message : '서버 오류');
-      setIsEmailChecked(false);  // 오류 발생 시 버튼 상태 유지
-    }
-  };
-
-  //이메일 인증 보내기
-const handleSendAuthEmail = async () => {
-  try {
-      console.log('인증 이메일 발송 요청됨'); // 이 로그가 콘솔에 나타나야 합니다
-      const response = await axios.post(`${apiUrl}/users/email-auth`, 
-        { email: emailValue },
-        { timeout: 30000 } // 타임아웃을 10초로 설정 (10000ms)
-        );
-      console.log('API 응답이 있습니다. 상태 코드:', response.status);  
-      console.log('API aaaa응답:', response.data);
-      if (response.data.ok) {
-        setCodeId(response.data.codeId); // 서버로부터 받은 codeId를 상태에 저장
-        setAuthNumber(response.data.authNum); // 서버로부터 받은 인증번호를 상태에 저장
-
-        // 타이머를 3분으로 설정
-        setTimer(180); 
-
-        // 이전 타이머가 있으면 클리어
-        if (intervalId) {
-          clearInterval(intervalId); 
-          setIntervalId(null); // 이전 타이머 초기화 
-        }
-
-        // 새 타이머 시작
-        const id = setInterval(() => {
-          setTimer(prevTimer => {
-            if (prevTimer <= 1) {
-              clearInterval(id);
-              setHasExpired(true); // 만료 상태 설정
-              return 0;
-            }
-            return prevTimer - 1;
-          });
-        }, 1000);
-        
-        setIntervalId(id);
-      } else {
-          setError(response.data.msg);
-      }
-  } catch (err) {
-    console.error('API 호출 오류:', err); // 오류 로그 추가
-    setError('서버 오류');
-  } 
-};
-
-// 타이머가 변경될 때 메시지 업데이트
-useEffect(() => {
-  if (timer > 0) {
-    const minutes = Math.floor(timer / 60);
-    const seconds = timer % 60;
-    const formattedTime = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    setMessage(`인증번호가 전송되었습니다. [인증 기한 : ${formattedTime}]`);
-  } else if (hasExpired) {
-    setMessage('인증번호가 만료되었습니다.');
-  }
-}, [timer, hasExpired]);
-
-  const handleReset = () => {
-    setIsEmailChecked(false);
-    setIsVerified(false);
-    // 필요한 경우 추가 초기화 로직
-  };
-
-//인증 번호 확인
-const [verificationCode, setVerificationCode] = useState('');
-const [codeId, setCodeId] = useState(''); // 서버에서 받은 코드 ID
-const [isVerified, setIsVerified] = useState(false); // 인증 여부 상태 추가
-const [verifyError, setVerifyError] = useState('');
-
-    const handleVerifyClick = async () => {
-        try {
-            const response = await axios.post(`${apiUrl}/users/verifyAuth`, {
-                codeId,
-                inputCode: verificationCode,
-                email: emailValue 
-            });
-            console.log('인증 번호 확인 응답:', response.data); // 서버 응답 확인
-            if (response.data.ok) {
-                // 인증 성공
-                setIsVerified(true); 
-                setVerifyError(''); // 인증 성공 시 에러 메시지 초기화
-                setMessage(''); // 인증 성공 시 메시지 초기화
-                setTimer(0); // 타이머를 0으로 설정
-                setHasExpired(false); // 만료 상태 초기화
-                if (intervalId) {
-                  clearInterval(intervalId); // 인터벌 클리어
-                  setIntervalId(null);
-                }
-
-                // 스낵바 메시지 설정
-                setSnackbarMessage('인증에 성공하였습니다.');
-                setSnackbarOpen(true); // 스낵바 열기
-            } else {
-                // 인증 실패
-                setVerifyError(response.data.msg);
-            }
-        } catch (err) {
-          console.error('인증 번호 확인 에러:', err); // 에러 확인
-            setVerifyError('인증번호가 틀렸습니다.');
-        }
-    }
 
     const nickNameValue = watch('nickName');
     const [isNickNameChecked, setIsNickNameChecked] = useState(false);
@@ -653,22 +476,6 @@ const consentPopupClose = (type) => {
   setIsPopupOpen(prev => ({ ...prev, [type]: false }));
 };
 
-
-//xptmxm
-const [workplaceSido, setWorkplaceSido] = useState('');  // 도(시도)
-const [workplaceSigoon, setWorkplaceSigoon] = useState('');  // 시군구
-const [workplaceDong, setWorkplaceDong] = useState('');  // 읍면동
-
-const [email, setEmail] = useState('');
-
-useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const emailParam = queryParams.get('email');
-    if (emailParam) {
-        setEmail(emailParam); // URL에서 이메일 값을 상태에 저장
-    }
-}, [location]);
-
   return (
     <Box 
       sx={{ 
@@ -717,190 +524,22 @@ useEffect(() => {
       </Typography>
         <form className="mt-6" onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mb: 2 }}>
-      <Typography variant="body2" component="label" htmlFor="email" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
+        <Typography variant="body2" component="label" htmlFor="email" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
         이메일
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-        <TextField
-          label="이메일"
-          type="email"
-          id="email"
-          variant="outlined"
-          fullWidth
-          value={email} // 상태에서 가져온 이메일을 사용
-          onChange={(e) => setEmail(e.target.value)} // 입력 변화 시 상태 업데이트
-          {...register('email', userEmail )}
-          InputProps={{
-            readOnly: isEmailChecked,
-            sx: {
-              bgcolor: isEmailChecked ? 'grey.200' : 'white',
-              '& .MuiInputBase-input': {
-                color: isEmailChecked ? 'text.disabled' : 'text.primary',
-              },
-            },
-          }}
-          sx={{ flex: 1, mr: 1 }}
-        />
-         <Stack direction="row" spacing={2}>
-          {!isEmailChecked && (
-            <CustomButton2 
-            variant="contained" 
-            color="primary" 
-            className="buttonMain"
-            sx={{ height: '50px' }}
-            onClick={handleCheckDuplicate}>
-              중복검사
-            </CustomButton2>
-          )}
-              {isEmailChecked && (
-        <Stack direction="column" spacing={0}>
-          <CustomButton2  variant="outlined"  
-          className="buttonSub1"
-          sx={{ 
-            height: '25px',
-            borderColor: 'transparent',
-            '&:hover': {
-              borderColor: 'transparent',
-            } 
-          }}
-            onClick={handleReset}>
-            메일수정
-          </CustomButton2 >
-          <CustomButton  
-          variant="contained"
-          className="buttonSub2"
-          sx={{ height: '25px' }}
-            onClick={handleSendAuthEmail}>
-            인증하기
-          </CustomButton>
-        </Stack>
-          )}
-        </Stack>
-      </Box>
-      {error && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {error}
         </Typography>
-      )}
-      {message && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {message}
-        </Typography>
-      )}
-      {errors?.email && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {errors.email.message}
-        </Typography>
-      )}
-    </Box>
-{/* 인증번호 */}
-<Box sx={{ mb: 2 }}>
-      <Typography variant="body2" component="label" htmlFor="verification" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-        인증번호
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-        <TextField
-          label="인증번호"
-          type="text"
-          id="verification"
-          value={verificationCode}
-          onChange={(e) => setVerificationCode(e.target.value)}
-          fullWidth
-          sx={{
-            flex: 1,
-            mr: 1,
-            bgcolor: isVerified ? 'grey.200' : 'white',
-            '& .MuiInputBase-input': {
-              color: isVerified ? 'text.disabled' : 'text.primary',
-            },
-            boxSizing: 'border-box', // 패딩이 높이에 영향을 미치지 않도록
-          }}
-          InputProps={{
-            readOnly: isVerified,
-          }}
-        />
-        <CustomButton2
-          variant="contained"
-          color={isVerified ? 'grey' : 'primary'}
-          onClick={handleVerifyClick}
-          disabled={isVerified}
-          className="buttonMain"
-          sx={{ minHeight: '50px' }} // 버튼의 최소 높이를 설정하여 텍스트 필드와 높이를 맞춤
-        >
-          {isVerified ? '인증확인' : '인증완료'}
-        </CustomButton2>
-      </Box>
-      {verifyError && (
-        <Typography color="error" sx={{ mt: 1 }}>
-          {verifyError}
-        </Typography>
-      )}
-    </Box>
-{/* 비밀번호 */}
-    <Box mb={2}>
-      <Typography variant="body2" component="label" htmlFor="password"
-        sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-        비밀번호
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-        <TextField
-          label="비밀번호"
-          type={showPassword ? 'text' : 'password'}
-          fullWidth
-          variant="outlined"
-          {...register('password', userPassword)}
-          sx={{
-            bgcolor: 'white',
-          }}
-          error={!!errors.password}
-          helperText={errors.password ? errors.password.message : ''}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickShowPassword}
-                  edge="end"
-                >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
-    </Box>
-
-    <Box mb={2}>
-      <Typography variant="body2" component="label" htmlFor="password"
-      sx={{ fontWeight: 'bold', color: 'text.secondary' }}>
-      비밀번호 확인
-    </Typography>
-    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-        <TextField
-          label="비밀번호 확인"
-          type={showPasswordCheck ? 'text' : 'password'}
-          fullWidth
-          variant="outlined"
-          {...register('passwordCheck',  userPasswordCheck)}
-          sx={{
-            bgcolor: 'white',
-          }}
-          error={!!errors.passwordCheck}
-          helperText={errors.passwordCheck ? errors.passwordCheck.message : ''}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={handleClickShowPasswordCheck}
-                  edge="end"
-                >
-                  {showPasswordCheck ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-      </Box>
+       <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+            <TextField
+            label=""
+            type="email"
+            id="email"
+            variant="outlined"
+            fullWidth
+            value={email}
+            onChange={(e) => setEmail(e.target.value)} // 상태 업데이트
+            {...register('email')}
+            sx={{ flex: 1, mr: 1 }}
+            /> 
+        </Box>
     </Box>
 {/*이름 */}          
       <Box mb={2}>
@@ -1542,4 +1181,4 @@ useEffect(() => {
   );
 };
 
-export default RegisterPage;
+export default SnsRegister;

@@ -270,25 +270,46 @@ router.put('/myPage/update', auth, async (req, res, next) => {
 });
 //////////////////// 회원 탈퇴
 // 회원 탈퇴 API
-router.put('/myPage/delete', auth, async (req, res, next) => {
+//  user.isActive = false;
+// router.put('/myPage/delete', auth, async (req, res, next) => {
+//     try {
+//       const userId = req.user._id; // 현재 로그인한 사용자의 ID
+//       const user = await User.findById(userId);
+  
+//       if (!user) {
+//         return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+//       }
+  
+//       // isActive 필드를 false로 설정하여 탈퇴 처리
+//       user.isActive = false;
+//       await user.save();
+  
+//       res.status(200).json({ message: '탈퇴가 완료되었습니다.' });
+//     } catch (error) {
+//       next(error);
+//     }
+//   });
+  
+router.delete('/myPage/delete', auth, async (req, res, next) => {
     try {
-      const userId = req.user._id; // 현재 로그인한 사용자의 ID
-      const user = await User.findById(userId);
-  
-      if (!user) {
-        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-      }
-  
-      // isActive 필드를 false로 설정하여 탈퇴 처리
-      user.isActive = false;
-      await user.save();
-  
-      res.status(200).json({ message: '탈퇴가 완료되었습니다.' });
+        const userId = req.user._id; // 현재 로그인한 사용자의 ID
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+        }
+        // 사용자 이메일을 가져옴
+        const userEmail = user.email;
+        // 해당 사용자가 수신자로 있는 메시지 삭제
+        await MyMessage.deleteMany({ recipient: userEmail });
+        // 사용자 삭제
+        await User.findByIdAndDelete(userId);
+
+        res.status(200).json({ message: '회원이 삭제되었습니다.' });
     } catch (error) {
-      next(error);
+        next(error);
     }
-  });
-  
+});
 
 ////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정////////////////////////////////////////////////// 이미지 수정
 
