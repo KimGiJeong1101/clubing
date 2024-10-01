@@ -727,8 +727,6 @@ useEffect(() => {
           id="email"
           variant="outlined"
           fullWidth
-          value={email} // 상태에서 가져온 이메일을 사용
-          onChange={(e) => setEmail(e.target.value)} // 입력 변화 시 상태 업데이트
           {...register('email', userEmail )}
           InputProps={{
             readOnly: isEmailChecked,
@@ -767,7 +765,6 @@ useEffect(() => {
             메일수정
           </CustomButton2 >
           <CustomButton  
-      ㅋㅋ
           className="buttonSub2"
           sx={{ height: '25px' }}
             onClick={handleSendAuthEmail}>
