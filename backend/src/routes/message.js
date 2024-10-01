@@ -1,5 +1,5 @@
 const Message = require("../models/Message");
-const ChatRoom = require("../models/ChatRoom");
+const ChatRoom = require("../models/ChattingRoom");
 
 module.exports = (io) => {
   // 소켓 서버 연결 시 이벤트 처리

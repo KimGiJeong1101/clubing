@@ -62,7 +62,7 @@ router.post('/login', async (req, res) => {
             // 사용자가 없으면 이메일 정보를 쿼리 파라미터로 포함하여 리디렉션
             console.log(`회원정보 없어서 이동 중: ${userInfo.kakao_account.email}`);
             const email = userInfo.kakao_account.email;
-            return res.status(200).json({ redirectUrl: `http://localhost:3000/snsregister?email=${email}` });
+            return res.status(200).json({ redirectUrl: `http://localhost:3000/snsregister?email=${email}`});
         }
         // JWT 생성
         const payload = {
