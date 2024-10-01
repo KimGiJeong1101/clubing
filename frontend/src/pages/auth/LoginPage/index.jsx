@@ -13,6 +13,7 @@ import '../../../App.css';
 import '../../../assets/styles/LoginCss.css';
 import CustomButton2 from '../../../components/club/CustomButton2.jsx'
 import CustomCheckbox from '../../../components/club/CustomCheckbox.jsx'
+import axios from 'axios';
 
 const LoginPage = () => {
   const {
@@ -137,7 +138,18 @@ const LoginPage = () => {
       boxShadow: "0 0 0 2px rgba(0, 0, 0, 0.2)", // 포커스 시 그림자 효과
     },
   }));
+  
+//카카오 로그인
 
+// 로그인 버튼 클릭 시
+const kakaoLogin = () => {
+  const clientId = process.env.REACT_APP_KAKAO_API_URL;
+  const redirectUri = 'http://localhost:3000/kakao/callback';
+  const authUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code`;
+
+  window.location.href = authUrl;
+  //window.open(authUrl, 'kakaoLogin', 'width=600,height=700');
+};
   return (
     <Container
       sx={{
@@ -308,7 +320,17 @@ const LoginPage = () => {
             <a href="/register">회원가입</a>
           </Typography>
         </form>
+        <Box 
+         sx={{
+          mt: 2,
+        }}
+        onClick={kakaoLogin}
+        style={{ border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
+        >
+          <img src="/auth/kakao_login_icon_long.png" alt="버튼 이미지" />
       </Box>
+      </Box>
+    
       <Box
         display="flex"
         justifyContent="center"

@@ -2,12 +2,14 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../utils/axios";
 import { setFavoriteList } from '../reducers/wishSlice';
 import { fetchMessages } from "./myMessageActions"; // 메시지 가져오기 액션
+import axios from "axios";
 // Redux Toolkit에서 createAsyncThunk를 가져옴
 
 // 비동기 회원가입 액션 생성
 export const registerUser = createAsyncThunk(
   "user/registerUser", // 액션 타입: "user/registerUser"
   async (body, thunkAPI) => {
+    console.log("회원가입 데이터:", body); // 요청 데이터 확인
     try {
       const response = await axiosInstance.post(
         `/users/register`, // 회원가입 API 엔드포인트
@@ -90,6 +92,29 @@ export const updateUser = createAsyncThunk(
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const kakaoLoginUser = createAsyncThunk(
+  "user/kakaoLoginUser",
+  async (code, thunkAPI) => {
+    try {
+      const response = await axios.post(`http://localhost:4000/kakao/login`, { code }, { withCredentials: true });
+      const userData = response.data; // 서버 응답에서 userData 추출
+
+      if (userData.redirectUrl) {
+        window.location.href = userData.redirectUrl; // 클라이언트 측에서 리디렉션 처리
+      }
+      // 찜목록
+      thunkAPI.dispatch(fetchMessages(userData.user.email));
+      thunkAPI.dispatch(setFavoriteList(userData.user.wish));
+
+      return response.data;
+      // 액션 페이로드 부분
+    } catch (error) {
+      console.log(error);
+      return thunkAPI.rejectWithValue(error.response.data || error.message);
     }
   }
 );
