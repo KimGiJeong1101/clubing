@@ -30,7 +30,7 @@ const SnsRegister = () => {
   const { register, handleSubmit, formState: { errors }, reset, watch, setValue, control  } = 
   useForm({  
             defaultValues: {
-              email: 'hwangyk0910@kakao.com',
+              email: '',
               age: { year: '1990', month: '9', day: '10' },
               gender: '남성',
               homeLocation: { sido: '서울특별시', sigoon: '동작구', dong: '상도동' },
@@ -48,27 +48,27 @@ const SnsRegister = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState('');
+  const [userEmail, setUserEmail] = useState(''); // 변수 이름 변경
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const emailParam = queryParams.get('email'); // URL에서 이메일 값을 가져옴
 
     if (emailParam) {
-        setEmail(emailParam); // 이메일을 상태에 설정
+        setUserEmail(emailParam); // 이메일을 상태에 설정
         console.log('가져온 이메일:', emailParam); // 이메일 값 확인
     }
 }, []); // 빈 배열로 설정하여 한 번만 실행되도록 함
 
-// email 상태가 업데이트될 때마다 로그 출력 (필요 시 추가)
+// userEmail 상태가 업데이트될 때마다 로그 출력
 useEffect(() => {
-    console.log('이메일 값:', email); // URL에서 가져온 이메일 값
-}, [email]);
+    console.log('이메일 값:', userEmail); // URL에서 가져온 이메일 값
+}, [userEmail]);
 
   // 회원가입 폼 제출 시 실행되는 함수
   const onSubmit = (data) => {
     console.log('폼 제출 데이터:', data);
-    console.log('이메일 데이터:', data.email); 
+    console.log('최종 이메일 값:', data.email);
     const { email, name, age = {}, 
             gender, homeLocation = {}, workplace = {}, interestLocation = {}, 
             category = [], selectedJobs = [], phone = '', nickName } = data;
@@ -476,6 +476,11 @@ const consentPopupClose = (type) => {
   setIsPopupOpen(prev => ({ ...prev, [type]: false }));
 };
 
+ // 이메일 유효성 검사 규칙
+ const userEmails = {
+  required: "필수 필드입니다.",
+};
+
   return (
     <Box 
       sx={{ 
@@ -534,9 +539,13 @@ const consentPopupClose = (type) => {
             id="email"
             variant="outlined"
             fullWidth
-            value={email}
-            onChange={(e) => setEmail(e.target.value)} // 상태 업데이트
-            {...register('email')}
+             // 리드 전용으로 설정
+             InputProps={{
+              readOnly: true, // 여기서 readOnly 속성 설정
+          }}
+            {...register('email', userEmails )}
+            value={userEmail}
+            onChange={(e) => setUserEmail(e.target.value)} // 상태 업데이트
             sx={{ flex: 1, mr: 1 }}
             /> 
         </Box>
