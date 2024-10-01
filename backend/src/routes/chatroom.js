@@ -3,7 +3,7 @@
 
 const express = require("express");
 const router = express.Router();
-const ChatRoom = require("../models/ChattingRoom"); // ChatRoom 모델 불러오기
+const ChatRoom = require("../models/ChattingRoom");
 const Club = require("../models/Club"); // Club 모델 불러오기
 const Message = require("../models/Message"); // Message 모델 불러오기
 const User = require("../models/User"); // User 모델 불러오기
