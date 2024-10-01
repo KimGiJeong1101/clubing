@@ -1,14 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { Grid, Typography, IconButton } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import SearchIcon from "@mui/icons-material/Search";
 
-const ChatHeader = ({ title, onFileUpload }) => {
+const ChatHeader = ({ title, onFileUpload, setShowSearchInput }) => {
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     if (onFileUpload) {
       onFileUpload(files); // 파일 업로드 핸들러 호출
     }
+  };
+
+  const toggleSearchInput = () => {
+    setShowSearchInput((prev) => !prev);
   };
 
   // 조건에 따라 제목을 잘라내는 함수
@@ -46,12 +50,9 @@ const ChatHeader = ({ title, onFileUpload }) => {
       </Grid>
 
       <Grid item>
-        <input type="text" multiple onChange={handleFileChange} style={{ display: "none" }} id="text-upload" />
-        <label htmlFor="text-upload">
-          <IconButton color="primary" aria-label="search" component="span">
-            <SearchIcon sx={{ color: "white", fontSize: 40 }} />
-          </IconButton>
-        </label>
+        <IconButton color="primary" aria-label="search" component="span" onClick={toggleSearchInput}>
+          <SearchIcon sx={{ color: "white", fontSize: 40 }} />
+        </IconButton>
       </Grid>
 
       {/* 아이콘 간격 추가 */}

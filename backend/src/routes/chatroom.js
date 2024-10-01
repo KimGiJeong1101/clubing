@@ -215,4 +215,40 @@ router.get("/:clubId/messages", auth, async (req, res) => {
   }
 });
 
+// 메시지를 검색하는 API 추가
+router.get("/:clubId/messages/search", auth, async (req, res) => {
+  const { clubId } = req.params;
+  const { query } = req.query;
+
+  try {
+    // 1. 해당 clubId의 채팅방을 찾기
+    const chatRoom = await ChatRoom.findOne({ clubId });
+    if (!chatRoom) {
+      return res.status(404).json({ error: "채팅방을 찾을 수 없습니다." });
+    }
+
+    // 2. 요청한 사용자의 ID로 참가 기록을 확인
+    const userId = req.user._id;
+    const participant = chatRoom.participants.find((p) => p.userId.equals(userId));
+
+    if (!participant) {
+      return res.status(403).json({ message: "이 채팅방에 참가하지 않았습니다." });
+    }
+
+    // 3. 검색어를 포함하는 메시지를 조회
+    const messages = await Message.find({
+      clubId, // 해당 클럽의 메시지
+      content: { $regex: query, $options: "i" }, // 대소문자 구분 없이 검색
+      timestamp: { $gte: participant.timestamp }, // 참가 시간 이후의 메시지
+    })
+      .sort({ timestamp: -1 }) // 최신순으로 정렬
+      .limit(30); // 최근 30개 메시지
+
+    res.json(messages); // 조회한 메시지 반환
+  } catch (error) {
+    console.error("메시지 검색 중 오류:", error);
+    res.status(500).json({ error: "메시지를 검색하는데 실패했습니다." });
+  }
+});
+
 module.exports = router;

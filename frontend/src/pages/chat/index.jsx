@@ -11,6 +11,8 @@ import axios from "axios";
 import ImageModal from "./ImageModal";
 import Cookies from "js-cookie"; // js-cookie 패키지 임포트
 import CustomSnackbarWithTimer from "../../components/auth/Snackbar";
+import Search from "@mui/icons-material/Search";
+import SearchInput from "./SearchInput";
 
 const ChatPage = () => {
   console.log("ChatPage 컴포넌트 렌더링됨");
@@ -28,6 +30,7 @@ const ChatPage = () => {
   const userId = userData._id;
 
   const [messages, setMessages] = useState([]);
+  const [filteredMessages, setFilteredMessages] = useState([]); // 필터링된 메시지 상태 추가
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [skip, setSkip] = useState(0);
@@ -42,6 +45,11 @@ const ChatPage = () => {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("error"); // 기본값은 오류
+
+  // 여기서 상태 추가: showSearchInput 상태
+  const [showSearchInput, setShowSearchInput] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState(""); // 검색어 상태 추가
 
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
@@ -128,6 +136,23 @@ const ChatPage = () => {
       }
     };
   }, [clubNumber, userId]); // 의존성 배열: clubNumber나 userId가 변경될 때마다 이 useEffect가 실행됨.
+
+
+// 메시지 필터링
+useEffect(() => {
+  if (searchTerm) {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    const filtered = messages.filter((msg) =>
+      msg.content.toLowerCase().includes(lowerCaseSearchTerm)
+    );
+    setFilteredMessages(filtered);
+  } else {
+    setFilteredMessages(messages);
+  }
+}, [searchTerm, messages]);
+
+
+
 
   // 이전 메시지 가져오기 (스크롤 시)
   const handleScroll = async (event) => {
@@ -233,11 +258,16 @@ const ChatPage = () => {
     setSelectedImage(null);
   };
 
+  const handleSearch = (searchTerm) => {
+    console.log("검색어:", searchTerm);
+    setSearchTerm(searchTerm); // 검색어 상태 업데이트
+  };
+
   return (
     <Container
       maxWidth="md"
       sx={{
-        marginBottom: 10,
+        marginBottom: 27,
         backgroundColor: "#ffffff",
         borderRadius: 7,
         paddingBottom: 7,
@@ -247,7 +277,12 @@ const ChatPage = () => {
         flexDirection: "column",
       }}
     >
-      <ChatHeader title={title} onFileUpload={handleFileUpload} />
+      <ChatHeader title={title} onFileUpload={handleFileUpload} setShowSearchInput={setShowSearchInput} />
+      {showSearchInput && <SearchInput
+      searchTerm={searchTerm}
+      setSearchTerm={setSearchTerm} // 검색어 상태 변경 함수 전달
+      onSearch={handleSearch} // onSearch prop 전달
+      />}
       <Paper
         elevation={0}
         sx={{
@@ -260,7 +295,7 @@ const ChatPage = () => {
           borderRadius: "0px 0px 0px 0px",
         }}
       >
-        <MessageList messages={messages} userId={userId} handleScroll={handleScroll} isAtBottom={isAtBottom} onImageClick={handleImageClick} newMessageReceived={newMessageReceived} />
+        <MessageList  messages={filteredMessages} userId={userId} handleScroll={handleScroll} isAtBottom={isAtBottom} onImageClick={handleImageClick} newMessageReceived={newMessageReceived} />
       </Paper>
       <MessageInput message={message} setMessage={setMessage} handleSendMessage={handleSendMessage} handleKeyPress={handleKeyPress} />
       <ImageModal open={isModalOpen} onClose={handleCloseModal} imageUrl={selectedImage} />
