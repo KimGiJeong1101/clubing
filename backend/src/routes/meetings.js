@@ -172,9 +172,18 @@ router.get("/suggestForUser", auth, async (req, res, next) => {
     const shuffleArray = (array) => array.sort(() => Math.random() - 0.5);
     const categories = req.user.category.map((category) => category.main);
     const shuffledCategories = shuffleArray(categories);
-    const category1Meetings = await Meeting.find({ category: categories[0] }).limit(6);
-    const category2Meetings = await Meeting.find({ category: categories[1] }).limit(6);
-    const category3Meetings = await Meeting.find({ category: categories[2] }).limit(6);
+    const category1Meetings = await Meeting.aggregate([
+      { $match: { category: categories[0] } }, // 카테고리 필터
+      { $sample: { size: 6 } }, // 랜덤으로 6개의 문서 선택
+    ]);
+    const category2Meetings = await Meeting.aggregate([
+      { $match: { category: categories[1] } }, // 카테고리 필터
+      { $sample: { size: 6 } }, // 랜덤으로 6개의 문서 선택
+    ]);
+    const category3Meetings = await Meeting.aggregate([
+      { $match: { category: categories[2] } }, // 카테고리 필터
+      { $sample: { size: 6 } }, // 랜덤으로 6개의 문서 선택
+    ]);
     let meetings = [...category1Meetings, ...category2Meetings, ...category3Meetings];
     meetings = shuffleArray(meetings);
     meetings.slice(0, 6);

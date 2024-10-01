@@ -17,9 +17,8 @@ const auth = async (req, res, next) => {
         if (!user) {
             return res.status(400).send('없는 유저입니다.');
         }
-
-        req.user = user; // 사용자를 req.user에 추가
         
+        req.user = user; // 사용자를 req.user에 추가
         
         next();
     } catch (error) {

@@ -6,6 +6,11 @@ function arrayLimit(val) {
 }
 // 사용자 컬렉션을 위한 스키마 정의
 const userSchema = mongoose.Schema({
+  registrationMethod: {
+    type: Number,
+    default: 0, // 회원가입 방법 (0: 자체 회원가입, 1: 카카오, 2: 구글 등)
+    required: true, // 회원가입 방법은 필수입니다.
+  },
   email: {
     type: String,
     required: true,
@@ -13,8 +18,7 @@ const userSchema = mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
-    minLength: 6, // 비밀번호는 최소 8자로 바꿔야됌 
+    minLength: 8, // 비밀번호는 최소 8자로 바꿔야됌 
   },
   name: {
     type: String,
@@ -118,10 +122,6 @@ const userSchema = mongoose.Schema({
   marketingAccepted: {
     type: Boolean,
     default: false, // 기본값은 false
-  },
-  wish: {//모임 찜
-    type: Array,
-    default: [],
   },
   history: {//최근 본 모임
     type: Array,
