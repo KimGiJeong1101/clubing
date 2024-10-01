@@ -5,7 +5,7 @@ const app = express();
 const path = require("path");
 const http = require("http");
 const socketIo = require("socket.io");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const jwt = require("jsonwebtoken"); // JWT 패키지 로드
@@ -32,9 +32,6 @@ const io = socketIo(server, {
 // body-parser 대신 아래 코드로 교체
 app.use(express.json()); // JSON 파싱
 app.use(express.urlencoded({ extended: true })); // URL-encoded 파싱
-
-// 세션 설정 적용
-//app.use(session);
 
 // 쿠키 파서 미들웨어
 app.use(cookieParser());
