@@ -24,7 +24,7 @@ const MyCancelAccount = ({ view }) => {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      const response = await axiosInstance.put('/users/myPage/delete');
+      const response = await axiosInstance.delete('/users/myPage/delete');
       console.log('회원 탈퇴 요청이 전송되었습니다.', response.data);
       setSnackbarMessage('회원 탈퇴가 완료되었습니다.');
       setSnackbarSeverity('success'); // 성공 상태로 변경

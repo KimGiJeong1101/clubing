@@ -20,7 +20,7 @@ const ReadMessages = () => {
   const [isAllSelected, setIsAllSelected] = useState(false); // 전체 선택 상태
 
   const user = useSelector((state) => state.user?.userData?.user || {});
-
+  
   // 페이징 상태 추가
   const [page, setPage] = useState(0); // 현재 페이지
   const [rowsPerPage, setRowsPerPage] = useState(3); // 페이지당 항목 수

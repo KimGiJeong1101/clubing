@@ -226,7 +226,7 @@ router.delete("/delete/:id", auth, async (req, res, next) => {
     const clubId = req.params.id;
     await User.updateMany(
       { clubs: clubId }, // 클럽 목록에 삭제된 클럽 ID가 포함된 유저를 찾음
-      { $pull: { clubs: clubId } } // 유저의 클럽 목록에서 클럽 ID 제거
+      { $pull: { clubs: clubId, wish: clubId } }, // 유저의 클럽 목록에서 클럽 ID 제거
     );
 
     return res.sendStatus(200);
@@ -1165,7 +1165,7 @@ router.get('/home/recommend', async (req, res) => {
 
     if (req.query.email) {
       user = await User.findOne({ email: req.query.email });
-      console.log("User found:", user);
+      //console.log("User found:", user);
     } else {
       console.log("No email provided in query.");
     }
