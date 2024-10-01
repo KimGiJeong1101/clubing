@@ -678,7 +678,7 @@ router.get('/home/recommend', async (req, res) => {
 
     if (req.query.email) {
       user = await User.findOne({ email: req.query.email });
-      console.log("User found:", user);
+      //console.log("User found:", user);
     } else {
       console.log("No email provided in query.");
     }
