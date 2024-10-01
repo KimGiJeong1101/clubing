@@ -66,7 +66,7 @@ app.use((req, res, next) => {
       if (decodedAccessToken && decodedAccessToken.exp) {
         const accessTokenExp = decodedAccessToken.exp;
         const timeLeft = getTimeLeft(accessTokenExp);
-        console.log(`액세스 토큰 ${timeLeft}`);
+        // console.log(`액세스 토큰 ${timeLeft}`);
       } else {
         console.log("액세스 토큰에 만료 시간이 없습니다.");
       }
@@ -84,7 +84,7 @@ app.use((req, res, next) => {
       if (decodedRefreshToken && decodedRefreshToken.exp) {
         const refreshTokenExp = decodedRefreshToken.exp;
         const timeLeft = getTimeLeft(refreshTokenExp);
-        console.log(`리프레시 토큰 ${timeLeft}`);
+        // console.log(`리프레시 토큰 ${timeLeft}`);
       } else {
         console.log("리프레시 토큰에 만료 시간이 없습니다.");
       }

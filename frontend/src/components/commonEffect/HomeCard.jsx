@@ -98,7 +98,7 @@ const HomeCard = ({ club }) => {
 
       <CardActions>
         <IconButton aria-label="favorite">
-          <FavoriteBorderIcon />
+          {/* <FavoriteBorderIcon /> */}
         </IconButton>
 
         <Box sx={{ flexGrow: 1 }}></Box>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AddIcon from "@mui/icons-material/Add";
 import {
     Container,
@@ -123,6 +123,10 @@ const Event = () => {
         }
         setSnackbarOpen(false); // 스낵바 닫기
     };
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+      }, []);
 
     if (isLoading) {
         return (

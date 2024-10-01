@@ -106,6 +106,10 @@ const MeetingList = () => {
   //   setPassCategory(category);
   // };
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   if (isLoading && !isFetching) {
     return <div>로딩 중...</div>; // 최초 로딩 시
   }

@@ -134,6 +134,10 @@ const Clubs = () => {
   }, [category, searchRegion]);
   //무한스크롤 구현.end
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleRegionClick = () => {
     setScrollData([]);
     setScrollCount(1);

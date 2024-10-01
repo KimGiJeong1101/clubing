@@ -1,6 +1,7 @@
 const express = require("express");
 const Club = require("../models/Club");
 const Meeting = require("../models/Meeting");
+const Event = require("../models/Event");
 const auth = require("../middleware/auth");
 const router = express.Router();
 const multer = require("multer");
@@ -452,15 +453,13 @@ router.post("/invite/:clubNumber", auth, async (req, res, next) => {
 });
 
 ///////////////////////////추천 모임&검색///////////////////////////
-//추천 모임 (리스트)
+//추천 모임 (리스트, 조건 선택 가능)
 router.get('/recommend/scroll/:pageParam', async (req, res) => {
   try {
     const { pageParam } = req.params;
     const page = parseInt(pageParam, 10);
     const limit = 6;
     const skip = (page - 1) * limit;
-
-    // 유저 정보를 가져오는 부분
     let user = null;
 
     if (req.query.email) {
@@ -468,78 +467,139 @@ router.get('/recommend/scroll/:pageParam', async (req, res) => {
     }
 
     let clubs;
-
-    if (!user) {
-      // 유저 정보가 없을 때 모든 클럽을 조회
+    if (!user || !req.query.email || !req.query) {
+      // email이 null이거나 필터 배열이 null일 경우 전체 리스트를 불러옴
       clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(limit);
     } else {
-      // 유저 정보가 있을 때 필터링 및 정렬
-      const { homeLocation, interestLocation, workplace, category, job } = user;
+      const { job } = user;
+      const { homeLocation, interestLocation, workplace, category: categoriesFromQuery } = req.query;
 
-      // 지역 필터링 순서: neighborhood -> district -> city
-      const regions = [homeLocation, interestLocation, workplace].filter(Boolean);
+      let filterConditions = [];
+      const cities = new Set();
 
-      let regionFilters = [];
-      for (const region of regions) {
-        regionFilters.push({
-          $or: [
-            { 'region.neighborhood': region.neighborhood },
-            { 'region.district': region.district },
-            { 'region.city': region.city }
-          ]
+      // 지역 필터링
+      if (homeLocation) {
+        cities.add(homeLocation.city);
+      }
+
+      if (interestLocation) {
+        cities.add(interestLocation.city);
+      }
+
+      if (workplace) {
+        cities.add(workplace.city);
+      }
+
+      if (cities.size > 0) {
+        filterConditions.push({
+          $or: Array.from(cities).map(city => ({ 'region.city': city }))
         });
       }
 
-      // 선호 정보 필터링 순서: subCategory -> mainCategory
-      let categoryFilters = [];
-      if (category) {
-        categoryFilters = category.flatMap(cat => [
-          { 'subCategory': { $in: cat.sub } },
-          { 'mainCategory': cat.main }
-        ]);
+      // 카테고리 필터링
+      if (categoriesFromQuery && Array.isArray(categoriesFromQuery)) {
+        const uniqueMainCategories = [...new Set(categoriesFromQuery.map(cat => cat.main))];
+        const categoryFilters = uniqueMainCategories.map(main => ({ 'mainCategory': main }));
+        filterConditions.push({ $or: categoryFilters });
       }
 
-      // 필터 조건을 합친다
-      const filterConditions = {
-        $and: [
-          { $or: regionFilters },
-          { $or: categoryFilters },
-          { $or: [{ 'job': { $in: job } }, { 'job': { $exists: false } }] }
-        ]
-      };
+      // 직업 필터링
+      if (job) {
+        filterConditions.push({
+          $or: [
+            { 'job': { $in: job } },
+            { 'job': { $exists: false } },
+          ],
+        });
+      }
 
-      // 클럽을 필터링하고 정렬하기 위한 집계 파이프라인
-      clubs = await Club.aggregate([
-        { $match: filterConditions },
-        {
-          $addFields: {
-            regionScore: {
-              $cond: [
-                { $eq: ["$region.neighborhood", homeLocation.neighborhood] }, 0,
-                { $cond: [
-                  { $eq: ["$region.district", homeLocation.district] }, 1,
-                  { $cond: [
-                    { $eq: ["$region.city", homeLocation.city] }, 2,
-                    3
-                  ]}
-                ]}
-              ]
-            },
-            categoryScore: {
-              $cond: [
-                { $in: ["$subCategory", category.flatMap(cat => cat.sub)] }, 0,
-                { $cond: [
-                  { $eq: ["$mainCategory", category.find(cat => cat.sub.includes("$subCategory"))?.main] }, 1,
-                  2
-                ]}
-              ]
+      console.log("Filter Conditions:", JSON.stringify(filterConditions, null, 2));
+
+      if (filterConditions.length > 0) {
+        clubs = await Club.aggregate([
+          {
+            $match: {
+              $and: filterConditions
             }
-          }
-        },
-        { $sort: { categoryScore: 1, regionScore: 1 } },
-        { $skip: skip },
-        { $limit: limit }
-      ]);
+          },
+          {
+            $addFields: {
+              regionCategoryScore: {
+                $cond: [
+                  { $and: [
+                    { $eq: ["$subCategory", "desiredSubCategory"] },
+                    { $or: [
+                      { $eq: ["$region.neighborhood", workplace?.neighborhood] },
+                      { $eq: ["$region.neighborhood", interestLocation?.neighborhood] },
+                      { $eq: ["$region.neighborhood", homeLocation?.neighborhood] }
+                    ]}
+                  ]}, 0,
+                  { $cond: [
+                    { $and: [
+                      { $eq: ["$subCategory", "desiredSubCategory"] },
+                      { $or: [
+                        { $eq: ["$region.district", workplace?.district] },
+                        { $eq: ["$region.district", interestLocation?.district] },
+                        { $eq: ["$region.district", homeLocation?.district] }
+                      ]}
+                    ]}, 1,
+                    { $cond: [
+                      { $and: [
+                        { $eq: ["$mainCategory", "desiredMainCategory"] },
+                        { $or: [
+                          { $eq: ["$region.neighborhood", workplace?.neighborhood] },
+                          { $eq: ["$region.neighborhood", interestLocation?.neighborhood] },
+                          { $eq: ["$region.neighborhood", homeLocation?.neighborhood] }
+                        ]}
+                      ]}, 2,
+                      { $cond: [
+                        { $and: [
+                          { $eq: ["$mainCategory", "desiredMainCategory"] },
+                          { $or: [
+                            { $eq: ["$region.district", workplace?.district] },
+                            { $eq: ["$region.district", interestLocation?.district] },
+                            { $eq: ["$region.district", homeLocation?.district] }
+                          ]}
+                        ]}, 3,
+                        { $cond: [
+                          { $and: [
+                            { $eq: ["$subCategory", "desiredSubCategory"] },
+                            { $or: [
+                              { $eq: ["$region.city", workplace?.city] },
+                              { $eq: ["$region.city", interestLocation?.city] },
+                              { $eq: ["$region.city", homeLocation?.city] }
+                            ]}
+                          ]}, 4,
+                          { $cond: [
+                            { $and: [
+                              { $eq: ["$mainCategory", "desiredMainCategory"] },
+                              { $or: [
+                                { $eq: ["$region.city", workplace?.city] },
+                                { $eq: ["$region.city", interestLocation?.city] },
+                                { $eq: ["$region.city", homeLocation?.city] }
+                              ]}
+                            ]}, 5,
+                            6 // 기본 점수
+                          ]}
+                        ]}
+                      ]}
+                    ]}
+                  ]}
+                ]
+              }
+            }
+          },
+          {
+            $sort: {
+              regionCategoryScore: 1 // 통합된 점수로 정렬
+            }
+          },
+          { $skip: skip },
+          { $limit: limit }
+        ]);
+      } else {
+        clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(limit);
+      }
     }
 
     res.json(clubs);
@@ -547,6 +607,416 @@ router.get('/recommend/scroll/:pageParam', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
+
+
+
+
+
+//or 연산자 줄이는 방향으로 수정 버전 (근데 regin이 더 빠름)
+// router.get('/recommend/scroll/:pageParam', async (req, res) => {
+//   try {
+//     const { pageParam } = req.params;
+//     const page = parseInt(pageParam, 10);
+//     const limit = 6;
+//     const skip = (page - 1) * limit;
+//     let user = null;
+
+//     if (req.query.email) {
+//       user = await User.findOne({ email: req.query.email });
+//     }
+
+//     let clubs;
+//     if (!user) {
+//       clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(limit);
+//     } else {
+//       const { job } = user;
+//       const { homeLocation, interestLocation, workplace, category: categoriesFromQuery } = req.query;
+
+//       let filterConditions = [];
+
+//       // 지역 필터링
+//       const cities = new Set(); // Set을 사용하여 중복 제거
+
+//       if (homeLocation) {
+//         cities.add(homeLocation.city);
+//       }
+
+//       if (interestLocation) {
+//         cities.add(interestLocation.city);
+//       }
+
+//       if (workplace) {
+//         cities.add(workplace.city);
+//       }
+
+//       // Set을 배열로 변환하고 필터 조건 추가 (중복 데이터 삭제)
+//       if (cities.size > 0) {
+//         filterConditions.push({
+//           $or: Array.from(cities).map(city => ({ 'region.city': city }))
+//         });
+//       }
+
+//       // 카테고리 필터링 (중복된 데이터 제거)
+//       if (categoriesFromQuery && Array.isArray(categoriesFromQuery)) {
+//         const uniqueMainCategories = [...new Set(categoriesFromQuery.map(cat => cat.main))];
+
+//         const categoryFilters = uniqueMainCategories.map(main => ({
+//           'mainCategory': main // mainCategory만 필터링
+//         }));
+
+//         filterConditions.push({ $or: categoryFilters });
+//       }
+
+//       // 직업 필터링
+//       if (job) {
+//         filterConditions.push({
+//           $or: [
+//             { 'job': { $in: job } },
+//             { 'job': { $exists: false } },
+//           ],
+//         });
+//       }
+
+//       // 모든 필터 조건을 추가한 후
+//       console.log("Filter Conditions:", JSON.stringify(filterConditions, null, 2));
+
+//       // 필터 조건이 없으면 전체 리스트 반환
+//       if (filterConditions.length > 0) {
+//         // 클럽 필터링
+//         clubs = await Club.aggregate([
+//           { 
+//             $match: { 
+//               $and: filterConditions 
+//             } 
+//           },
+//           {
+//             $addFields: {
+//               // 각 지역에 대한 스코어를 계산합니다.
+//               regionScore: {
+//                 $cond: [
+//                   { $eq: ["$region.neighborhood", homeLocation?.neighborhood] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$region.district", homeLocation?.district] }, 1,
+//                     { $cond: [
+//                       { $eq: ["$region.city", homeLocation?.city] }, 2,
+//                       3
+//                     ]}
+//                   ]}
+//                 ]
+//               },
+//               interestScore: {
+//                 $cond: [
+//                   { $eq: ["$region.neighborhood", interestLocation?.neighborhood] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$region.district", interestLocation?.district] }, 1,
+//                     { $cond: [
+//                       { $eq: ["$region.city", interestLocation?.city] }, 2,
+//                       3
+//                     ]}
+//                   ]}
+//                 ]
+//               },
+//               workplaceScore: {
+//                 $cond: [
+//                   { $eq: ["$region.neighborhood", workplace?.neighborhood] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$region.district", workplace?.district] }, 1,
+//                     { $cond: [
+//                       { $eq: ["$region.city", workplace?.city] }, 2,
+//                       3
+//                     ]}
+//                   ]}
+//                 ]
+//               },
+//               categoryScore: {
+//                 $cond: [
+//                   { $in: ["$subCategory", categoriesFromQuery.flatMap(cat => cat.sub)] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$mainCategory", categoriesFromQuery.find(cat => cat.sub.includes("$subCategory"))?.main] }, 1,
+//                     2
+//                   ]}
+//                 ]
+//               }
+//             }
+//           },
+//           // 정렬: 지역 점수 -> 카테고리 점수 -> subCategory -> mainCategory
+//           {
+//             $sort: {
+//               regionScore: 1, // 먼저 지역 점수로 정렬
+//               interestScore: 1,
+//               workplaceScore: 1,
+//               categoryScore: 1,
+//               // 하위 카테고리 우선 순위
+//               subCategory: 1,
+//               mainCategory: 1
+//             }
+//           },
+//           { $skip: skip },
+//           { $limit: limit }
+//         ]);
+        
+//       } else {
+//         // 기본 클럽 목록 반환
+//         clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(limit);
+//       }
+//     }
+
+//     res.json(clubs);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
+//$or 연산자 많은 버전 (잘 못가져 옴 $or 너무 많아서 그런 가하고 수정 할 예정)
+// router.get('/recommend/scroll/:pageParam', async (req, res) => {
+//   try {
+//     const { pageParam } = req.params;
+//     const page = parseInt(pageParam, 10);
+//     const limit = 6;
+//     const skip = (page - 1) * limit;
+//     let user = null;
+
+//     if (req.query.email) {
+//       user = await User.findOne({ email: req.query.email });
+//     }
+
+//     let clubs;
+//     if (!user) {
+//       clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(limit);
+//     } else {
+//       const { job } = user;
+//       const { homeLocation, interestLocation, workplace, category: categoriesFromQuery } = req.query;
+
+//       let filterConditions = [];
+
+//       // 지역 필터링
+//       if (homeLocation) {
+//         filterConditions.push({
+//           $or: [
+//             { 'region.neighborhood': homeLocation.neighborhood },
+//             { 'region.district': homeLocation.district },
+//             { 'region.city': homeLocation.city },
+//           ],
+//         });
+//       }
+
+//       if (interestLocation) {
+//         filterConditions.push({
+//           $or: [
+//             { 'region.neighborhood': interestLocation.neighborhood },
+//             { 'region.district': interestLocation.district },
+//             { 'region.city': interestLocation.city },
+//           ],
+//         });
+//       }
+
+//       if (workplace) {
+//         filterConditions.push({
+//           $or: [
+//             { 'region.neighborhood': workplace.neighborhood },
+//             { 'region.district': workplace.district },
+//             { 'region.city': workplace.city },
+//           ],
+//         });
+//       }
+
+//       // 카테고리 필터링
+//       if (categoriesFromQuery && Array.isArray(categoriesFromQuery)) {
+//         const categoryFilters = categoriesFromQuery.flatMap(cat => [
+//           { 'subCategory': { $in: cat.sub } },
+//           { 'mainCategory': cat.main },
+//         ]);
+//         filterConditions.push({ $or: categoryFilters });
+//       }
+
+//       // 직업 필터링
+//       if (job) {
+//         filterConditions.push({
+//           $or: [
+//             { 'job': { $in: job } },
+//             { 'job': { $exists: false } },
+//           ],
+//         });
+//       }
+
+//       // 모든 필터 조건을 추가한 후
+//       console.log("Filter Conditions:", JSON.stringify(filterConditions, null, 2));
+
+//       // 필터 조건이 없으면 전체 리스트 반환
+//       if (filterConditions.length > 0) {
+//         // 클럽 필터링
+//         clubs = await Club.aggregate([
+//           { 
+//             $match: { 
+//               $or: filterConditions 
+//             } 
+//           },
+//           {
+//             $addFields: {
+//               regionScore: {
+//                 $cond: [
+//                   { $eq: ["$region.neighborhood", homeLocation?.neighborhood] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$region.district", homeLocation?.district] }, 1,
+//                     { $cond: [
+//                       { $eq: ["$region.city", homeLocation?.city] }, 2,
+//                       3
+//                     ]}
+//                   ]}
+//                 ]
+//               },
+//               interestScore: {
+//                 $cond: [
+//                   { $eq: ["$region.neighborhood", interestLocation?.neighborhood] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$region.district", interestLocation?.district] }, 1,
+//                     { $cond: [
+//                       { $eq: ["$region.city", interestLocation?.city] }, 2,
+//                       3
+//                     ]}
+//                   ]}
+//                 ]
+//               },
+//               workplaceScore: {
+//                 $cond: [
+//                   { $eq: ["$region.neighborhood", workplace?.neighborhood] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$region.district", workplace?.district] }, 1,
+//                     { $cond: [
+//                       { $eq: ["$region.city", workplace?.city] }, 2,
+//                       3
+//                     ]}
+//                   ]}
+//                 ]
+//               },
+//               categoryScore: {
+//                 $cond: [
+//                   { $in: ["$subCategory", categoriesFromQuery.flatMap(cat => cat.sub)] }, 0,
+//                   { $cond: [
+//                     { $eq: ["$mainCategory", categoriesFromQuery.find(cat => cat.sub.includes("$subCategory"))?.main] }, 1,
+//                     2
+//                   ]}
+//                 ]
+//               }
+//             }
+//           },
+//           { $sort: { categoryScore: 1, regionScore: 1, interestScore: 1, workplaceScore: 1 } },
+//           { $skip: skip },
+//           { $limit: limit }
+//         ]);
+//       } else {
+//         // 기본 클럽 목록 반환
+//         clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(limit);
+//       }
+//     }
+
+//     res.json(clubs);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
+
+//추천 모임 (지역, 관심사 선택 불가)
+// router.get('/recommend/scroll/:pageParam', async (req, res) => {
+//   try {
+//     const { pageParam } = req.params;
+//     const page = parseInt(pageParam, 10);
+//     const limit = 6;
+//     const skip = (page - 1) * limit;
+
+//     // 유저 정보를 가져오는 부분
+//     let user = null;
+
+//     if (req.query.email) {
+//       user = await User.findOne({ email: req.query.email });
+//     }
+
+//     let clubs;
+
+//     if (!user) {
+//       // 유저 정보가 없을 때 모든 클럽을 조회
+//       clubs = await Club.find().sort({ _id: -1 }).skip(skip).limit(limit);
+//     } else {
+//       // 유저 정보가 있을 때 필터링 및 정렬
+//       const { homeLocation, interestLocation, workplace, category, job } = user;
+
+//       // 지역 필터링 순서: neighborhood -> district -> city
+//       const regions = [homeLocation, interestLocation, workplace].filter(Boolean);
+
+//       let regionFilters = [];
+//       for (const region of regions) {
+//         regionFilters.push({
+//           $or: [
+//             { 'region.neighborhood': region.neighborhood },
+//             { 'region.district': region.district },
+//             { 'region.city': region.city }
+//           ]
+//         });
+//       }
+
+//       // 선호 정보 필터링 순서: subCategory -> mainCategory
+//       let categoryFilters = [];
+//       if (category) {
+//         categoryFilters = category.flatMap(cat => [
+//           { 'subCategory': { $in: cat.sub } },
+//           { 'mainCategory': cat.main }
+//         ]);
+//       }
+
+//       // 필터 조건을 합친다
+//       const filterConditions = {
+//         $and: [
+//           { $or: regionFilters },
+//           { $or: categoryFilters },
+//           { $or: [{ 'job': { $in: job } }, { 'job': { $exists: false } }] }
+//         ]
+//       };
+
+//       // 클럽을 필터링하고 정렬하기 위한 집계 파이프라인
+//       clubs = await Club.aggregate([
+//         { $match: filterConditions },
+//         {
+//           $addFields: {
+//             regionScore: {
+//               $cond: [
+//                 { $eq: ["$region.neighborhood", homeLocation.neighborhood] }, 0,
+//                 { $cond: [
+//                   { $eq: ["$region.district", homeLocation.district] }, 1,
+//                   { $cond: [
+//                     { $eq: ["$region.city", homeLocation.city] }, 2,
+//                     3
+//                   ]}
+//                 ]}
+//               ]
+//             },
+//             categoryScore: {
+//               $cond: [
+//                 { $in: ["$subCategory", category.flatMap(cat => cat.sub)] }, 0,
+//                 { $cond: [
+//                   { $eq: ["$mainCategory", category.find(cat => cat.sub.includes("$subCategory"))?.main] }, 1,
+//                   2
+//                 ]}
+//               ]
+//             }
+//           }
+//         },
+//         { $sort: { categoryScore: 1, regionScore: 1 } },
+//         { $skip: skip },
+//         { $limit: limit }
+//       ]);
+//     }
+
+//     res.json(clubs);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
 
 //검색 (헤더에 모임이름으로 검색)  =>> 왜 안되는 거야??
 // router.get("/search", async (req, res, next) => {
@@ -569,6 +1039,8 @@ router.get('/recommend/scroll/:pageParam', async (req, res) => {
 //   }
 // });
 
+
+
 //검색 테스트 (헤더에 모임이름으로 검색)
 router.get("/search/test", async (req, res, next) => {
   // console.log("검색 요청 수신:", req.query.title);
@@ -589,6 +1061,21 @@ router.get("/search/test", async (req, res, next) => {
     next(error);
   }
 });
+
+// 메인 페이지 (이벤트 캐러셀, 3개만 불러 옴)
+router.get("/home/event", async (req, res) => {
+  try {
+    const events = await Event.find()
+      .sort({ createdAt: -1 })
+      .limit(3)
+      .select('cardImage'); // 'cardImage' 필드만 선택
+    res.status(200).json(events);
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    res.status(500).send("Failed to fetch events");
+  }
+});
+
 
 //메인 페이지 (모임 찾기)
 router.get("/home/card", async (req, res, next) => {
@@ -634,7 +1121,7 @@ router.get("/home/card", async (req, res, next) => {
 router.get("/home/card/new", async (req, res, next) => {
   try {
     // console.log("신규 모임 목록 가져오기 시작");
-    const clubs = await Club.find().sort({ _id: -1 }).limit(10); // 4개의 클럽만 가져오기
+    const clubs = await Club.find().sort({ _id: -1 }).limit(4); // 4개의 클럽만 가져오기
     // console.log("신규 모임 목록 가져오기 완료", clubs);
     
     // 나머지 로직은 동일하게 유지
@@ -784,9 +1271,6 @@ const clubsWithImages = await Promise.all(
     res.status(500).json({ error: error.message });
   }
 });
-
-
-
 
 
 const memberInfoInsert = async (clubs) => {
