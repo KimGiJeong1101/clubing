@@ -69,10 +69,7 @@ exports.sendAuthEmail = async (req, res) => {
         console.error('메일 전송 오류:', err);
         res.status(500).json({ ok: false, msg: '메일 전송에 실패하였습니다.', error: err.message }); // 500 상태 코드로 수정
     } 
-<<<<<<< HEAD
-=======
     // finally {
     //     smtpTransport.close(); // SMTP 연결 종료
     // }
->>>>>>> df51f668f6d2e2a4515b4d7c69704022f1dad672
 };
