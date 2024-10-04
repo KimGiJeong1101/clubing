@@ -41,16 +41,16 @@ function NavBar() {
       console.log("Action result:", actionResult);
 
       // 서버로부터 받은 응답 처리
-      const chatRoom = actionResult.payload; // 위의 함수가 성공적으로 실행이 되었다면 서버에서 받은 데이터가 있을텐데 payload안에 담긴다
+      const chattingRoom = actionResult.payload; // 위의 함수가 성공적으로 실행이 되었다면 서버에서 받은 데이터가 있을텐데 payload안에 담긴다
 
       // 채팅방 정보가 없다면 에러를 던짐
       // 이건 말 그대로 채팅방이 없거나 에러가 나면 에러를 던짐
-      if (!chatRoom) {
+      if (!chattingRoom) {
         throw new Error("채팅방 정보를 불러오는 데 실패했습니다.");
       }
 
-      // 채팅방으로 이동 (chatRoom._id는 필요 없으므로 clubNumber만 사용)
-      console.log("Chat room data:", chatRoom);
+      // 채팅방으로 이동 (chattingRoom._id는 필요 없으므로 clubNumber만 사용)
+      console.log("Chat room data:", chattingRoom);
 
       navigate(`/clubs/chat?clubNumber=${clubNumber}`); // 위에 모든 로직이 이루어진뒤에 해당 URL로 이동
     } catch (error) {

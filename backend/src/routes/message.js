@@ -1,5 +1,5 @@
 const Message = require("../models/Message");
-const ChatRoom = require("../models/ChattingRoom");
+const ChattingRoom = require("../models/ChattingRoom");
 
 module.exports = (io) => {
   // 소켓 서버 연결 시 이벤트 처리
@@ -25,10 +25,10 @@ module.exports = (io) => {
 
       try {
         // 1. 먼저 해당 clubId에 해당하는 채팅방을 찾습니다.
-        const chatRoom = await ChatRoom.findOne({ clubId });
+        const chattingRoom = await ChattingRoom.findOne({ clubId });
 
         // 2. 채팅방이 존재하지 않으면 오류 반환
-        if (!chatRoom) {
+        if (!chattingRoom) {
           console.error(`채팅방을 찾을 수 없습니다. clubId: ${clubId}`);
 
           // 클라이언트에게 에러 메시지 전송
@@ -40,7 +40,7 @@ module.exports = (io) => {
         }
 
         // 3. 참가자 목록에서 해당 사용자가 존재하는지 확인합니다.
-        const isParticipant = chatRoom.participants.some((participant) => participant.userId.toString() === senderId);
+        const isParticipant = chattingRoom.participants.some((participant) => participant.userId.toString() === senderId);
 
         // 4. 사용자가 참가자 목록에 없으면 메시지를 보낼 수 없도록 처리합니다.
         if (!isParticipant) {

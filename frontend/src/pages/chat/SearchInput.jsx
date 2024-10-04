@@ -2,16 +2,12 @@ import React, { useState } from "react";
 import { Box, Button, InputAdornment, TextField } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 
-const SearchInput = ({ onSearch }) => {
-
-
+const SearchInput = ({ onSearch, inputRef }) => {
   const [query, setQuery] = useState("");
-
   const [isFocused, setIsFocused] = useState(false); // 포커스 상태 관리
 
-
   const handleSearch = () => {
-console.log("검색핸들러 잘 되는지 확인")
+    console.log("검색핸들러 잘 되는지 확인");
 
     if (query.trim()) {
       onSearch(query); // 검색어를 부모 컴포넌트로 전달
@@ -19,20 +15,26 @@ console.log("검색핸들러 잘 되는지 확인")
     }
   };
 
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault(); // 기본 동작 방지 (예: 줄바꿈)
+      handleSearch(); // 검색 함수 호출
+    }
+  };
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", backgroundColor: "#a67153", padding: "7px" }}>
       <TextField
+        inputRef={inputRef} // 부모에서 전달된 ref를 사용
         variant="outlined"
         fullWidth
         margin="normal"
         placeholder="검색어를 입력하세요"
-
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-
         onFocus={() => setIsFocused(true)} // 포커스 상태 설정
         onBlur={() => setIsFocused(false)} // 포커스 해제 시 상태 변경
+        onKeyPress={handleKeyPress}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
@@ -46,7 +48,7 @@ console.log("검색핸들러 잘 되는지 확인")
           endAdornment: (
             <InputAdornment position="end">
               <Button
-               onClick={handleSearch}
+                onClick={handleSearch}
                 variant="contained"
                 sx={{
                   background: "#a67153",

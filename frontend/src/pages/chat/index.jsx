@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Container, Paper } from "@mui/material";
 import { useParams, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,7 +11,6 @@ import axios from "axios";
 import ImageModal from "./ImageModal";
 import Cookies from "js-cookie"; // js-cookie 패키지 임포트
 import CustomSnackbarWithTimer from "../../components/auth/Snackbar";
-import Search from "@mui/icons-material/Search";
 import SearchInput from "./SearchInput";
 
 const ChatPage = () => {
@@ -48,6 +47,7 @@ const ChatPage = () => {
 
   // 여기서 상태 추가: showSearchInput 상태
   const [showSearchInput, setShowSearchInput] = useState(false);
+  const searchInputRef = useRef(null); // ref 생성
 
   const [searchTerm, setSearchTerm] = useState(""); // 검색어 상태 추가
 
@@ -137,22 +137,16 @@ const ChatPage = () => {
     };
   }, [clubNumber, userId]); // 의존성 배열: clubNumber나 userId가 변경될 때마다 이 useEffect가 실행됨.
 
-
-// 메시지 필터링
-useEffect(() => {
-  if (searchTerm) {
-    const lowerCaseSearchTerm = searchTerm.toLowerCase();
-    const filtered = messages.filter((msg) =>
-      msg.content.toLowerCase().includes(lowerCaseSearchTerm)
-    );
-    setFilteredMessages(filtered);
-  } else {
-    setFilteredMessages(messages);
-  }
-}, [searchTerm, messages]);
-
-
-
+  // 메시지 필터링
+  useEffect(() => {
+    if (searchTerm) {
+      const lowerCaseSearchTerm = searchTerm.toLowerCase();
+      const filtered = messages.filter((msg) => msg.content.toLowerCase().includes(lowerCaseSearchTerm));
+      setFilteredMessages(filtered);
+    } else {
+      setFilteredMessages(messages);
+    }
+  }, [searchTerm, messages]);
 
   // 이전 메시지 가져오기 (스크롤 시)
   const handleScroll = async (event) => {
@@ -263,6 +257,12 @@ useEffect(() => {
     setSearchTerm(searchTerm); // 검색어 상태 업데이트
   };
 
+  useEffect(() => {
+    if (showSearchInput && searchInputRef.current) {
+      searchInputRef.current.focus(); // 텍스트 필드가 보일 때 포커스
+    }
+  }, [showSearchInput]);
+
   return (
     <Container
       maxWidth="md"
@@ -278,11 +278,16 @@ useEffect(() => {
       }}
     >
       <ChatHeader title={title} onFileUpload={handleFileUpload} setShowSearchInput={setShowSearchInput} />
-      {showSearchInput && <SearchInput
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm} // 검색어 상태 변경 함수 전달
-      onSearch={handleSearch} // onSearch prop 전달
-      />}
+
+      {showSearchInput && (
+        <SearchInput
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm} // 검색어 상태 변경 함수 전달
+          onSearch={handleSearch} // onSearch prop 전달
+          inputRef={searchInputRef} // ref 전달
+        />
+      )}
+
       <Paper
         elevation={0}
         sx={{
@@ -295,7 +300,7 @@ useEffect(() => {
           borderRadius: "0px 0px 0px 0px",
         }}
       >
-        <MessageList  messages={filteredMessages} userId={userId} handleScroll={handleScroll} isAtBottom={isAtBottom} onImageClick={handleImageClick} newMessageReceived={newMessageReceived} />
+        <MessageList messages={filteredMessages} userId={userId} handleScroll={handleScroll} isAtBottom={isAtBottom} onImageClick={handleImageClick} newMessageReceived={newMessageReceived} />
       </Paper>
       <MessageInput message={message} setMessage={setMessage} handleSendMessage={handleSendMessage} handleKeyPress={handleKeyPress} />
       <ImageModal open={isModalOpen} onClose={handleCloseModal} imageUrl={selectedImage} />

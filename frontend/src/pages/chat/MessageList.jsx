@@ -7,7 +7,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-
 // 시간 형식 변환 함수
 const formatTime = (timestamp) => {
   const date = new Date(timestamp);

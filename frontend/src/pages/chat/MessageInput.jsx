@@ -4,7 +4,6 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import Picker from "@emoji-mart/react";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
 
-
 const MessageInput = ({ message, setMessage, handleSendMessage, handleKeyPress }) => {
   const [showPicker, setShowPicker] = useState(false);
   const messageInputRef = useRef(null);
