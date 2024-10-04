@@ -2,11 +2,7 @@ import React, { useRef, useState } from "react";
 import { Grid, TextField, Button, Box, IconButton, InputAdornment } from "@mui/material";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import Picker from "@emoji-mart/react";
-import SendIcon from "@mui/icons-material/Send";
 import SendRoundedIcon from "@mui/icons-material/SendRounded";
-import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff";
-import TelegramIcon from "@mui/icons-material/Telegram";
-import NearMeIcon from "@mui/icons-material/NearMe";
 
 const MessageInput = ({ message, setMessage, handleSendMessage, handleKeyPress }) => {
   const [showPicker, setShowPicker] = useState(false);
