@@ -11,7 +11,7 @@ const SearchInput = ({ onSearch, inputRef }) => {
 
     if (query.trim()) {
       onSearch(query); // 검색어를 부모 컴포넌트로 전달
-      setQuery(""); // 검색 후 입력란 초기화
+      // setQuery(""); // 검색 후 입력란 초기화
     }
   };
 
