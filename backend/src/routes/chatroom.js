@@ -100,7 +100,7 @@ router.post("/room", auth, async (req, res) => {
       const updatedParticipants = [...chattingRoom.participants, ...newParticipants.filter((newParticipant) => !existingParticipants.includes(newParticipant.userId.toString()))];
 
       // 채팅방의 참가자 목록을 업데이트
-      clubIdhattingRoom.participants = updatedParticipants;
+      chattingRoom.participants = updatedParticipants;
 
       // 업데이트된 채팅방을 데이터베이스에 저장
       const updatedChattingRoom = await chattingRoom.save();
