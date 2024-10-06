@@ -223,7 +223,7 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, newMessageRec
                         color: "#000000",
                       }}
                     >
-                      {userProfiles[msg.sender]?.name || "Unknown"}
+                      {userProfiles[msg.sender]?.nickName || "Unknown"}
                     </Typography>
                   </Box>
                 )}
