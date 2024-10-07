@@ -23,7 +23,7 @@ const SearchInput = ({ onSearch, inputRef }) => {
   };
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", backgroundColor: "#a67153", padding: "7px" }}>
+    <Box sx={{ display: "flex", alignItems: "center", backgroundColor: "#D5D3CB", padding: "7px" }}>
       <TextField
         inputRef={inputRef} // 부모에서 전달된 ref를 사용
         variant="outlined"
@@ -51,7 +51,7 @@ const SearchInput = ({ onSearch, inputRef }) => {
                 onClick={handleSearch}
                 variant="contained"
                 sx={{
-                  background: "#a67153",
+                  background: "#DBC7B5",
                   height: "40px",
                   padding: "0 16px",
                   minWidth: "80px",
@@ -61,7 +61,7 @@ const SearchInput = ({ onSearch, inputRef }) => {
                   color: "black",
                   "&:hover": {
                     borderColor: "black", // 호버 시 테두리 검정색
-                    backgroundColor: "white", // 호버 시 배경 흰색
+                    backgroundColor: "#a6836f", // 호버 시 배경 흰색
                   },
                 }}
               >

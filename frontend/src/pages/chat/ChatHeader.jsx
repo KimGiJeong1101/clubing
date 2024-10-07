@@ -25,9 +25,9 @@ const ChatHeader = ({ title, onFileUpload, setShowSearchInput }) => {
       justifyContent="space-between"
       sx={{
         margin: 0,
-        backgroundColor: "#a67153",
+        backgroundColor: "#D5D3CB",
         padding: 2,
-        borderBottom: "1px solid #c1c1c1",
+        borderBottom: "1px solid #202020",
         borderRadius: "10px 10px 0px 0px",
       }}
     >
@@ -42,7 +42,7 @@ const ChatHeader = ({ title, onFileUpload, setShowSearchInput }) => {
             overflow: "hidden",
             textOverflow: "ellipsis",
             fontFamily: "KCC-Hanbit",
-            color: "black",
+            color: "#202020",
           }}
         >
           {truncatedTitle ? `${truncatedTitle}` : "채팅방"}
@@ -51,7 +51,7 @@ const ChatHeader = ({ title, onFileUpload, setShowSearchInput }) => {
 
       <Grid item>
         <IconButton color="primary" aria-label="search" component="span" onClick={toggleSearchInput}>
-          <SearchIcon sx={{ color: "white", fontSize: 40 }} />
+          <SearchIcon sx={{ color: "#30231c", fontSize: 40 }} />
         </IconButton>
       </Grid>
 
@@ -62,7 +62,7 @@ const ChatHeader = ({ title, onFileUpload, setShowSearchInput }) => {
         <input type="file" multiple onChange={handleFileChange} style={{ display: "none" }} id="file-upload" />
         <label htmlFor="file-upload">
           <IconButton color="primary" aria-label="add" component="span">
-            <PhotoCameraIcon sx={{ color: "black", fontSize: 40 }} />
+            <PhotoCameraIcon sx={{ color: "#30231c", fontSize: 40 }} />
           </IconButton>
         </label>
       </Grid>

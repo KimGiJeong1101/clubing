@@ -296,7 +296,7 @@ const ChatPage = () => {
           display: "flex",
           flexDirection: "column",
           marginBottom: 0,
-          backgroundColor: "#a67153",
+          backgroundColor: "#D5D3CB",
           borderRadius: "0px 0px 0px 0px",
         }}
       >
