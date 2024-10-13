@@ -255,7 +255,17 @@ const MessageList = ({ messages, userId, handleScroll, isAtBottom, newMessageRec
                       }}
                     >
                       {isUrl(msg.content) ? (
-                        <a href={msg.content.startsWith("http") ? msg.content : `http://${msg.content}`} target="_blank" rel="noopener noreferrer" style={{ color: "#1976d2" }}>
+                        <a
+                          href={msg.content.startsWith("http") ? msg.content : `http://${msg.content}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            color: "#1976d2",
+                            textDecoration: "underline", // 밑줄 추가
+                            textUnderlineOffset: "4px", // 밑줄과 글자 간격 설정
+                            textDecorationThickness: "1px", // 밑줄 두께 조정 (선택 사항)
+                          }}
+                        >
                           {msg.content}
                         </a>
                       ) : (
