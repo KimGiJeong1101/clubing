@@ -9,6 +9,9 @@ const router = express.Router();
 // 기본 업로드 디렉토리 설정
 const uploadDir = path.join(__dirname, "../../uploads/chatUploadImage");
 
+
+const apiUrl = process.env.REACT_APP_API_URL;
+
 // 업로드 폴더가 존재하지 않으면 새로 생성
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
@@ -97,8 +100,8 @@ router.post("/upload", upload.array("files", 20), async (req, res) => {
 
       // 원본 파일과 썸네일 파일의 URL을 배열에 추가
       urls.push({
-        original: `http://localhost:4000/uploads/chatUploadImage/${datePath}/original/${filename}`,
-        thumbnail: `http://localhost:4000/uploads/chatUploadImage/${datePath}/thumbnail/thumb_${filename}`,
+        original: `${apiUrl}/uploads/chatUploadImage/${datePath}/original/${filename}`,
+        thumbnail: `${apiUrl}/uploads/chatUploadImage/${datePath}/thumbnail/thumb_${filename}`,
       });
     }
 

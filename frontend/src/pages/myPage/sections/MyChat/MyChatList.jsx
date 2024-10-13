@@ -3,14 +3,13 @@ import { Box, CircularProgress, Typography } from "@mui/material"; // Typography
 import { useSelector } from "react-redux";
 import axiosInstance from "../../../../utils/axios";
 import ClubCarousel4 from "../../../../components/club/ClubCarousel4";
-import axios from "axios"; // axios 임포트
 
 // 사용자 정보 가져오기
-// 사용자 정보 가져오기
+
 const fetchUserByEmail = async (email) => {
   try {
     console.log(`Fetching user data for email: ${email}`);
-    const response = await axios.get(`http://localhost:4000/users/email/${email}`);
+    const response = await axiosInstance.get(`/users/email/${email}`);
     console.log(`User data fetched:`, response.data);
     return response.data;
   } catch (error) {
