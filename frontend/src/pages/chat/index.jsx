@@ -7,11 +7,10 @@ import io from "socket.io-client";
 import ChatHeader from "./ChatHeader";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
-import axios from "axios";
 import ImageModal from "./ImageModal";
-import Cookies from "js-cookie"; // js-cookie 패키지 임포트
 import CustomSnackbarWithTimer from "../../components/auth/Snackbar";
 import SearchInput from "./SearchInput";
+import axiosInstance from "../../utils/axios";
 
 const ChatPage = () => {
   console.log("ChatPage 컴포넌트 렌더링됨");
@@ -97,8 +96,11 @@ const ChatPage = () => {
   console.log("유즈이펙트전에");
 
   useEffect(() => {
+    const baseURL = axiosInstance.defaults.baseURL;
     // 소켓 클라이언트 초기화
-    const newSocket = io("http://localhost:4000"); // 서버 주소로 소켓을 초기화. "http://localhost:4000"은 서버의 주소.
+    const newSocket = io(baseURL); // 서버 주소로 소켓을 초기화. "http://localhost:4000"은 서버의 주소.
+    // 위에 io 옆에 `${axiosInstance}` 했는데 안되더라. 이유는 저 부분은 스트링?? 주소?? 만 들어갈수 있는데,
+    // axiosInstance는 객체라서. 위에서처럼 변수 선언하고 변수를 쓰거나 아니면 직접 const newSocket = io(`${axiosInstance.defaults.baseURL}`); 이렇게 써주면 됨
     setSocket(newSocket); // 새로 만든 소켓을 상태로 설정하여, 다른 컴포넌트에서도 접근할 수 있게 함.
 
     // 소켓 연결이 완료되었을 때 실행되는 콜백
@@ -226,7 +228,7 @@ const ChatPage = () => {
     });
 
     try {
-      const res = await axios.post("http://localhost:4000/clubs/chatimage/upload", formData);
+      const res = await axiosInstance.post("/clubs/chatimage/upload", formData);
       const imageUrls = res.data.urls;
 
       const newMessage = {

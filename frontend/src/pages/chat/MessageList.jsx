@@ -6,6 +6,7 @@ import Slider from "react-slick";
 import CloseIcon from "@mui/icons-material/Close";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import axiosInstance from "../../utils/axios";
 
 // 시간 형식 변환 함수
 const formatTime = (timestamp) => {
@@ -33,7 +34,7 @@ const groupMessagesByDate = (messages) => {
 // 사용자 정보 가져오기
 const fetchUserById = async (userId) => {
   try {
-    const response = await axios.get(`http://localhost:4000/users/${userId}`);
+    const response = await axiosInstance.get(`/users/${userId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching user data:", error);
